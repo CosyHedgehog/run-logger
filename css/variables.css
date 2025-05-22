@@ -1,0 +1,117 @@
+:root {
+    --bg-color: #f0f2f5;
+    --text-color: #333;
+    --primary-color: #007bff;
+    --primary-hover-color: #0056b3;
+    --secondary-color: #6c757d;
+    --secondary-hover-color: #5a6268;
+    --success-color: #28a745;
+    --success-hover-color: #218838;
+    --info-color: #17a2b8;
+    --info-hover-color: #138496;
+    --warning-color: #ffc107;
+    --warning-hover-color: #e0a800;
+    --warning-text-color: #212529;
+    --danger-color: #dc3545;
+    --danger-hover-color: #c82333;
+
+    --body-bg: #f0f2f5;
+    --body-text: #333;
+    --card-bg: #ffffff;
+    --card-shadow: rgba(0, 0, 0, 0.08);
+    --card-title-color: #343a40;
+    --card-border-color: #e9ecef;
+    --card-subtle-text-color: #495057;
+    --card-dotted-border-color: #ced4da;
+
+    --tab-bg: #ffffff;
+    --tab-shadow: rgba(0, 0, 0, 0.1);
+    --tab-inactive-text: #6c757d;
+    --tab-active-text: var(--primary-color);
+    --tab-active-border: var(--primary-color);
+
+    --table-header-bg: #f8f9fa;
+    --table-header-text: #495057;
+    --table-row-border: #e9ecef;
+    --table-row-even-bg: #fdfdfe;
+    --table-row-hover-bg: #e9ecef;
+
+    --input-bg: #ffffff;
+    --input-border: #ced4da;
+    --input-focus-border: #80bdff;
+    --input-focus-shadow: rgba(0, 123, 255, 0.20);
+
+    --overlay-bg: rgba(0, 0, 0, 0.5);
+
+    --button-default-bg: var(--secondary-color);
+    --button-default-text: white;
+    --button-default-hover-bg: var(--secondary-hover-color);
+
+    --button-primary-bg: var(--primary-color);
+    --button-primary-text: white;
+    --button-primary-hover-bg: var(--primary-hover-color);
+
+    /* Disabled State Colors */
+    --disabled-bg-color: #e9ecef;  /* Light gray background */
+    --disabled-text-color: #6c757d; /* Muted text color */
+
+    /* Add more as needed */
+}
+
+html.dark-mode {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --primary-color: #0d6efd; /* Slightly different blue for dark mode if needed */
+    --primary-hover-color: #0b5ed7;
+    --secondary-color: #6c757d;
+    --secondary-hover-color: #5c636a;
+    --success-color: #198754;
+    --success-hover-color: #157347;
+    --info-color: #0dcaf0;
+    --info-hover-color: #31d2f2;
+    --warning-color: #ffc107;
+    --warning-hover-color: #ffca2c;
+    --warning-text-color: #212529; /* Keep dark text on yellow for contrast */
+    --danger-color: #dc3545;
+    --danger-hover-color: #bb2d3b;
+
+    --body-bg: #1a1a1a; /* Slightly lighter than pure black for depth */
+    --body-text: #e0e0e0;
+    --card-bg: #2c2c2c; /* Darker card background */
+    --card-shadow: rgba(0, 0, 0, 0.4);
+    --card-title-color: #f5f5f5;
+    --card-border-color: #444444;
+    --card-subtle-text-color: #bbbbbb;
+    --card-dotted-border-color: #555555;
+
+    --tab-bg: #2c2c2c;
+    --tab-shadow: rgba(0, 0, 0, 0.5);
+    --tab-inactive-text: #aaaaaa;
+    --tab-active-text: var(--primary-color);
+    --tab-active-border: var(--primary-color);
+
+    --table-header-bg: #3a3a3a;
+    --table-header-text: #e0e0e0;
+    --table-row-border: #444444;
+    --table-row-even-bg: #333333;
+    --table-row-hover-bg: #4f4f4f;
+
+    --input-bg: #3a3a3a;
+    --input-border: #555555;
+    --input-focus-border: #0d6efd;
+    --input-focus-shadow: rgba(13, 110, 253, 0.35);
+
+    --overlay-bg: rgba(0, 0, 0, 0.7);
+
+    --button-default-bg: var(--secondary-color);
+    --button-default-text: #e0e0e0;
+    --button-default-hover-bg: var(--secondary-hover-color);
+
+    --button-primary-bg: var(--primary-color);
+    --button-primary-text: #e0e0e0;
+    --button-primary-hover-bg: var(--primary-hover-color);
+
+    /* Disabled State Colors - Dark Mode */
+    --disabled-bg-color: #3a3f44;  /* Darker gray background */
+    --disabled-text-color: #7a8288; /* Muted text color for dark mode */
+} 

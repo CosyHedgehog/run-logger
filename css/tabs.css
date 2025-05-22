@@ -1,0 +1,128 @@
+/* Tab Header (for title and button within tab) */
+.tab-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px; /* Space below header before table */
+}
+
+.tab-header h2 {
+    margin: 0; /* Remove default h2 margins */
+    border-bottom: none; /* Remove border if h2 is part of tab-header */
+    color: var(--card-title-color); /* Use card title color */
+}
+
+.tab-specific-log-btn {
+    background-color: var(--button-primary-bg);
+    color: var(--button-primary-text);
+    padding: 10px 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.25); /* May need dark mode adjustment if color specific */
+}
+
+.tab-specific-log-btn:hover {
+    background-color: var(--button-primary-hover-bg);
+    box-shadow: 0 3px 7px rgba(0, 86, 179, 0.35); /* May need dark mode adjustment */
+}
+
+/* Tab Styles */
+.tabs {
+    display: flex;
+    background-color: var(--tab-bg);
+    box-shadow: 0 2px 4px var(--tab-shadow);
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    align-items: center; /* Vertically align items in tab bar */
+    border-radius: 8px; /* Rounded corners for the tab bar */
+}
+
+.tab-button {
+    padding: 12px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    margin-right: 8px;
+    font-size: 1em;
+    color: var(--tab-inactive-text);
+    border-bottom: 3px solid transparent;
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
+}
+
+.tab-button:hover {
+    color: var(--tab-active-text);
+}
+
+.tab-button.active {
+    color: var(--tab-active-text);
+    border-bottom-color: var(--tab-active-border);
+    font-weight: 600;
+}
+
+.tab-pane { 
+    display: none;
+    padding: 25px;
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--card-shadow);
+    margin-bottom: 30px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Add margin to tab content to create space below sticky tab bar */
+#tabContent {
+    margin-top: 20px;
+    display: flex; /* Make #tabContent a flex container */
+    flex-direction: column; /* Stack tab panes vertically */
+    flex-grow: 1; /* Allow #tabContent to grow */
+    /* min-height: 0; Might be needed if parent is also flex column */
+}
+
+/* Adjustments for Summary tab-pane to act as a container */
+#summary.tab-pane {
+    /* display: flex; // Moved to #summary.tab-pane.active */
+    flex-direction: column;
+    background-color: transparent; /* Summary pane itself is transparent */
+    box-shadow: none;
+    padding: 0; 
+    margin-bottom: 0; 
+}
+
+/* Add this new rule specifically for the active summary tab */
+#summary.tab-pane.active {
+    display: flex;
+    /* flex-grow: 1; /* Summary does not need to take full height, content dictates */
+} 
+
+/* New rule for #settings.tab-pane */
+#settings.tab-pane {
+    background-color: transparent;
+    box-shadow: none;
+    padding: 0; /* Or a smaller padding like 10px if you want some space around the inner card */
+    margin-bottom: 0; /* Or adjust if needed */
+}
+
+/* Specific styles for Jason and Kelvin panes to take full height */
+#jason.tab-pane.active,
+#kelvin.tab-pane.active {
+    display: flex; /* Already set by .tab-pane.active but good to be explicit */
+    flex-direction: column;
+    flex-grow: 1; /* This pane should grow */
+}
+
+#runsDisplayJason,
+#runsDisplayKelvin {
+    flex-grow: 1; /* The table container should grow within the pane */
+    /* overflow-y: auto; Already set in tables.css */
+    min-height: 0; /* Crucial for scrollable flex children */
+    max-height: none; /* Override fixed max-height from tables.css for full height behavior */
+} 

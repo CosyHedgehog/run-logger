@@ -1,0 +1,248 @@
+/* Statistics and Graphs Sections (Now part of .content-card) */
+#statistics {
+    /* background-color: #fff; // Handled by content-card */
+    padding: 0; /* Reset from previous direct styling */
+    /* border-radius: 8px; // Handled by content-card */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // Handled by content-card */
+    margin-bottom: 0; /* Reset */
+}
+
+#statistics h3, .content-card > h2 { 
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--card-title-color);
+    font-size: 1.4em; 
+    border-bottom: 1px solid var(--card-border-color);
+    padding-bottom: 10px;
+}
+
+#statistics p {
+    font-size: 1em;
+    color: var(--card-subtle-text-color);
+    margin-bottom: 10px;
+}
+
+#statistics p span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.chart-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    position: relative; 
+    height: 400px; 
+}
+
+canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    /* Chart.js might need specific re-render for theme change if colors are static */
+}
+
+/* Data Management Buttons - Adjusted for placement within Summary tab */
+.data-management-buttons {
+    display: flex;
+    justify-content: center; 
+    gap: 15px;
+    padding: 15px 0; 
+    margin-top: 30px; 
+}
+
+.data-management-buttons button {
+    padding: 10px 20px;
+    font-size: 0.95em;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    border: none; /* ensure no default borders */
+}
+
+#exportRunsBtn {
+    background-color: var(--info-color);
+    color: white; /* Or specific var */
+}
+
+#exportRunsBtn:hover {
+    background-color: var(--info-hover-color);
+    box-shadow: 0 2px 5px rgba(23, 162, 184, 0.3); /* Needs var or dark mode adjustment */
+}
+
+#importRunsBtn {
+    background-color: var(--warning-color);
+    color: var(--warning-text-color);
+}
+
+#importRunsBtn:hover {
+    background-color: var(--warning-hover-color);
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3); /* Needs var or dark mode adjustment */
+}
+
+/* Danger button style (for Delete All) */
+.danger-btn {
+    background-color: var(--danger-color);
+    color: white; /* Or specific var */
+}
+
+.danger-btn:hover {
+    background-color: var(--danger-hover-color);
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3); /* Needs var or dark mode adjustment */
+}
+
+/* Content Card for Summary Page Sections */
+.content-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px var(--card-shadow);
+    padding: 25px;
+    margin-bottom: 25px; 
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+}
+
+.content-card > h2 { 
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    color: var(--card-title-color);
+    border-bottom: 1px solid var(--card-border-color);
+    padding-bottom: 10px;
+    transition: color 0.3s ease, border-bottom-color 0.3s ease; /* Smooth transition */
+}
+
+/* Remove direct card styling from these elements as they are now IN a card */
+#statistics { /* #graphs was removed, this rule now only applies to #statistics */
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    box-shadow: none;
+    margin-bottom: 0;
+}
+
+/* Specific styling for sub-headings within cards if needed */
+#statistics h3 {
+    margin-top: 0; 
+    margin-bottom: 15px;
+    font-size: 1.2em; 
+    color: var(--card-subtle-text-color);
+    border-bottom: 1px dotted var(--card-dotted-border-color);
+    padding-bottom: 8px;
+    transition: color 0.3s ease, border-bottom-color 0.3s ease; /* Smooth transition */
+}
+
+/* Chart titles are now h2 handled by .content-card > h2, so .chart-container h3 style is removed. */
+
+/* Adjust data management buttons for its new card */
+.data-management-card .data-management-buttons {
+    margin-top: 0; 
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+}
+
+.data-management-card .data-management-buttons button {
+    width: 100%;
+}
+
+.data-management-card > h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Specific adjustments for the summary statistics card */
+.stats-summary-card {
+    padding: 15px; /* Reduced padding from default 25px */
+}
+
+.stats-summary-card #userStatsTable {
+    margin-bottom: 0px; /* Remove bottom margin from the table inside this specific card */
+}
+
+/* Styling for App Security Settings Card */
+.app-settings-card .form-actions {
+    display: flex;
+    gap: 15px; /* Spacing between buttons */
+    margin-top: 20px; /* Space above the buttons */
+}
+
+.app-settings-card .form-actions button {
+    padding: 10px 20px; /* Adjusted padding, can be same as form buttons if preferred (12px 20px) */
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em; /* Slightly smaller or match form buttons (1em) */
+    font-weight: 500;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    flex-grow: 1; /* Make buttons grow to fill space if needed, or remove for natural width */
+}
+
+#saveMasterPasswordBtn {
+    background-color: var(--success-color);
+    color: white; /* Or var(--button-text-light) or similar */
+}
+
+#saveMasterPasswordBtn:hover {
+    background-color: var(--success-hover-color);
+    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.2);
+}
+
+/* #clearMasterPasswordBtn already has inline styles for its specific warning colors */
+/* We just need to ensure its hover state is consistent if desired */
+#clearMasterPasswordBtn:hover {
+    /* Assuming var(--warning-hover-color) is defined and works well with its text color */
+    background-color: var(--warning-hover-color);
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.2); /* Example shadow, adjust color if needed */
+}
+
+.app-settings-card label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--card-subtle-text-color);
+    font-size: 1em;
+}
+
+.app-settings-card input[type="password"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--input-border);
+    border-radius: 6px;
+    box-sizing: border-box;
+    font-size: 1em;
+    background-color: var(--input-bg);
+    color: var(--body-text);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+}
+
+.app-settings-card input[type="password"]:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
+    outline: none;
+}
+
+.app-settings-card #masterPasswordStatus {
+    font-size: 1em; /* Changed from 0.9em to match standard paragraph text */
+    text-align: center; /* Horizontally center the text */
+    /* Italic is already set inline, color changes via JS */
+    margin-top: 15px; /* Add a bit more margin on top for spacing if needed */
+}
+
+/* Custom styling for disabled elements in the settings card */
+.app-settings-card input[type="password"]:disabled,
+.app-settings-card #saveMasterPasswordBtn:disabled { /* Target #saveMasterPasswordBtn specifically */
+    background-color: var(--disabled-bg-color);
+    color: var(--disabled-text-color);
+    cursor: default;
+    opacity: 0.75;
+    box-shadow: none;
+}
+
+/* Ensure hover effect on save button is removed when disabled */
+.app-settings-card #saveMasterPasswordBtn:disabled:hover {
+    background-color: var(--disabled-bg-color); /* Keep background same as disabled state */
+    box-shadow: none; /* No shadow on hover when disabled */
+} 

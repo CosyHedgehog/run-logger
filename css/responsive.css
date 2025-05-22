@@ -1,0 +1,225 @@
+/* Responsive Design */
+
+/* Styles for side-by-side charts on larger screens - these are default */
+.dual-chart-row {
+    display: flex;
+    gap: 20px; /* Adjust gap as needed */
+    margin-bottom: 20px; /* Keep consistent margin with other cards */
+}
+
+.dual-chart-row > .content-card {
+    flex: 1; /* Each card takes equal width */
+    margin-bottom: 0; /* Remove individual bottom margin as row has it */
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 15px;
+        margin: 10px auto;
+    }
+
+    .tabs {
+        padding: 0 10px; 
+    }
+
+    .tab-button {
+        padding: 10px 12px;
+        font-size: 0.9em;
+        margin-right: 5px;
+    }
+
+    #darkModeToggle {
+        padding: 8px 10px;
+        font-size: 1.2em;
+    }
+
+    .data-management-buttons {
+        flex-direction: column; 
+        align-items: stretch; 
+        padding: 10px 0; 
+        gap: 10px;
+        margin-top: 20px; 
+    }
+
+    .data-management-buttons button {
+        width: 100%; 
+    }
+
+    #logRunFormContainer {
+        width: 90%;
+        max-width: none; 
+        padding: 20px;
+        max-height: 90vh; 
+        overflow-y: auto; 
+    }
+
+    #logRunFormContainer h2 {
+        font-size: 1.4em;
+    }
+
+    form div {
+        margin-bottom: 12px;
+    }
+
+    label {
+        font-size: 0.9em;
+    }
+
+    input[type="date"],
+    input[type="number"],
+    textarea,
+    select {
+        padding: 10px;
+        font-size: 0.95em;
+    }
+
+    button[type="submit"],
+    #cancelLogRunBtn {
+        padding: 10px 15px;
+        font-size: 0.95em;
+    }
+    
+    .tab-pane {
+        padding: 15px;
+    }
+
+    #runsDisplaySummary,
+    #runsDisplayJason,
+    #runsDisplayKelvin {
+        overflow-x: auto;
+        display: block; 
+        width: 100%;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    table {
+        font-size: 0.85em; 
+        min-width: 600px; 
+    }
+
+    th, td {
+        padding: 10px 8px;
+        white-space: nowrap; 
+    }
+
+    #statistics h3, .content-card > h2, .tab-pane h2 {
+        font-size: 1.2em;
+    }
+
+    #statistics p {
+        font-size: 0.9em;
+    }
+
+    .chart-container {
+        height: 300px; 
+    }
+
+    .tab-header {
+        flex-direction: column; 
+        align-items: flex-start; 
+        gap: 10px; 
+    }
+
+    .tab-header h2 {
+        margin-bottom: 0; 
+    }
+
+    .tab-specific-log-btn {
+        align-self: stretch; 
+        text-align: center;
+    }
+
+    /* Responsive adjustments for cards and new variables */
+    .content-card {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .content-card > h2 {
+        font-size: 1.3em;
+    }
+    #statistics h3 {
+        font-size: 1.1em;
+    }
+    .tab-pane { 
+        padding: 20px;
+    }
+
+    #statistics { /* Added for horizontal scrolling of user stats table */
+        overflow-x: auto;
+        display: block;
+        width: 100%;
+    }
+
+    .dual-chart-row {
+        flex-direction: column; /* Stack them on smaller screens */
+        gap: 0;
+        margin-bottom: 0;
+    }
+
+    .dual-chart-row > .content-card {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        /* Potentially adjust overall font size for very small screens */
+    }
+
+    .tabs {
+        /* Could further adjust tab styling if needed, e.g., scrollable tabs */
+    }
+    
+    .tab-button {
+        padding: 8px 10px;
+        font-size: 0.8em;
+    }
+
+    #darkModeToggle {
+        padding: 6px 8px;
+        font-size: 1.1em;
+    }
+
+    #logRunFormContainer {
+        padding: 15px; 
+    }
+
+    #logRunFormContainer h2 {
+        font-size: 1.2em;
+    }
+
+    label {
+        font-size: 0.85em;
+    }
+
+    table {
+        font-size: 0.75em; 
+        min-width: 500px;
+    }
+
+    th, td {
+        padding: 8px 6px;
+    }
+
+    .chart-container {
+        height: 250px; 
+    }
+
+    /* Responsive adjustments for cards and new variables */
+    .content-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .content-card > h2 {
+        font-size: 1.2em;
+    }
+    #statistics h3 {
+        font-size: 1em;
+    }
+    .tab-pane { 
+        padding: 15px;
+    }
+
+    /* #statistics will inherit overflow-x: auto from the 768px breakpoint */
+} 

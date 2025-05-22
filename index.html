@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Logger</title>
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/tabs.css">
+    <link rel="stylesheet" href="css/forms.css">
+    <link rel="stylesheet" href="css/tables.css">
+    <link rel="stylesheet" href="css/cards.css">
+    <link rel="stylesheet" href="css/utilities.css">
+    <link rel="stylesheet" href="css/responsive.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // Immediately apply theme from localStorage to prevent flash
+        (function() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            }
+            // The button icon will be set by the main script once DOM is loaded
+        })();
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-button" data-tab="summary">Summary</button>
+            <button class="tab-button" data-tab="jason">Jason</button>
+            <button class="tab-button" data-tab="kelvin">Kelvin</button>
+            <button class="tab-button" data-tab="settings" title="Settings">⚙️</button>
+            <button id="darkModeToggle" title="Toggle dark mode">🌙</button>
+        </div>
+
+        <div id="formOverlay" class="hidden"></div>
+        <div id="logRunFormContainer" class="hidden">
+            <form id="runForm">
+                <h2>Log New Run for <span id="logForUser"></span></h2>
+                <input type="hidden" id="currentUserForRun" name="currentUserForRun">
+                <input type="hidden" id="runIdToEdit" name="runIdToEdit">
+                <div>
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" name="date" required>
+                </div>
+                <div>
+                    <label for="time">Time (minutes):</label>
+                    <input type="number" id="time" name="time" required>
+                </div>
+                <div>
+                    <label for="mph">MPH:</label>
+                    <input type="number" step="0.1" id="mph" name="mph" required>
+                </div>
+                <div>
+                    <label for="bpm">BPM:</label>
+                    <input type="number" id="bpm" name="bpm">
+                </div>
+                <div>
+                    <label for="plus1">+1:</label>
+                    <input type="number" id="plus1" name="plus1">
+                </div>
+                <div>
+                    <label for="notes">Notes:</label>
+                    <textarea id="notes" name="notes"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelLogRunBtn">Cancel</button>
+                    <button type="submit">Add Run</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Modal (Previously Error Modal, now General Purpose) -->
+        <div id="modalContainer" class="hidden">
+            <div id="modalContent">
+                <h2 id="modalTitle">Notification</h2>
+                <p id="modalMessage">An unexpected event occurred.</p>
+                <div class="form-actions" style="justify-content: center; gap: 10px;">
+                    <button id="modalCancelBtn">Cancel</button>
+                    <button id="modalConfirmBtn">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tabContent">
+            <div id="summary" class="tab-pane">
+                <div class="content-card stats-summary-card">
+                    <div id="statistics">
+                        <table id="userStatsTable">
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-column="user">User <span></span></th>
+                                    <th class="sortable-header" data-column="totalKm">Total (km) <span></span></th>
+                                    <th class="sortable-header" data-column="totalKm2025">Total 2025 (km) <span></span></th>
+                                    <th class="sortable-header" data-column="visits2025">Visits 2025 <span></span></th>
+                                    <th class="sortable-header" data-column="avgKmDay2025">Avg km/day 2025 <span></span></th>
+                                    <th class="sortable-header" data-column="goal2025">Goal 2025 (km) <span></span></th>
+                                    <th class="sortable-header" data-column="percentToGoal2025">% to Goal 2025 <span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="userStatsTableBody">
+                                <tr id="jasonStatsRow">
+                                    <td>Jason</td>
+                                    <td id="totalDistanceOverallJason">0</td>
+                                    <td id="totalDistance2025Jason">0</td>
+                                    <td id="totalVisits2025Jason">0</td>
+                                    <td id="avgKmDay2025Jason">0</td>
+                                    <td id="goal2025Jason">1000</td>
+                                    <td id="percentToGoal2025Jason">0%</td>
+                                </tr>
+                                <tr id="kelvinStatsRow">
+                                    <td>Kelvin</td>
+                                    <td id="totalDistanceOverallKelvin">0</td>
+                                    <td id="totalDistance2025Kelvin">0</td>
+                                    <td id="totalVisits2025Kelvin">0</td>
+                                    <td id="avgKmDay2025Kelvin">0</td>
+                                    <td id="goal2025Kelvin">500</td>
+                                    <td id="percentToGoal2025Kelvin">0%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h2>Distance Ran Over Time (Km)</h2>
+                    <div class="chart-container">
+                        <canvas id="distanceOverTimeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dual-chart-row">
+                    <div class="content-card">
+                        <h2>Total Distance Ran Overall (Km)</h2>
+                        <div class="chart-container">
+                            <canvas id="totalKmOverallChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h2>Total Distance Ran in 2025 (Km)</h2>
+                        <div class="chart-container">
+                            <canvas id="totalKm2025Chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h2>Logged Runs (All)</h2>
+                    <div id="runsDisplaySummary">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-column="user">User <span></span></th>
+                                    <th class="sortable-header" data-column="date">Date <span></span></th>
+                                    <th class="sortable-header" data-column="day">Day <span></span></th>
+                                    <th class="sortable-header" data-column="time">Time (min) <span></span></th>
+                                    <th class="sortable-header" data-column="mph">MPH <span></span></th>
+                                    <th class="sortable-header" data-column="kph">Km/hr <span></span></th>
+                                    <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
+                                    <th class="sortable-header" data-column="bpm">BPM <span></span></th>
+                                    <th class="sortable-header" data-column="plus1">+1 <span></span></th>
+                                    <th class="sortable-header" data-column="delta">Δ <span></span></th>
+                                    <!-- <th class="sortable-header" data-column="notes">Notes <span></span></th> -->
+                                </tr>
+                            </thead>
+                            <tbody id="runsTableBodySummary">
+                                <!-- Run data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="jason" class="tab-pane">
+                <div class="tab-header">
+                    <h2>Jason's Runs</h2>
+                    <button class="showLogRunFormBtn tab-specific-log-btn" data-user="Jason">Log Run</button>
+                </div>
+                <div id="runsDisplayJason">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" data-column="date">Date <span></span></th>
+                                <th class="sortable-header" data-column="day">Day <span></span></th>
+                                <th class="sortable-header" data-column="time">Time (min) <span></span></th>
+                                <th class="sortable-header" data-column="mph">MPH <span></span></th>
+                                <th class="sortable-header" data-column="kph">Km/hr <span></span></th>
+                                <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
+                                <th class="sortable-header" data-column="bpm">BPM <span></span></th>
+                                <th class="sortable-header" data-column="plus1">+1 <span></span></th>
+                                <th class="sortable-header" data-column="delta">Δ <span></span></th>
+                                <!-- <th class="sortable-header" data-column="notes">Notes <span></span></th> -->
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runsTableBodyJason">
+                            <!-- Jason's run data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                 <!-- Potentially Jason-specific stats/graphs here -->
+            </div>
+
+            <div id="kelvin" class="tab-pane">
+                <div class="tab-header">
+                    <h2>Kelvin's Runs</h2>
+                    <button class="showLogRunFormBtn tab-specific-log-btn" data-user="Kelvin">Log Run</button>
+                </div>
+                <div id="runsDisplayKelvin">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="sortable-header" data-column="date">Date <span></span></th>
+                                <th class="sortable-header" data-column="day">Day <span></span></th>
+                                <th class="sortable-header" data-column="time">Time (min) <span></span></th>
+                                <th class="sortable-header" data-column="mph">MPH <span></span></th>
+                                <th class="sortable-header" data-column="kph">Km/hr <span></span></th>
+                                <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
+                                <th class="sortable-header" data-column="bpm">BPM <span></span></th>
+                                <th class="sortable-header" data-column="plus1">+1 <span></span></th>
+                                <th class="sortable-header" data-column="delta">Δ <span></span></th>
+                                <!-- <th class="sortable-header" data-column="notes">Notes <span></span></th> -->
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="runsTableBodyKelvin">
+                            <!-- Kelvin's run data will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Potentially Kelvin-specific stats/graphs here -->
+            </div>
+
+            <div id="settings" class="tab-pane">
+                <!-- Data Migration card removed -->
+                
+
+                <div class="content-card app-settings-card"> <!-- New Card for App Settings -->
+                    <h2>App Security Settings</h2>
+                    <p>Set the Master Shared Password here. This password, once saved, will be used to authorize data changes. It is stored in your browser's local storage for convenience. Do not set this on a public or untrusted computer.</p>
+                    <div>
+                        <label for="masterSharedPassword">Master Shared Password:</label>
+                        <input type="password" id="masterSharedPassword" name="masterSharedPassword">
+                    </div>
+                    <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
+                        <button id="saveMasterPasswordBtn">Save Password</button>
+                        <button id="clearMasterPasswordBtn" style="background-color: var(--warning-color); color: var(--warning-text-color);">Clear Saved Password</button>
+                    </div>
+                    <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
+                </div>
+            </div>
+
+        </div>
+    </div> <!-- Closing container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.x/dist/date-fns.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.x/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
