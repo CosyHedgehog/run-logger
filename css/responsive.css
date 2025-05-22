@@ -95,12 +95,13 @@
 
     table {
         font-size: 0.85em; 
-        min-width: 600px; 
+        width: 100%;
     }
 
     th, td {
         padding: 10px 8px;
-        white-space: nowrap; 
+        white-space: normal;
+        text-align: left;
     }
 
     #statistics h3, .content-card > h2, .tab-pane h2 {
@@ -160,6 +161,11 @@
     .dual-chart-row > .content-card {
         margin-bottom: 20px;
     }
+
+    /* Hide specific table columns on mobile */
+    .hide-on-mobile {
+        display: none !important; /* Use !important to ensure override if needed */
+    }
 }
 
 @media (max-width: 480px) {
@@ -195,11 +201,12 @@
 
     table {
         font-size: 0.75em; 
-        min-width: 500px;
+        width: 100%;
     }
 
     th, td {
         padding: 8px 6px;
+        white-space: normal;
     }
 
     .chart-container {

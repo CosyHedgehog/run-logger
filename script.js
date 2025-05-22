@@ -648,41 +648,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTable(tableBody, runsToDisplay, isSummaryTable = false) {
         tableBody.innerHTML = '';
         if (!runsToDisplay || runsToDisplay.length === 0) {
-            const colspan = isSummaryTable ? 10 : 10; // Adjusted colspan for summary (was 11)
+            const colspan = 10; // Now 10 for both summary and non-summary after removing Notes
             tableBody.innerHTML = `<tr class="no-data-message"><td colspan="${colspan}">No runs logged yet.</td></tr>`;
             return;
         }
         runsToDisplay.forEach(run => {
             const row = tableBody.insertRow();
-            // const originalIndex = runs.findIndex(r => r.id === run.id); // Find original index by ID for stable deletion - Not needed for rendering
             if (isSummaryTable) row.insertCell().textContent = run.user;
-            row.insertCell().textContent = new Date(run.date + 'T00:00:00').toLocaleDateString('en-GB'); // Consistent date format
-            row.insertCell().textContent = run.day;
-            row.insertCell().textContent = run.time; // Directly use MM:SS string
-            row.insertCell().textContent = run.mph.toFixed(1);
-            row.insertCell().textContent = run.kph.toFixed(3);
-            row.insertCell().textContent = run.distance.toFixed(3); // Changed to 3 decimal places
-            row.insertCell().textContent = run.bpm !== null ? run.bpm : '-';
-            row.insertCell().textContent = run.plus1 !== null ? run.plus1 : '-';
-            row.insertCell().textContent = run.delta !== null ? run.delta : '-';
-            // row.insertCell().textContent = run.notes || '-'; // Notes cell removed
+            row.insertCell().textContent = new Date(run.date + 'T00:00:00').toLocaleDateString('en-GB');
             
-            if (!isSummaryTable) { // Only add Actions column if not summary table
-            const actionsCell = row.insertCell();
+            const dayCell = row.insertCell();
+            dayCell.textContent = run.day;
+            if (!isSummaryTable) dayCell.classList.add('hide-on-mobile');
 
-            const editButton = document.createElement('button');
-                editButton.innerHTML = '<i class="fas fa-pencil-alt"></i>'; // New icon
-                editButton.title = 'Edit Run'; // Add tooltip for accessibility
-                editButton.classList.add('edit-btn'); 
-            editButton.onclick = () => openEditForm(run.id);
-            actionsCell.appendChild(editButton);
+            row.insertCell().textContent = run.time;
+            row.insertCell().textContent = run.mph.toFixed(1);
 
-            const deleteButton = document.createElement('button');
-                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>'; // New icon
-                deleteButton.title = 'Delete Run'; // Add tooltip for accessibility
-            deleteButton.classList.add('delete-btn');
-            deleteButton.onclick = () => deleteRun(run.id); // Pass ID for deletion
-            actionsCell.appendChild(deleteButton);
+            const kphCell = row.insertCell();
+            kphCell.textContent = run.kph.toFixed(3);
+            if (!isSummaryTable) kphCell.classList.add('hide-on-mobile');
+
+            const distanceCell = row.insertCell();
+            distanceCell.textContent = run.distance.toFixed(3);
+
+            const bpmCell = row.insertCell();
+            bpmCell.textContent = run.bpm !== null ? run.bpm : '-';
+            if (!isSummaryTable) bpmCell.classList.add('hide-on-mobile');
+
+            const plus1Cell = row.insertCell();
+            plus1Cell.textContent = run.plus1 !== null ? run.plus1 : '-';
+            if (!isSummaryTable) plus1Cell.classList.add('hide-on-mobile');
+            
+            const deltaCell = row.insertCell();
+            deltaCell.textContent = run.delta !== null ? run.delta : '-'; // Corrected from run.delta.toFixed(3) as delta can be null
+            if (!isSummaryTable) deltaCell.classList.add('hide-on-mobile');
+
+            if (!isSummaryTable) {
+                const actionsCell = row.insertCell();
+                actionsCell.classList.add('actions-cell');
+
+                // Delete button
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteBtn.classList.add('action-btn', 'delete-btn');
+                deleteBtn.setAttribute('aria-label', 'Delete run');
+                deleteBtn.onclick = function(event) { // ADDED event PARAMETER
+                    event.stopPropagation(); // ADDED THIS LINE
+                    deleteRun(run.id);
+                };
+                actionsCell.appendChild(deleteBtn);
+
+                // Make the entire row clickable to edit
+                row.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
+                row.addEventListener('click', function() {
+                    openEditForm(run.id);
+                });
             }
         });
     }
