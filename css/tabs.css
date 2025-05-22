@@ -12,6 +12,13 @@
     color: var(--card-title-color); /* Use card title color */
 }
 
+.entry-count {
+    font-size: 0.85em;
+    color: var(--card-subtle-text-color);
+    font-weight: normal;
+    margin-left: 8px;
+}
+
 .tab-specific-log-btn {
     background-color: var(--button-primary-bg);
     color: var(--button-primary-text);

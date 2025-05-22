@@ -901,15 +901,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // For Jason's Table
+        const jasonEntryCountEl = document.getElementById('jasonEntryCount');
         if (runsTableBodyJason) {
             let jasonRunsToRender = runs.filter(run => run.user === 'Jason');
             sortTableByColumn(runsTableBodyJason, 'date', jasonRunsToRender, false, 'desc');
+            if (jasonEntryCountEl) {
+                jasonEntryCountEl.textContent = ` (${jasonRunsToRender.length} entries)`;
+            }
         }
 
         // For Kelvin's Table
+        const kelvinEntryCountEl = document.getElementById('kelvinEntryCount');
         if (runsTableBodyKelvin) {
             let kelvinRunsToRender = runs.filter(run => run.user === 'Kelvin');
             sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsToRender, false, 'desc');
+            if (kelvinEntryCountEl) {
+                kelvinEntryCountEl.textContent = ` (${kelvinRunsToRender.length} entries)`;
+            }
         }
     }
 
