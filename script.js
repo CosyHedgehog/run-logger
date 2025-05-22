@@ -444,6 +444,79 @@ document.addEventListener('DOMContentLoaded', async () => {
     // const errorModalMessageEl = document.getElementById('errorModalMessage');   // REMOVE - ID changed
     // const closeErrorModalBtn = document.getElementById('closeErrorModalBtn'); // REMOVE - ID changed
 
+    // --- Dynamic Form Calculation for MPH/Distance ---
+    function handleDynamicFormCalculation() {
+        if (isCalculating) return; // Prevent infinite loops
+        isCalculating = true;
+
+        const timeString = timeInput.value;
+        const timeMinutes = parseMMSS(timeString);
+        const mph = parseFloat(mphInput.value);
+        const distanceKm = parseFloat(distanceInput.value);
+
+        if (isNaN(timeMinutes) || timeMinutes <= 0) {
+            // If time is invalid, don't attempt calculations that depend on it
+            // but still allow clearing the other field if one is focused
+            if (activeCalculatorInput === 'mph' && document.activeElement === mphInput) {
+                distanceInput.value = '';
+            } else if (activeCalculatorInput === 'distance' && document.activeElement === distanceInput) {
+                mphInput.value = '';
+            }
+            isCalculating = false;
+            return;
+        }
+
+        if (activeCalculatorInput === 'mph') {
+            if (!isNaN(mph) && mph > 0) {
+                const kph = calculateKph(mph);
+                const calculatedDistance = calculateDistance(timeMinutes, kph);
+                distanceInput.value = calculatedDistance.toFixed(3);
+            } else if (document.activeElement === mphInput && mphInput.value === '') {
+                 distanceInput.value = ''; // Clear distance if MPH is focused and cleared
+            }
+        } else if (activeCalculatorInput === 'distance') {
+            if (!isNaN(distanceKm) && distanceKm > 0) {
+                const calculatedMph = calculateMph(timeMinutes, distanceKm);
+                mphInput.value = calculatedMph.toFixed(1);
+            } else if (document.activeElement === distanceInput && distanceInput.value === '') {
+                mphInput.value = ''; // Clear MPH if distance is focused and cleared
+            }
+        }
+        isCalculating = false;
+    }
+
+    if (timeInput) {
+        timeInput.addEventListener('input', () => {
+            // When time changes, recalculate based on the last active input (MPH or Distance)
+            handleDynamicFormCalculation();
+        });
+    }
+    if (mphInput) {
+        mphInput.addEventListener('focus', () => {
+            activeCalculatorInput = 'mph';
+            console.log("Active calculator input set to: MPH");
+        });
+        mphInput.addEventListener('input', () => {
+            if (document.activeElement === mphInput) { // Ensure calculation only if user is typing in this field
+                activeCalculatorInput = 'mph';
+                handleDynamicFormCalculation();
+            }
+        });
+    }
+    if (distanceInput) {
+        distanceInput.addEventListener('focus', () => {
+            activeCalculatorInput = 'distance';
+            console.log("Active calculator input set to: Distance");
+        });
+        distanceInput.addEventListener('input', () => {
+            if (document.activeElement === distanceInput) { // Ensure calculation only if user is typing in this field
+                activeCalculatorInput = 'distance';
+                handleDynamicFormCalculation();
+            }
+        });
+    }
+    // --- End Dynamic Form Calculation ---
+
     // --- Settings Page Logic ---
     function updateMasterPasswordStatus(transientMessage = null) {
         if (!masterPasswordStatusEl) return;
