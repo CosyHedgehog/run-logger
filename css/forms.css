@@ -248,6 +248,13 @@ button[type="submit"]:hover {
     box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
 }
 
+/* Styles for App Security Settings buttons */
+.app-settings-card .form-actions button {
+    flex: 1; /* Each button takes equal width */
+    /* Ensure text is centered if it wasn't already */
+    text-align: center;
+}
+
 /* New style for side-by-side form inputs */
 .form-row {
     display: flex;
