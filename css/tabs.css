@@ -77,7 +77,6 @@
     background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 4px 12px var(--card-shadow);
-    margin-bottom: 30px;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
