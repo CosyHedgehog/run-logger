@@ -11,6 +11,33 @@ function calculateKph(mph) { return (mph * MPH_TO_KPH_FACTOR); }
 function calculateDistance(timeMinutes, kph) { const timeHours = timeMinutes / 60; return (timeHours * kph); }
 function getDayOfWeek(dateString) { const date = new Date(dateString + 'T00:00:00'); const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; return days[date.getDay()]; }
 
+// --- Time Format Helper Functions ---
+function parseMMSS(timeString) {
+    if (!timeString || typeof timeString !== 'string') return NaN;
+
+    // Check if the input is just a number (e.g., "40") and convert to "MM:00"
+    if (/^\d+$/.test(timeString)) {
+        timeString = timeString + ":00";
+    }
+
+    const parts = timeString.split(':');
+    if (parts.length !== 2) return NaN;
+    const minutes = parseInt(parts[0], 10);
+    const seconds = parseInt(parts[1], 10);
+    if (isNaN(minutes) || isNaN(seconds) || seconds < 0 || seconds >= 60 || minutes < 0) {
+        return NaN;
+    }
+    return minutes + (seconds / 60);
+}
+
+function formatMinutesToMMSS(totalMinutes) {
+    if (isNaN(totalMinutes) || totalMinutes < 0) return '00:00';
+    const minutes = Math.floor(totalMinutes);
+    const seconds = Math.round((totalMinutes - minutes) * 60);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+// --- End Time Format Helper Functions ---
+
 // Helper function to get the number of days passed in a specific year until today
 function getNumberOfDaysSoFarInYear(year) {
     const today = new Date();
@@ -507,7 +534,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log(`[applyTheme] localStorage theme: ${localStorage.getItem('theme')}`); // Log state
 
         // Update charts whenever theme changes
-        if (activeTab === 'summary') { // Only update if summary tab is active
+        if (activeTab === 'summary') {
              updateStatistics(); // This will re-render charts with new theme colors
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
@@ -553,7 +580,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (isSummaryTable) row.insertCell().textContent = run.user;
             row.insertCell().textContent = new Date(run.date + 'T00:00:00').toLocaleDateString('en-GB'); // Consistent date format
             row.insertCell().textContent = run.day;
-            row.insertCell().textContent = run.time.toFixed(1); // Format numerics
+            row.insertCell().textContent = run.time; // Directly use MM:SS string
             row.insertCell().textContent = run.mph.toFixed(1);
             row.insertCell().textContent = run.kph.toFixed(3);
             row.insertCell().textContent = run.distance.toFixed(3);
@@ -631,16 +658,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 case 'date':
                     return new Date(valA) - new Date(valB);
                 case 'time':
+                    const valAMinutes = parseMMSS(valA);
+                    const valBMinutes = parseMMSS(valB);
+                    if (isNaN(valAMinutes) && isNaN(valBMinutes)) return 0;
+                    if (isNaN(valAMinutes)) return 1; // Sort NaN to the end
+                    if (isNaN(valBMinutes)) return -1;
+                    return valAMinutes - valBMinutes;
                 case 'mph':
                 case 'kph':
                 case 'distance':
+                    return parseFloat(valA) - parseFloat(valB);
                 case 'bpm':
                 case 'plus1':
                 case 'delta':
-                    return parseFloat(valA) - parseFloat(valB);
-                case 'user':
-                case 'day':
-                case 'notes':
                     return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase());
                 default:
                     return 0;
@@ -1056,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const day = String(today.getDate()).padStart(2, '0');
             runForm.date.value = `${year}-${month}-${day}`;
             
-            runForm.time.value = 30;
+            runForm.time.value = "30:00"; // Pre-populate with MM:SS
             runForm.mph.value = 4;
             
             // Set user specific info
@@ -1086,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (runForm) {
             runForm.reset();
             runForm.date.value = runToEdit.date;
-            runForm.time.value = runToEdit.time;
+            runForm.time.value = runToEdit.time; // Directly use MM:SS string
             runForm.mph.value = runToEdit.mph;
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
@@ -1157,25 +1187,40 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const user = formData.get('currentUserForRun');
         const date = formData.get('date');
-        const time = parseFloat(formData.get('time'));
+        const timeInputString = formData.get('time'); // Get time as MM:SS string
         const mph = parseFloat(formData.get('mph'));
         const bpm = formData.get('bpm') ? parseInt(formData.get('bpm')) : null;
         const plus1 = formData.get('plus1') ? parseInt(formData.get('plus1')) : null;
         const notes = formData.get('notes');
 
-        if (!date || isNaN(time) || isNaN(mph) || !user) {
+        const parsedTimeMinutes = parseMMSS(timeInputString);
+        let timeStringToStore = timeInputString; // Default to original input
+
+        if (!date || isNaN(parsedTimeMinutes) || isNaN(mph) || !user) {
             closeLogRunForm(); // Close form first
-            openModal("Input Error", "Please fill in all required fields (User, Date, Time, MPH) correctly.", 'error');
+            let errorMessage = "Please fill in all required fields (User, Date, MPH) correctly.";
+            if (isNaN(parsedTimeMinutes) && timeInputString) { // If parsing failed and there was an input
+                 errorMessage = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
+            } else if (!timeInputString && isNaN(parsedTimeMinutes)){ // If time input was empty
+                 errorMessage = "Please fill in all required fields (User, Date, Time, MPH) correctly. Time is required.";
+            }
+            openModal("Input Error", errorMessage, 'error');
             return;
+        }
+
+        // If parsing was successful, format it to ensure MM:SS for storage
+        if (!isNaN(parsedTimeMinutes)) {
+            timeStringToStore = formatMinutesToMMSS(parsedTimeMinutes);
         }
 
         const day = getDayOfWeek(date);
         const kph = parseFloat(calculateKph(mph).toFixed(3));
-        const distanceVal = parseFloat(calculateDistance(time, kph).toFixed(3));
+        const distanceVal = parseFloat(calculateDistance(parsedTimeMinutes, kph).toFixed(3)); // Use parsed minutes for calculation
         const delta = (bpm !== null && plus1 !== null) ? (bpm - plus1) : null;
 
         const fullRunObject = {
-            user, date, time, mph, kph, 
+            user, date, time: timeStringToStore, // Store consistently formatted MM:SS string
+            mph, kph, 
             distance: distanceVal, bpm, plus1, delta, notes, day,
             auth_key: hashedAuthKey 
         };

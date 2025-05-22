@@ -63,6 +63,7 @@ label {
 
 input[type="date"],
 input[type="number"],
+input[type="text"],
 textarea,
 select {
     width: 100%;
@@ -94,6 +95,7 @@ html.dark-mode input[type="number"]::-webkit-outer-spin-button {
 
 input[type="date"]:focus,
 input[type="number"]:focus,
+input[type="text"]:focus,
 textarea:focus,
 select:focus {
     border-color: var(--input-focus-border);
