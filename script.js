@@ -538,7 +538,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (mphValue > 0) {
                 const kph = calculateKph(mphValue);
                 const newDistance = calculateDistance(parsedTimeMinutes, kph);
-                distanceInput.value = newDistance.toFixed(2); 
+                distanceInput.value = newDistance.toFixed(3); // Changed to 3 decimal places
             } else {
                 distanceInput.value = ''; 
             }
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             row.insertCell().textContent = run.time; // Directly use MM:SS string
             row.insertCell().textContent = run.mph.toFixed(1);
             row.insertCell().textContent = run.kph.toFixed(3);
-            row.insertCell().textContent = run.distance.toFixed(3);
+            row.insertCell().textContent = run.distance.toFixed(3); // Changed to 3 decimal places
             row.insertCell().textContent = run.bpm !== null ? run.bpm : '-';
             row.insertCell().textContent = run.plus1 !== null ? run.plus1 : '-';
             row.insertCell().textContent = run.delta !== null ? run.delta : '-';
@@ -1202,16 +1202,23 @@ document.addEventListener('DOMContentLoaded', async () => {
             runForm.date.value = runToEdit.date;
             runForm.time.value = runToEdit.time;
             runForm.mph.value = runToEdit.mph;
-            runForm.distance.value = runToEdit.distance; 
+            // Ensure distance is populated with 3 decimal places
+            const distanceToEdit = parseFloat(runToEdit.distance);
+            runForm.distance.value = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3); 
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
             runForm.notes.value = runToEdit.notes || '';
             currentUserForRunInput.value = runToEdit.user;
             runIdToEditInput.value = runId;
+
+            // ---- Store original values for comparison on save ----
+            runForm.dataset.originalTime = runToEdit.time;
+            runForm.dataset.originalMph = runToEdit.mph.toString();
+            // Store original distance with 3 decimal places if it's a valid number
+            runForm.dataset.originalDistance = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3);
+            // ---- End of storing original values ----
             
-            // ---- THESE ARE THE KEY LINES FOR openEditForm ----
-            activeCalculatorInput = 'mph'; // Default to MPH driving calculation if user edits time/mph.
-                                           // If they edit distance first, focus listener will change this.
+            activeCalculatorInput = 'mph'; 
             // No explicit call to handleDynamicFormCalculation(); here.
             // The user's first interaction with time, mph, or distance will trigger it.
             // ---- END OF KEY LINES ----
@@ -1307,49 +1314,92 @@ document.addEventListener('DOMContentLoaded', async () => {
             timeStringToStore = formatMinutesToMMSS(parsedTimeMinutes);
         }
 
-        let finalMph = mphInput ? parseFloat(mphInput) : 0;
-        let finalDistance = distanceInput ? parseFloat(distanceInput) : 0;
+        let finalMph = mphInput ? parseFloat(mphInput) : 0; // mphInput is formData.get('mph')
+        let finalDistance = distanceInput ? parseFloat(distanceInput) : 0; // distanceInput is formData.get('distance')
         let finalKph = 0;
 
-        // const mphProvided = mphInput && !isNaN(finalMph) && finalMph > 0; // Old check
-        // const distanceProvided = distanceInput && !isNaN(finalDistance) && finalDistance > 0; // Old check
+        // --- MODIFICATION FOR EDIT MODE: Check if values changed ---
+        if (editingRunId) {
+            const originalTime = runForm.dataset.originalTime;
+            const originalMphStr = runForm.dataset.originalMph;
+            const originalDistanceStr = runForm.dataset.originalDistance;
 
-        // --- New Prioritization Logic for Submission ---
-        if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
-            // User was focused on distance, and distance is valid. Prioritize it.
-            console.log("[addRun] Prioritizing DISTANCE based on activeCalculatorInput. Original MPH was:", finalMph);
-            finalDistance = parseFloat(finalDistance.toFixed(3)); // Ensure consistent precision
-            finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-            finalKph = calculateKph(finalMph);
-            console.log("[addRun] Distance priority: Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
-        } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
-            // User was focused on MPH (or it's the default), and MPH is valid. Prioritize it.
-            console.log("[addRun] Prioritizing MPH based on activeCalculatorInput. Original Distance was:", finalDistance);
-            finalMph = parseFloat(finalMph.toFixed(1)); // Ensure consistent precision
-            finalKph = calculateKph(finalMph);
-            finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-            console.log("[addRun] MPH priority: Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
-        } else if (!isNaN(finalDistance) && finalDistance > 0) {
-            // Fallback: Only distance is validly provided (MPH was empty or invalid)
-            console.log("[addRun] Fallback: Only valid Distance provided. Original MPH was:", finalMph);
-            finalDistance = parseFloat(finalDistance.toFixed(3));
-            finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-            finalKph = calculateKph(finalMph);
-            console.log("[addRun] Fallback (Distance only): Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
-        } else if (!isNaN(finalMph) && finalMph > 0) {
-            // Fallback: Only MPH is validly provided (Distance was empty or invalid)
-            console.log("[addRun] Fallback: Only valid MPH provided. Original Distance was:", finalDistance);
-            finalMph = parseFloat(finalMph.toFixed(1));
-            finalKph = calculateKph(finalMph);
-            finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-            console.log("[addRun] Fallback (MPH only): Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+            // Use a small tolerance for float comparison if necessary, or rely on string comparison for exactness if that was intended
+            const mphIsUnchanged = mphInput === originalMphStr; // mphInput is string from formData
+            const distanceIsUnchanged = distanceInput === originalDistanceStr; // distanceInput is string from formData
+            const timeIsUnchanged = timeInputString === originalTime;
+
+            if (timeIsUnchanged && mphIsUnchanged && distanceIsUnchanged) {
+                console.log("[addRun - Edit Mode] No changes to time, mph, or distance. Using original values.");
+                finalMph = parseFloat(originalMphStr);
+                finalDistance = parseFloat(originalDistanceStr); // Already stored as 3dp string
+                finalKph = calculateKph(finalMph); 
+            } else {
+                console.log("[addRun - Edit Mode] Changes detected or not all original values found. Proceeding with recalculation logic.");
+                // Original recalculation logic based on activeCalculatorInput
+                if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
+                    console.log("[addRun] Prioritizing DISTANCE based on activeCalculatorInput. Original MPH was:", finalMph);
+                    finalDistance = parseFloat(finalDistance.toFixed(3));
+                    finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
+                    finalKph = calculateKph(finalMph);
+                    console.log("[addRun] Distance priority: Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+                } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
+                    console.log("[addRun] Prioritizing MPH based on activeCalculatorInput. Original Distance was:", finalDistance);
+                    finalMph = parseFloat(finalMph.toFixed(1));
+                    finalKph = calculateKph(finalMph);
+                    finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+                    console.log("[addRun] MPH priority: Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+                } else if (!isNaN(finalDistance) && finalDistance > 0) {
+                    console.log("[addRun] Fallback: Only valid Distance provided. Original MPH was:", finalMph);
+                    finalDistance = parseFloat(finalDistance.toFixed(3));
+                    finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
+                    finalKph = calculateKph(finalMph);
+                    console.log("[addRun] Fallback (Distance only): Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+                } else if (!isNaN(finalMph) && finalMph > 0) {
+                    console.log("[addRun] Fallback: Only valid MPH provided. Original Distance was:", finalDistance);
+                    finalMph = parseFloat(finalMph.toFixed(1));
+                    finalKph = calculateKph(finalMph);
+                    finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+                    console.log("[addRun] Fallback (MPH only): Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+                } else {
+                    closeLogRunForm();
+                    openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
+                    return;
+                }
+            }
         } else {
-            // Neither MPH nor Distance provided (or invalid/zero)
-            closeLogRunForm();
-            openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
-            return;
+            // --- This is the ADD mode logic (unchanged from your existing code) ---
+            if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
+                console.log("[addRun] Prioritizing DISTANCE based on activeCalculatorInput. Original MPH was:", finalMph);
+                finalDistance = parseFloat(finalDistance.toFixed(3));
+                finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
+                finalKph = calculateKph(finalMph);
+                console.log("[addRun] Distance priority: Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+            } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
+                console.log("[addRun] Prioritizing MPH based on activeCalculatorInput. Original Distance was:", finalDistance);
+                finalMph = parseFloat(finalMph.toFixed(1));
+                finalKph = calculateKph(finalMph);
+                finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+                console.log("[addRun] MPH priority: Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+            } else if (!isNaN(finalDistance) && finalDistance > 0) {
+                console.log("[addRun] Fallback: Only valid Distance provided. Original MPH was:", finalMph);
+                finalDistance = parseFloat(finalDistance.toFixed(3));
+                finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
+                finalKph = calculateKph(finalMph);
+                console.log("[addRun] Fallback (Distance only): Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+            } else if (!isNaN(finalMph) && finalMph > 0) {
+                console.log("[addRun] Fallback: Only valid MPH provided. Original Distance was:", finalDistance);
+                finalMph = parseFloat(finalMph.toFixed(1));
+                finalKph = calculateKph(finalMph);
+                finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+                console.log("[addRun] Fallback (MPH only): Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+            } else {
+                closeLogRunForm();
+                openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
+                return;
+            }
         }
-        // --- End of New Prioritization Logic ---
+        // --- End of New Prioritization Logic / Edit mode modification ---
 
         const day = getDayOfWeek(date);
         const delta = (bpm !== null && plus1 !== null) ? (bpm - plus1) : null;
@@ -1358,7 +1408,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             user, date, time: timeStringToStore, 
             mph: finalMph, 
             kph: parseFloat(finalKph.toFixed(3)), 
-            distance: finalDistance, 
+            distance: parseFloat(finalDistance.toFixed(3)), // Ensure stored distance is a number with 3dp
             bpm, plus1, delta, notes, day,
             auth_key: hashedAuthKey 
         };
