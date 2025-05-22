@@ -114,40 +114,58 @@ textarea {
     margin-top: 25px;
 }
 
-button[type="submit"],
-#cancelLogRunBtn {
+/* Base style for all buttons within form-actions */
+.form-actions button {
     padding: 12px 20px;
-    border: none;
+    border: none; /* Or 1px solid var(--button-default-border-color) if you want borders */
     border-radius: 6px;
     cursor: pointer;
     font-size: 1em;
     font-weight: 500;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     font-family: inherit;
-}
-
-button[type="submit"] {
-    background-color: var(--success-color);
-    color: white; /* Or a specific var if needed */
-    margin-left: 10px;
-}
-
-button[type="submit"]:hover {
-    background-color: var(--success-hover-color);
-    box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3); /* Needs var or dark mode adjustment */
-}
-
-#cancelLogRunBtn {
+    /* Default styling - can be overridden by more specific rules */
     background-color: var(--button-default-bg);
     color: var(--button-default-text);
 }
 
-#cancelLogRunBtn:hover {
+.form-actions button:hover {
     background-color: var(--button-default-hover-bg);
-    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3); /* Needs var or dark mode adjustment */
+    /* box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3); Remove generic shadow, apply per button type if needed */
 }
 
-/* Specificity for form buttons alignment */
+/* Specific button types */
+button[type="submit"],
+.form-actions .btn-success /* For general success buttons not type=submit */
+{
+    background-color: var(--success-color);
+    color: white; /* Or var(--success-text-color) */
+    margin-left: 10px; /* Retain if only for submit next to cancel */
+}
+
+button[type="submit"]:hover,
+.form-actions .btn-success:hover 
+{
+    background-color: var(--success-hover-color);
+    box-shadow: 0 2px 5px var(--success-shadow-color); /* Use variable for shadow */
+}
+
+#cancelLogRunBtn /* This is already specific enough if it only applies to the log run form cancel */
+{
+    /* It will inherit the base .form-actions button style. 
+       If it needs to be different from the default, add overrides here.
+       If it IS the default, this rule might become redundant if base is identical. */
+    /* margin-left: 0; Ensure no margin if it's the first button */
+}
+
+/* Keep #cancelLogRunBtn:hover if it has unique hover from default, otherwise base hover applies */
+/* #cancelLogRunBtn:hover {
+    background-color: var(--button-default-hover-bg);
+    box-shadow: 0 2px 5px var(--button-shadow-color); 
+} */
+
+
+/* Specificity for log run form buttons if they need unique centering/gap */
 #logRunFormContainer form .form-actions {
     display: flex;
     justify-content: center;
@@ -206,6 +224,7 @@ button[type="submit"]:hover {
     font-weight: 500;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     font-family: inherit;
+    /* Base styles are now inherited from .form-actions button if structure matches */
 }
 
 #modalCancelBtn {
@@ -215,17 +234,17 @@ button[type="submit"]:hover {
 
 #modalCancelBtn:hover {
     background-color: var(--button-default-hover-bg);
-    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3);
+    box-shadow: 0 2px 5px var(--button-shadow-color); /* Use variable */
 }
 
 #modalConfirmBtn {
     background-color: var(--primary-color);
-    color: white;
+    color: white; /* or var(--primary-text-color) */
 }
 
 #modalConfirmBtn:hover {
     background-color: var(--primary-hover-color);
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+    box-shadow: 0 2px 5px var(--primary-shadow-color); /* Use variable */
 }
 
 #modalConfirmBtn.btn-danger {

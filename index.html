@@ -156,6 +156,22 @@
                     </div>
                 </div>
 
+                <div class="dual-chart-row">
+                    <div class="content-card">
+                        <h2>Total Visits Overall</h2>
+                        <div class="chart-container">
+                            <canvas id="totalVisitsOverallChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <h2>Total Visits in 2025</h2>
+                        <div class="chart-container">
+                            <canvas id="totalVisits2025Chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="content-card">
                     <h2>Logged Runs (All)</h2>
                     <div id="runsDisplaySummary">
@@ -257,6 +273,14 @@
                         <button id="clearMasterPasswordBtn" style="background-color: var(--warning-color); color: var(--warning-text-color);">Clear Saved Password</button>
                     </div>
                     <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
+                </div>
+
+                <div class="content-card export-data-card"> 
+                    <h2>Export Data</h2>
+                    <p>Download all logged runs as a JSON file. This file can be used for backup or for importing into other applications.</p>
+                    <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
+                        <button id="exportAllRunsBtn">Export All Runs (JSON)</button>
+                    </div>
                 </div>
             </div>
 

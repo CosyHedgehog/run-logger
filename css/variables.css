@@ -51,6 +51,13 @@
     --button-primary-text: white;
     --button-primary-hover-bg: var(--primary-hover-color);
 
+    /* Shadow variables for buttons */
+    --button-shadow-color: rgba(108, 117, 125, 0.25);
+    --primary-shadow-color: rgba(0, 123, 255, 0.25);
+    --success-shadow-color: rgba(40, 167, 69, 0.25);
+    --danger-shadow-color: rgba(220, 53, 69, 0.25);
+    --warning-shadow-color: rgba(255, 193, 7, 0.25);
+
     /* Disabled State Colors */
     --disabled-bg-color: #e9ecef;  /* Light gray background */
     --disabled-text-color: #6c757d; /* Muted text color */
@@ -110,6 +117,13 @@ html.dark-mode {
     --button-primary-bg: var(--primary-color);
     --button-primary-text: #e0e0e0;
     --button-primary-hover-bg: var(--primary-hover-color);
+
+    /* Shadow variables for buttons - Dark Mode */
+    --button-shadow-color: rgba(200, 200, 200, 0.15);
+    --primary-shadow-color: rgba(13, 110, 253, 0.25); /* Might be same as light or adjusted */
+    --success-shadow-color: rgba(25, 135, 84, 0.25);  /* Might be same as light or adjusted */
+    --danger-shadow-color: rgba(220, 53, 69, 0.25);   /* Might be same as light or adjusted */
+    --warning-shadow-color: rgba(255, 193, 7, 0.25);  /* Might be same as light or adjusted */
 
     /* Disabled State Colors - Dark Mode */
     --disabled-bg-color: #3a3f44;  /* Darker gray background */

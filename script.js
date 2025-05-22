@@ -225,11 +225,13 @@ function openModal(title, message, type = 'error', onConfirm = null) {
 
     if (gModalTitleEl) {
         gModalTitleEl.textContent = title;
-        // Style title for error type
+        // Style title based on type
         if (type === 'error') {
             gModalTitleEl.style.color = 'var(--danger-color)';
+        } else if (type === 'success') {
+            gModalTitleEl.style.color = 'var(--success-color)';
         } else {
-            gModalTitleEl.style.color = 'var(--card-title-color)'; // Default
+            gModalTitleEl.style.color = 'var(--card-title-color)'; // Default for confirmation or other types
         }
     }
     if (gModalMessageEl) gModalMessageEl.textContent = message;
@@ -238,14 +240,17 @@ function openModal(title, message, type = 'error', onConfirm = null) {
 
     if (gModalConfirmBtn && gModalCancelBtn) {
         if (type === 'confirmation' && typeof onConfirm === 'function') {
-            gModalConfirmBtn.classList.remove('hidden', 'btn-danger', 'btn-success'); // Clear old type classes
-            gModalConfirmBtn.classList.add('btn-danger'); // Default to danger for delete confirmation, can be made more generic
-            gModalConfirmBtn.style.display = ''; // Show confirm button
+            gModalConfirmBtn.classList.remove('hidden', 'btn-danger', 'btn-success');
+            gModalConfirmBtn.classList.add('btn-danger'); 
+            gModalConfirmBtn.style.display = ''; 
             gModalCancelBtn.textContent = 'Cancel';
             gModalConfirmCallback = onConfirm;
+        } else if (type === 'success') {
+            gModalConfirmBtn.style.display = 'none'; // Hide confirm button for success
+            gModalCancelBtn.textContent = 'Close'; 
         } else { // 'error' type or no valid onConfirm
-            gModalConfirmBtn.style.display = 'none'; // Hide confirm button for errors
-            gModalCancelBtn.textContent = 'Close'; // Cancel button acts as Close
+            gModalConfirmBtn.style.display = 'none'; 
+            gModalCancelBtn.textContent = 'Close';
         }
     } else {
         console.error("[openModal] Confirm or Cancel button not found!");
@@ -407,6 +412,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const distanceOverTimeChartCanvas = document.getElementById('distanceOverTimeChart')?.getContext('2d');
     const totalKmOverallChartCanvas = document.getElementById('totalKmOverallChart')?.getContext('2d');
     const totalKm2025ChartCanvas = document.getElementById('totalKm2025Chart')?.getContext('2d');
+    const totalVisitsOverallChartCanvas = document.getElementById('totalVisitsOverallChart')?.getContext('2d');
+    const totalVisits2025ChartCanvas = document.getElementById('totalVisits2025Chart')?.getContext('2d');
 
     // Tabs
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -418,6 +425,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     let distanceOverTimeChartInstance;
     let totalKmOverallChartInstance;
     let totalKm2025ChartInstance;
+    let totalVisitsOverallChartInstance;
+    let totalVisits2025ChartInstance;
 
     let activeTab = 'summary'; // Default active tab
 
@@ -425,6 +434,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     const saveMasterPasswordBtn = document.getElementById('saveMasterPasswordBtn');
     const clearMasterPasswordBtn = document.getElementById('clearMasterPasswordBtn');
     const masterPasswordStatusEl = document.getElementById('masterPasswordStatus');
+
+    // Export Button
+    const exportAllRunsBtn = document.getElementById('exportAllRunsBtn');
 
     // Add DOM elements for the new Error Modal
     // const errorModalContainer = document.getElementById('errorModalContainer'); // REMOVE - ID changed
@@ -508,65 +520,44 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     // --- End Settings Page Logic ---
 
-    // ---- ADD THIS NEW FUNCTION AND LISTENERS ----
-    function handleDynamicFormCalculation() {
-        if (isCalculating) return;
-        isCalculating = true;
-
-        if (!timeInput || !mphInput || !distanceInput) {
-            console.error("Dynamic calculation critical error: Form input elements not found.");
-            isCalculating = false;
-            return;
-        }
-
-        const parsedTimeMinutes = parseMMSS(timeInput.value);
-
-        if (isNaN(parsedTimeMinutes) || parsedTimeMinutes <= 0) {
-            if (activeCalculatorInput === 'mph') {
-                distanceInput.value = ''; 
-            } else if (activeCalculatorInput === 'distance') {
-                mphInput.value = ''; 
+    // --- Export Data Logic ---
+    if (exportAllRunsBtn) {
+        exportAllRunsBtn.addEventListener('click', () => {
+            if (!runs || runs.length === 0) {
+                openModal("Export Error", "There is no data to export.", 'error');
+                return;
             }
-            isCalculating = false;
-            return;
-        }
 
-        const mphValue = parseFloat(mphInput.value);
-        const distanceValue = parseFloat(distanceInput.value);
+            try {
+                // Filter out auth_key before stringifying
+                const runsToExport = runs.map(run => {
+                    const { auth_key, ...rest } = run; // Destructure to exclude auth_key
+                    return rest;
+                });
 
-        if (activeCalculatorInput === 'mph') {
-            if (mphValue > 0) {
-                const kph = calculateKph(mphValue);
-                const newDistance = calculateDistance(parsedTimeMinutes, kph);
-                distanceInput.value = newDistance.toFixed(3); // Changed to 3 decimal places
-            } else {
-                distanceInput.value = ''; 
+                const jsonData = JSON.stringify(runsToExport, null, 2); // Pretty print JSON
+                const blob = new Blob([jsonData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                
+                const today = new Date();
+                const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                a.download = `run_logger_export_${dateString}.json`;
+                
+                a.href = url;
+                document.body.appendChild(a); // Append to body to make it clickable
+                a.click();
+                document.body.removeChild(a); // Clean up
+                URL.revokeObjectURL(url); // Release object URL
+
+                openModal("Export Successful", "All run data has been exported as a JSON file.", 'success');
+            } catch (error) {
+                console.error("Error exporting data:", error);
+                openModal("Export Error", `An unexpected error occurred during export: ${error.message}`, 'error');
             }
-        } else if (activeCalculatorInput === 'distance') {
-            if (distanceValue > 0) {
-                const newMph = calculateMph(parsedTimeMinutes, distanceValue);
-                mphInput.value = newMph.toFixed(1);
-            } else {
-                mphInput.value = ''; 
-            }
-        }
-        isCalculating = false;
-    }
-
-    if (timeInput) timeInput.addEventListener('input', handleDynamicFormCalculation);
-    if (mphInput) {
-        mphInput.addEventListener('focus', () => { 
-            activeCalculatorInput = 'mph'; 
         });
-        mphInput.addEventListener('input', handleDynamicFormCalculation);
     }
-    if (distanceInput) {
-        distanceInput.addEventListener('focus', () => { 
-            activeCalculatorInput = 'distance'; 
-        });
-        distanceInput.addEventListener('input', handleDynamicFormCalculation);
-    }
-    // ---- END OF ADDING NEW FUNCTION AND LISTENERS ----
+    // --- End Export Data Logic ---
 
     // --- Corrected Modal Event Listeners (using global gModal... buttons and global closeModal) ---
     if (gModalConfirmBtn) {
@@ -942,9 +933,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateStatistics() {
-        let totalDistanceOverall = 0; // Still needed for one of the charts
-        let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0;
-        let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0;
+        let totalDistanceOverall = 0; 
+        let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0, totalVisitsOverallJason = 0;
+        let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0, totalVisitsOverallKelvin = 0;
 
         const yearForStats = 2025;
         const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
@@ -955,12 +946,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (run.user === 'Jason') {
                 totalOverallJason += runDistance;
+                totalVisitsOverallJason++; 
                 if (new Date(run.date).getFullYear() === yearForStats) {
                     totalDistance2025Jason += runDistance;
                     totalVisits2025Jason++;
                 }
             } else if (run.user === 'Kelvin') {
                 totalOverallKelvin += runDistance;
+                totalVisitsOverallKelvin++;
                 if (new Date(run.date).getFullYear() === yearForStats) {
                     totalDistance2025Kelvin += runDistance;
                     totalVisits2025Kelvin++;
@@ -995,6 +988,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (activeTab === 'summary') {
             renderTotalKmOverallChart(totalOverallJason, totalOverallKelvin);
             renderTotalKm2025Chart(totalDistance2025Jason, totalDistance2025Kelvin);
+            renderTotalVisitsOverallChart(totalVisitsOverallJason, totalVisitsOverallKelvin); 
+            renderTotalVisits2025Chart(totalVisits2025Jason, totalVisits2025Kelvin);
             updateDistanceOverTimeChart();
         }
 
@@ -1006,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         sortUserStatsTable(calculateUserStats(), statsSortCol, statsSortDir);
     }
 
-    function renderBarChart(canvasContext, chartInstance, chartTitle, labels, datasets) {
+    function renderBarChart(canvasContext, chartInstance, chartTitle, labels, datasets, yAxisLabel = 'Distance (Km)') {
         if (!canvasContext) return null;
         const chartContainer = canvasContext.canvas.parentElement;
          if (!chartContainer || chartContainer.offsetParent === null) { // Check if visible
@@ -1026,9 +1021,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 scales: {
                     y: { 
                         beginAtZero: true, 
-                        title: { display: true, text: 'Distance (Km)', font: {size: 14}, color: colors.ticksColor },
+                        title: { display: true, text: yAxisLabel, font: {size: 14}, color: colors.ticksColor },
                         grid: { color: colors.gridColor },
-                        ticks: { color: colors.ticksColor }
+                        ticks: { 
+                            color: colors.ticksColor,
+                            precision: 0 // Ensure y-axis ticks are whole numbers for visit counts
+                        }
                     },
                     x: { 
                         grid: { display: false },
@@ -1084,6 +1082,44 @@ document.addEventListener('DOMContentLoaded', async () => {
                 borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
                 borderWidth: 1 
             }]
+        );
+    }
+
+    function renderTotalVisitsOverallChart(jasonVisits, kelvinVisits) {
+        if (!totalVisitsOverallChartCanvas) return;
+        const colors = getChartColors();
+        totalVisitsOverallChartInstance = renderBarChart(
+            totalVisitsOverallChartCanvas,
+            totalVisitsOverallChartInstance, 
+            '', // Title is in HTML h2
+            ['Jason', 'Kelvin'],
+            [{ 
+                label: 'Total Visits Overall', 
+                data: [jasonVisits, kelvinVisits], 
+                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
+                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
+                borderWidth: 1 
+            }],
+            'Visits' // Y-axis label for visits
+        );
+    }
+
+    function renderTotalVisits2025Chart(jason2025Visits, kelvin2025Visits) {
+        if (!totalVisits2025ChartCanvas) return;
+        const colors = getChartColors();
+        totalVisits2025ChartInstance = renderBarChart(
+            totalVisits2025ChartCanvas,
+            totalVisits2025ChartInstance, 
+            '', // Title is in HTML h2
+            ['Jason', 'Kelvin'],
+            [{ 
+                label: 'Total Visits in 2025', 
+                data: [jason2025Visits, kelvin2025Visits], 
+                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
+                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
+                borderWidth: 1 
+            }],
+            'Visits' // Y-axis label for visits
         );
     }
 
@@ -1499,6 +1535,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (distanceOverTimeChartInstance) { distanceOverTimeChartInstance.destroy(); distanceOverTimeChartInstance = null; }
                 if (totalKmOverallChartInstance) { totalKmOverallChartInstance.destroy(); totalKmOverallChartInstance = null; }
                 if (totalKm2025ChartInstance) { totalKm2025ChartInstance.destroy(); totalKm2025ChartInstance = null; }
+                if (totalVisitsOverallChartInstance) { totalVisitsOverallChartInstance.destroy(); totalVisitsOverallChartInstance = null; }
+                if (totalVisits2025ChartInstance) { totalVisits2025ChartInstance.destroy(); totalVisits2025ChartInstance = null; }
             }
         }
         // Close log run form if it's open when switching tabs
@@ -1616,8 +1654,8 @@ function calculateUserStats() {
     const yearForStats = 2025;
     const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
 
-    let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0;
-    let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0;
+    let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0, totalVisitsOverallJason = 0;
+    let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0, totalVisitsOverallKelvin = 0;
 
     runs.forEach(run => {
         const runDistance = parseFloat(run.distance) || 0;
@@ -1625,12 +1663,14 @@ function calculateUserStats() {
 
         if (run.user === 'Jason') {
             totalOverallJason += runDistance;
+            totalVisitsOverallJason++; 
             if (new Date(run.date).getFullYear() === yearForStats) {
                 totalDistance2025Jason += runDistance;
                 totalVisits2025Jason++;
             }
         } else if (run.user === 'Kelvin') {
             totalOverallKelvin += runDistance;
+            totalVisitsOverallKelvin++;
             if (new Date(run.date).getFullYear() === yearForStats) {
                 totalDistance2025Kelvin += runDistance;
                 totalVisits2025Kelvin++;
