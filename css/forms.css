@@ -246,4 +246,24 @@ button[type="submit"]:hover {
 #modalConfirmBtn.btn-success:hover {
     background-color: var(--success-hover-color);
     box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
+}
+
+/* New style for side-by-side form inputs */
+.form-row {
+    display: flex;
+    gap: 15px; /* Adjust gap as needed */
+    margin-bottom: 10px; /* Reduced margin for grouped rows */
+}
+
+.form-row > div {
+    flex: 1; /* Each input container takes equal width */
+}
+
+/* Ensure labels and inputs within the row behave as expected */
+.form-row label {
+    /* Existing label styles should be fine */
+}
+
+.form-row input {
+    width: 100%; /* Ensure inputs take full width of their flex container */
 } 

@@ -5,10 +5,17 @@ const MASTER_PASSWORD_LOCALSTORAGE_KEY = "runLoggerMasterPassword";
 // SHARED_PASSWORD and SUPABASE_SECRET_KEY_VALUE are removed.
 
 // Global functions that don't need DOMContentLoaded scope or don't call UI updaters
-const MPH_TO_KPH_FACTOR = 1.60934; // Moved here to be globally available before use
+const MPH_TO_KPH_FACTOR = 1.60934;
+const KPH_TO_MPH_FACTOR = 1 / MPH_TO_KPH_FACTOR;
 
 function calculateKph(mph) { return (mph * MPH_TO_KPH_FACTOR); }
 function calculateDistance(timeMinutes, kph) { const timeHours = timeMinutes / 60; return (timeHours * kph); }
+function calculateMph(timeMinutes, distanceKm) {
+    if (timeMinutes <= 0 || distanceKm < 0) return 0;
+    const timeHours = timeMinutes / 60;
+    const kph = distanceKm / timeHours;
+    return kph * KPH_TO_MPH_FACTOR;
+}
 function getDayOfWeek(dateString) { const date = new Date(dateString + 'T00:00:00'); const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; return days[date.getDay()]; }
 
 // --- Time Format Helper Functions ---
@@ -57,6 +64,11 @@ function getNumberOfDaysSoFarInYear(year) {
 const SUPABASE_URL = 'https://qrjstijzhumrhwvdkuls.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyanN0aWp6aHVtcmh3dmRrdWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjQ0MzksImV4cCI6MjA2MzUwMDQzOX0.5CCuhm8rdwJQ_Of_B-XUWjNY9JyQb1EOMSmRREh7x6w';
 let supabase = null; // This variable will store our client instance
+
+// ---- ADD THESE NEW GLOBALISH VARIABLES ----
+let activeCalculatorInput = 'mph'; // 'mph' or 'distance', tracks which field drives the other
+let isCalculating = false; // Prevents event listener loops
+// ---- END OF ADDING NEW GLOBALISH VARIABLES ----
 
 // Check for the global `window.supabase` object from the CDN and its `createClient` method
 if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
@@ -364,6 +376,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const currentUserForRunInput = document.getElementById('currentUserForRun');
     const runIdToEditInput = document.getElementById('runIdToEdit'); // Reference for the new hidden input
 
+    // ---- ADD THESE INPUT CONSTS ----
+    const timeInput = document.getElementById('time');
+    const mphInput = document.getElementById('mph');
+    const distanceInput = document.getElementById('distance');
+    // ---- END OF ADDING INPUT CONSTS ----
+
     // Table bodies
     const runsTableBodySummary = document.getElementById('runsTableBodySummary');
     const runsTableBodyJason = document.getElementById('runsTableBodyJason');
@@ -489,6 +507,66 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     // --- End Settings Page Logic ---
+
+    // ---- ADD THIS NEW FUNCTION AND LISTENERS ----
+    function handleDynamicFormCalculation() {
+        if (isCalculating) return;
+        isCalculating = true;
+
+        if (!timeInput || !mphInput || !distanceInput) {
+            console.error("Dynamic calculation critical error: Form input elements not found.");
+            isCalculating = false;
+            return;
+        }
+
+        const parsedTimeMinutes = parseMMSS(timeInput.value);
+
+        if (isNaN(parsedTimeMinutes) || parsedTimeMinutes <= 0) {
+            if (activeCalculatorInput === 'mph') {
+                distanceInput.value = ''; 
+            } else if (activeCalculatorInput === 'distance') {
+                mphInput.value = ''; 
+            }
+            isCalculating = false;
+            return;
+        }
+
+        const mphValue = parseFloat(mphInput.value);
+        const distanceValue = parseFloat(distanceInput.value);
+
+        if (activeCalculatorInput === 'mph') {
+            if (mphValue > 0) {
+                const kph = calculateKph(mphValue);
+                const newDistance = calculateDistance(parsedTimeMinutes, kph);
+                distanceInput.value = newDistance.toFixed(2); 
+            } else {
+                distanceInput.value = ''; 
+            }
+        } else if (activeCalculatorInput === 'distance') {
+            if (distanceValue > 0) {
+                const newMph = calculateMph(parsedTimeMinutes, distanceValue);
+                mphInput.value = newMph.toFixed(1);
+            } else {
+                mphInput.value = ''; 
+            }
+        }
+        isCalculating = false;
+    }
+
+    if (timeInput) timeInput.addEventListener('input', handleDynamicFormCalculation);
+    if (mphInput) {
+        mphInput.addEventListener('focus', () => { 
+            activeCalculatorInput = 'mph'; 
+        });
+        mphInput.addEventListener('input', handleDynamicFormCalculation);
+    }
+    if (distanceInput) {
+        distanceInput.addEventListener('focus', () => { 
+            activeCalculatorInput = 'distance'; 
+        });
+        distanceInput.addEventListener('input', handleDynamicFormCalculation);
+    }
+    // ---- END OF ADDING NEW FUNCTION AND LISTENERS ----
 
     // --- Corrected Modal Event Listeners (using global gModal... buttons and global closeModal) ---
     if (gModalConfirmBtn) {
@@ -1088,6 +1166,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             runForm.time.value = "30:00"; // Pre-populate with MM:SS
             runForm.mph.value = 4;
+            runForm.distance.value = ''; // Clear distance field for new run
+            
+            // ---- THESE ARE THE KEY LINES FOR openLogRunForm ----
+            activeCalculatorInput = 'mph'; // Set default focus for calculation
+            handleDynamicFormCalculation(); // Perform initial calculation
+            // ---- END OF KEY LINES ----
             
             // Set user specific info
         if (logForUserSpan) logForUserSpan.textContent = userForRun;
@@ -1099,8 +1183,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (submitButton) submitButton.textContent = 'Add Run';
         }
 
-        if (gFormOverlay) gFormOverlay.classList.remove('hidden'); // Use global gFormOverlay
-        if (gLogRunFormContainer) { // Use global gLogRunFormContainer
+        if (gFormOverlay) gFormOverlay.classList.remove('hidden'); 
+        if (gLogRunFormContainer) { 
             gLogRunFormContainer.classList.remove('hidden');
             setTimeout(() => gLogRunFormContainer.classList.add('visible'), 10);
         }
@@ -1116,13 +1200,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (runForm) {
             runForm.reset();
             runForm.date.value = runToEdit.date;
-            runForm.time.value = runToEdit.time; // Directly use MM:SS string
+            runForm.time.value = runToEdit.time;
             runForm.mph.value = runToEdit.mph;
+            runForm.distance.value = runToEdit.distance; 
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
             runForm.notes.value = runToEdit.notes || '';
             currentUserForRunInput.value = runToEdit.user;
             runIdToEditInput.value = runId;
+            
+            // ---- THESE ARE THE KEY LINES FOR openEditForm ----
+            activeCalculatorInput = 'mph'; // Default to MPH driving calculation if user edits time/mph.
+                                           // If they edit distance first, focus listener will change this.
+            // No explicit call to handleDynamicFormCalculation(); here.
+            // The user's first interaction with time, mph, or distance will trigger it.
+            // ---- END OF KEY LINES ----
 
             runForm.querySelector('h2').innerHTML = `Edit Run for <span id="logForUser">${runToEdit.user}</span>`;
             logForUserSpan.textContent = runToEdit.user;
@@ -1188,40 +1280,81 @@ document.addEventListener('DOMContentLoaded', async () => {
         const user = formData.get('currentUserForRun');
         const date = formData.get('date');
         const timeInputString = formData.get('time'); // Get time as MM:SS string
-        const mph = parseFloat(formData.get('mph'));
+        
+        let mphInput = formData.get('mph');
+        let distanceInput = formData.get('distance');
+
         const bpm = formData.get('bpm') ? parseInt(formData.get('bpm')) : null;
         const plus1 = formData.get('plus1') ? parseInt(formData.get('plus1')) : null;
         const notes = formData.get('notes');
 
         const parsedTimeMinutes = parseMMSS(timeInputString);
-        let timeStringToStore = timeInputString; // Default to original input
+        let timeStringToStore = timeInputString; 
 
-        if (!date || isNaN(parsedTimeMinutes) || isNaN(mph) || !user) {
-            closeLogRunForm(); // Close form first
-            let errorMessage = "Please fill in all required fields (User, Date, MPH) correctly.";
-            if (isNaN(parsedTimeMinutes) && timeInputString) { // If parsing failed and there was an input
-                 errorMessage = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
-            } else if (!timeInputString && isNaN(parsedTimeMinutes)){ // If time input was empty
-                 errorMessage = "Please fill in all required fields (User, Date, Time, MPH) correctly. Time is required.";
+        if (!date || !user || isNaN(parsedTimeMinutes) || parsedTimeMinutes <= 0) {
+            closeLogRunForm();
+            let error = "Please fill in User, Date, and a valid Time (MM:SS, greater than 0).";
+            if (isNaN(parsedTimeMinutes) && timeInputString) {
+                 error = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
+            } else if (parsedTimeMinutes <= 0 && timeInputString) {
+                 error = "Time must be greater than 00:00.";
             }
-            openModal("Input Error", errorMessage, 'error');
+            openModal("Input Error", error, 'error');
             return;
         }
-
-        // If parsing was successful, format it to ensure MM:SS for storage
+        
         if (!isNaN(parsedTimeMinutes)) {
             timeStringToStore = formatMinutesToMMSS(parsedTimeMinutes);
         }
 
+        let finalMph = mphInput ? parseFloat(mphInput) : 0;
+        let finalDistance = distanceInput ? parseFloat(distanceInput) : 0;
+        let finalKph = 0;
+
+        const mphProvided = mphInput && !isNaN(finalMph) && finalMph > 0;
+        const distanceProvided = distanceInput && !isNaN(finalDistance) && finalDistance > 0;
+
+        if (mphProvided && distanceProvided) {
+            // Both provided: Prioritize MPH, recalculate distance for consistency
+            finalKph = calculateKph(finalMph);
+            finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+            console.log("Both MPH and Distance provided. MPH prioritized. Calculated distance:", finalDistance);
+        } else if (mphProvided) {
+            // Only MPH provided: Calculate distance
+            if (finalMph <= 0) {
+                closeLogRunForm();
+                openModal("Input Error", "MPH must be greater than 0 if specified.", 'error');
+                return;
+            }
+            finalKph = calculateKph(finalMph);
+            finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
+            console.log("MPH provided. Calculated distance:", finalDistance);
+        } else if (distanceProvided) {
+            // Only Distance provided: Calculate MPH and KPH
+             if (finalDistance <= 0) {
+                closeLogRunForm();
+                openModal("Input Error", "Distance must be greater than 0 if specified.", 'error');
+                return;
+            }
+            finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
+            finalKph = calculateKph(finalMph); // Recalculate KPH from the new MPH for precision
+            console.log("Distance provided. Calculated MPH:", finalMph, "KPH:", finalKph);
+        } else {
+            // Neither MPH nor Distance provided (or invalid/zero)
+            closeLogRunForm();
+            openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
+            return;
+        }
+
         const day = getDayOfWeek(date);
-        const kph = parseFloat(calculateKph(mph).toFixed(3));
-        const distanceVal = parseFloat(calculateDistance(parsedTimeMinutes, kph).toFixed(3)); // Use parsed minutes for calculation
         const delta = (bpm !== null && plus1 !== null) ? (bpm - plus1) : null;
 
         const fullRunObject = {
-            user, date, time: timeStringToStore, // Store consistently formatted MM:SS string
-            mph, kph, 
-            distance: distanceVal, bpm, plus1, delta, notes, day,
+            user, date, time: timeStringToStore, 
+            mph: finalMph, 
+            kph: parseFloat(finalKph.toFixed(3)), 
+            distance: finalDistance, 
+            bpm, plus1, delta, notes, day,
             auth_key: hashedAuthKey 
         };
 

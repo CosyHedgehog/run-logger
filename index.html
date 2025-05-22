@@ -40,25 +40,35 @@
                 <h2>Log New Run for <span id="logForUser"></span></h2>
                 <input type="hidden" id="currentUserForRun" name="currentUserForRun">
                 <input type="hidden" id="runIdToEdit" name="runIdToEdit">
-                <div>
-                    <label for="date">Date:</label>
-                    <input type="date" id="date" name="date" required>
+                <div class="form-row">
+                    <div>
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date" required>
+                    </div>
+                    <div>
+                        <label for="time">Time (MM:SS):</label>
+                        <input type="text" id="time" name="time" placeholder="MM:SS" required>
+                    </div>
                 </div>
-                <div>
-                    <label for="time">Time (MM:SS):</label>
-                    <input type="text" id="time" name="time" placeholder="MM:SS" required>
+                <div class="form-row">
+                    <div>
+                        <label for="mph">MPH:</label>
+                        <input type="number" step="0.1" id="mph" name="mph">
+                    </div>
+                    <div>
+                        <label for="distance">Distance (Km):</label>
+                        <input type="number" step="0.01" id="distance" name="distance">
+                    </div>
                 </div>
-                <div>
-                    <label for="mph">MPH:</label>
-                    <input type="number" step="0.1" id="mph" name="mph" required>
-                </div>
-                <div>
-                    <label for="bpm">BPM:</label>
-                    <input type="number" id="bpm" name="bpm">
-                </div>
-                <div>
-                    <label for="plus1">+1:</label>
-                    <input type="number" id="plus1" name="plus1">
+                <div class="form-row">
+                    <div>
+                        <label for="bpm">BPM:</label>
+                        <input type="number" id="bpm" name="bpm">
+                    </div>
+                    <div>
+                        <label for="plus1">BPM +1:</label>
+                        <input type="number" id="plus1" name="plus1">
+                    </div>
                 </div>
                 <div>
                     <label for="notes">Notes:</label>
