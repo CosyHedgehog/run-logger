@@ -15,6 +15,14 @@ th, td {
     color: var(--body-text); /* Ensure table text color inherits */
 }
 
+thead {
+    /* position: sticky; */ /* Let's apply to th directly for now */
+    /* top: 0; */
+    /* z-index: 10; */ /* Moved to th */
+    background-color: var(--table-header-bg); /* Keep this for solid background */
+}
+
+/* General th styling - no position here initially */
 th {
     background-color: var(--table-header-bg);
     font-weight: 600;
@@ -24,14 +32,31 @@ th {
     letter-spacing: 0.5px;
 }
 
-/* Styles for sortable table headers */
-th.sortable-header {
-    cursor: pointer;
-    position: relative; /* For positioning the sort arrow */
+/* Sticky properties for ALL th elements inside thead > tr */
+/* This will apply to both sortable and non-sortable headers like 'Actions' */
+thead > tr > th {
+    position: sticky;
+    top: 0;
+    background-color: var(--table-header-bg); /* Ensures all th have background when sticky */
+    z-index: 10;
 }
 
+/* Styles for sortable table headers */
+/* th.sortable-header still needs relative for its arrow, but sticky should take precedence if applied correctly on the element itself */
+/* Let's ensure sticky is *also* on th.sortable-header if the above doesn't catch it due to specificity for position. */
+th.sortable-header {
+    cursor: pointer;
+    position: sticky; /* Explicitly make sortable headers sticky */
+    top: 0; /* Required with sticky */
+    z-index: 10; /* Ensure it's on the same stacking context level */
+    /* position: relative; */ /* Comment out to test if relative was the issue for sticky */
+}
+
+/* If the arrow positioning requires relative, we might need a wrapper span inside th for the arrow instead */
+/* For now, let's see if making .sortable-header sticky itself works. */ 
+
 th.sortable-header:hover {
-    background-color: var(--table-row-hover-bg); /* Use the row hover color or a slightly different one */
+    background-color: var(--table-row-hover-bg);
 }
 
 /* Sort indicator arrows */
