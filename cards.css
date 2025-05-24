@@ -1,0 +1,104 @@
+/* New Toggle Switch Styles */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 120px; /* Increased width significantly */
+    height: 42px; /* Increased height to ~button height */
+    user-select: none;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--toggle-slider-bar-bg, #e0e0e0); 
+    transition: .4s;
+    display: flex; 
+    align-items: center;
+    justify-content: space-around; 
+    padding: 0 5px; /* Adjusted padding */
+    border-radius: 42px; /* Corresponds to height */
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12); /* Slightly adjusted shadow */
+}
+
+.slider:before { /* This is the sliding knob/highlight */
+    position: absolute;
+    content: "";
+    height: 34px; /* Knob height (42px height - 4px top/bottom padding on slider = 34px) */
+    width: 50px;  /* Knob width - covers roughly one text label + padding */
+    left: 4px;    /* Knob initial position */
+    top: 4px; 
+    background-color: var(--toggle-knob-bg, white); /* This is the initial knob color, becomes active color */
+    transition: .4s ease; /* Smoother transition */
+    border-radius: 34px; /* Rounded to fit the slider track */
+    z-index: 0; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* More prominent shadow for knob */
+}
+
+.toggle-switch:hover .slider:before {
+    /* Consider if a distinct background hover on knob is needed, or if focus is enough */
+    /* background-color: var(--toggle-knob-hover-bg, #f0f0f0); */ 
+    filter: brightness(95%); /* Example: slightly darken knob on hover */
+}
+
+.toggle-text {
+    position: relative;
+    z-index: 1; 
+    font-size: 0.9em; /* Increased font size */
+    font-weight: 500; /* Normal button weight */
+    color: var(--toggle-text-inactive-color, #444); 
+    transition: color 0.4s ease;
+    text-transform: none; /* Reverted to normal case, uppercase might be too much for larger text */
+    letter-spacing: normal;   /* Reverted */
+    padding: 0 8px; /* Ensure text has some space from knob edges */
+}
+
+input:checked + .slider {
+    /* The bar itself doesn't change color, the knob does */
+}
+
+input:checked + .slider .toggle-text-dark {
+    color: var(--toggle-text-active-on-dark-bg, white); 
+}
+input:not(:checked) + .slider .toggle-text-dark {
+    color: var(--toggle-text-inactive-color, #444);
+}
+
+input:not(:checked) + .slider .toggle-text-light {
+    color: var(--toggle-text-active-on-light-bg, white); 
+}
+input:checked + .slider .toggle-text-light {
+    color: var(--toggle-text-inactive-color, #444);
+}
+
+input:focus + .slider {
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 
+                0 0 0 2px var(--body-bg), 
+                0 0 0 4px var(--toggle-focus-shadow, var(--primary-color)); /* Clearer focus, retaining inset */
+}
+
+input:checked + .slider:before { 
+    transform: translateX(calc(100% - 50px - 0px)); /* 120px width - 50px knob - 4px left offset for knob - 4px right offset for knob = 62px approx */
+                                                  /* Simpler: translateX(62px) if width 120, knob 50, left padding 4px */
+    transform: translateX(62px); /* Width 120, knob 50. Start left 4. End right is 120-4 = 116. Knob end is 116. Knob start is 116-50 = 66. (This math is tricky, needs to be relative to width of slider - knob width - padding) */
+                                                 /* Final position of left edge of knob: width_slider - width_knob - padding_left_slider (or initial left offset of knob) */
+                                                 /* 120 - 50 - 4 = 66px from original left:0, but knob starts at left:4, so 66-4 = 62px translation */
+    background-color: var(--toggle-knob-active-dark-bg, var(--primary-color)); 
+}
+
+input:not(:checked) + .slider:before { 
+    transform: translateX(0);
+    background-color: var(--toggle-knob-active-light-bg, var(--primary-color)); 
+}
+
+
+/* Rounded sliders - .slider.round is already on the slider span */ 

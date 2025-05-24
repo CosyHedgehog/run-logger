@@ -33,8 +33,7 @@
             <button class="tab-button" data-tab="summary">Summary</button>
             <button class="tab-button" data-tab="jason">Jason</button>
             <button class="tab-button" data-tab="kelvin">Kelvin</button>
-            <button class="tab-button" data-tab="settings" title="Settings">⚙️</button>
-            <button id="darkModeToggle" title="Toggle dark mode">🌙</button>
+            <button class="tab-button" data-tab="settings" title="Settings" id="settingsTabButton">⚙️</button>
         </div>
 
         <div id="formOverlay" class="hidden"></div>
@@ -281,10 +280,33 @@
             </div>
 
             <div id="settings" class="tab-pane">
-                <!-- Data Migration card removed -->
                 
-                <div class="settings-card-row"> <!-- New wrapper div -->
-                    <div class="content-card app-settings-card"> <!-- New Card for App Settings -->
+                <div class="settings-card-row"> <!-- First Row -->
+                    <div class="content-card theme-settings-card"> 
+                        <h2>Theme Settings</h2>
+                        <p>Toggle between light and dark mode for the application.</p>
+                        <div class="theme-toggle-container">
+                            <label class="toggle-switch" for="darkModeToggle">
+                                <input type="checkbox" id="darkModeToggle">
+                                <span class="slider round">
+                                    <span class="toggle-text toggle-text-dark">Dark</span>
+                                    <span class="toggle-text toggle-text-light">Light</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="content-card export-data-card"> 
+                        <h2>Export Data</h2>
+                        <p>Download all logged runs as a JSON file. This file can be used for backup or for importing into other applications.</p>
+                        <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
+                            <button id="exportAllRunsBtn">Export All Runs (JSON)</button>
+                        </div>
+                    </div>
+                </div> <!-- Close first settings-card-row -->
+
+                <div class="settings-card-row"> <!-- Second Row for App Security -->
+                    <div class="content-card app-settings-card"> 
                         <h2>App Security Settings</h2>
                         <p>Set the Master Shared Password here. This password, once saved, will be used to authorize data changes. It is stored in your browser's local storage for convenience. Do not set this on a public or untrusted computer.</p>
                         <div>
@@ -297,15 +319,8 @@
                         </div>
                         <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
                     </div>
-
-                    <div class="content-card export-data-card"> 
-                        <h2>Export Data</h2>
-                        <p>Download all logged runs as a JSON file. This file can be used for backup or for importing into other applications.</p>
-                        <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
-                            <button id="exportAllRunsBtn">Export All Runs (JSON)</button>
-                        </div>
-                    </div>
-                </div> <!-- Close settings-card-row -->
+                    <!-- Add another card here for 2nd column in this row if needed in future -->
+                </div> <!-- Close second settings-card-row -->
 
             </div>
 

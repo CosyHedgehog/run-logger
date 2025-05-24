@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
 
     // Dark Mode Elements
-    const darkModeToggle = document.getElementById('darkModeToggle');
+    const darkModeToggle = document.getElementById('darkModeToggle'); // This is now the checkbox input
     const documentElement = document.documentElement; // Use documentElement for theme class
 
     // Assign to global form element variables (previously const within DOMContentLoaded)
@@ -750,11 +750,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (theme === 'dark') {
             console.log('[applyTheme] Applying dark mode.'); // Log branch
             documentElement.classList.add('dark-mode');
-            if (darkModeToggle) darkModeToggle.textContent = '☀️'; // Sun icon for light mode
+            if (darkModeToggle) darkModeToggle.checked = true; // Set checkbox to checked for dark mode
         } else {
             console.log('[applyTheme] Applying light mode.'); // Log branch
             documentElement.classList.remove('dark-mode');
-            if (darkModeToggle) darkModeToggle.textContent = '🌙'; // Moon icon for dark mode
+            if (darkModeToggle) darkModeToggle.checked = false; // Set checkbox to unchecked for light mode
         }
         currentTheme = theme;
         localStorage.setItem('theme', theme);
@@ -769,11 +769,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     if (darkModeToggle) {
-        darkModeToggle.addEventListener('click', () => {
-            const isCurrentlyDark = documentElement.classList.contains('dark-mode');
-            console.log(`[Toggle Click] Is currently dark? ${isCurrentlyDark}`); // Log current state
-            const newTheme = isCurrentlyDark ? 'light' : 'dark';
-            console.log(`[Toggle Click] Calculated newTheme: ${newTheme}`); // Log calculated theme
+        // Set initial state of the toggle based on currentTheme which was set by the IIFE or localStorage
+        darkModeToggle.checked = (currentTheme === 'dark');
+
+        darkModeToggle.addEventListener('change', () => { // Listen for change on the checkbox
+            const newTheme = darkModeToggle.checked ? 'dark' : 'light';
+            console.log(`[Toggle Change] Calculated newTheme: ${newTheme}`);
             applyTheme(newTheme);
         });
     }

@@ -71,6 +71,11 @@
     font-weight: 600;
 }
 
+#settingsTabButton {
+    margin-left: auto; /* Pushes this specific button to the far right */
+    margin-right: 0; /* Ensure no right margin if it had one from .tab-button */
+}
+
 .tab-pane { 
     display: none;
     padding: 25px;
