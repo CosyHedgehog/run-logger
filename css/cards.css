@@ -286,4 +286,45 @@ canvas {
 
 .stats-summary-card #userStatsTable {
     margin-bottom: 0px; /* Remove bottom margin from the table inside this specific card */
+}
+
+/* New styles for chart header with select dropdown */
+.chart-header-with-select {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px; /* Adjust as needed */
+}
+
+.chart-header-with-select h2 {
+    margin-bottom: 0; /* Remove bottom margin from h2 if it's now part of flex */
+}
+
+.chart-period-select {
+    padding: 12px; /* Match forms.css select padding */
+    border-radius: 6px; /* Match forms.css select border-radius */
+    border: 1px solid var(--input-border); /* Match forms.css select variable */
+    background-color: var(--input-bg);    /* Match forms.css select variable */
+    color: var(--body-text);           /* Match forms.css select variable */
+    font-size: 1em;
+    width: auto; /* Adjust width to fit content */
+    /* box-sizing: border-box; Ensure padding and border don't add to width unexpectedly */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease; /* Match forms.css select transition */
+    /* font-family: inherit; Match forms.css select font-family if not already inherited */
+}
+
+.chart-period-select:focus {
+    border-color: var(--input-focus-border); /* Match forms.css select variable */
+    box-shadow: 0 0 0 0.2rem var(--input-focus-shadow); /* Match forms.css select variable */
+    outline: none;
+}
+
+/* Ensure chart canvas container takes up available space */
+.chart-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    margin-bottom: 20px;
+    position: relative; 
+    height: 400px; 
 } 

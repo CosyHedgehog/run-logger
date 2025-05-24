@@ -474,10 +474,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Canvas contexts for charts
     const distanceOverTimeChartCanvas = document.getElementById('distanceOverTimeChart')?.getContext('2d');
-    const totalKmOverallChartCanvas = document.getElementById('totalKmOverallChart')?.getContext('2d');
-    const totalKm2025ChartCanvas = document.getElementById('totalKm2025Chart')?.getContext('2d');
-    const totalVisitsOverallChartCanvas = document.getElementById('totalVisitsOverallChart')?.getContext('2d');
-    const totalVisits2025ChartCanvas = document.getElementById('totalVisits2025Chart')?.getContext('2d');
+    // const totalKmOverallChartCanvas = document.getElementById('totalKmOverallChart')?.getContext('2d'); // Removed
+    // const totalKm2025ChartCanvas = document.getElementById('totalKm2025Chart')?.getContext('2d');     // Removed
+    // const totalVisitsOverallChartCanvas = document.getElementById('totalVisitsOverallChart')?.getContext('2d'); // Removed
+    // const totalVisits2025ChartCanvas = document.getElementById('totalVisits2025Chart')?.getContext('2d');   // Removed
+    const totalKmChartCanvas = document.getElementById('totalKmChart')?.getContext('2d'); // New Consolidated
+    const totalVisitsChartCanvas = document.getElementById('totalVisitsChart')?.getContext('2d'); // New Consolidated
 
     // Tabs
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -487,10 +489,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Chart instances
     let distanceOverTimeChartInstance;
-    let totalKmOverallChartInstance;
-    let totalKm2025ChartInstance;
-    let totalVisitsOverallChartInstance;
-    let totalVisits2025ChartInstance;
+    // let totalKmOverallChartInstance; // Removed
+    // let totalKm2025ChartInstance;    // Removed
+    // let totalVisitsOverallChartInstance; // Removed
+    // let totalVisits2025ChartInstance;   // Removed
+    let totalKmChartInstance; // New Consolidated
+    let totalVisitsChartInstance; // New Consolidated
 
     let activeTab = 'summary'; // Default active tab
 
@@ -507,6 +511,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // const errorModalTitleEl = document.getElementById('errorModalTitle');     // REMOVE - ID changed
     // const errorModalMessageEl = document.getElementById('errorModalMessage');   // REMOVE - ID changed
     // const closeErrorModalBtn = document.getElementById('closeErrorModalBtn'); // REMOVE - ID changed
+
+    // --- Selectors for new dropdowns ---
+    const distanceChartPeriodSelect = document.getElementById('distanceChartPeriodSelect');
+    const visitsChartPeriodSelect = document.getElementById('visitsChartPeriodSelect');
+    // --- End Selectors for new dropdowns ---
 
     // --- Dynamic Form Calculation for MPH/Distance ---
     function handleDynamicFormCalculation() {
@@ -1141,10 +1150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Re-render charts if summary tab is active, using theme-aware colors
         if (activeTab === 'summary') {
-            renderTotalKmOverallChart(totalOverallJason, totalOverallKelvin);
-            renderTotalKm2025Chart(totalDistance2025Jason, totalDistance2025Kelvin);
-            renderTotalVisitsOverallChart(totalVisitsOverallJason, totalVisitsOverallKelvin); 
-            renderTotalVisits2025Chart(totalVisits2025Jason, totalVisits2025Kelvin);
+            renderConsolidatedCharts(); // New function to handle both consolidated charts
             updateDistanceOverTimeChart();
         }
 
@@ -1204,75 +1210,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    function renderTotalKmOverallChart(jasonTotal, kelvinTotal) {
-        if (!totalKmOverallChartCanvas) return;
+    // Consolidated function to render the Total KM chart based on selected period
+    function renderTotalKmChart(chartData) {
+        if (!totalKmChartCanvas) return;
         const colors = getChartColors();
-        totalKmOverallChartInstance = renderBarChart(
-            totalKmOverallChartCanvas,
-            totalKmOverallChartInstance, 
+        totalKmChartInstance = renderBarChart(
+            totalKmChartCanvas,
+            totalKmChartInstance,
             '', // Title is now in HTML h2
             ['Jason', 'Kelvin'],
-            [{ 
-                label: 'Total KM Overall', 
-                data: [jasonTotal.toFixed(3), kelvinTotal.toFixed(3)], 
-                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
-                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
-                borderWidth: 1 
+            [{
+                label: 'Total KM',
+                data: [chartData.jason.toFixed(3), chartData.kelvin.toFixed(3)],
+                backgroundColor: [colors.jasonColor, colors.kelvinColor],
+                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor],
+                borderWidth: 1
             }]
         );
     }
 
-    function renderTotalKm2025Chart(jason2025Total, kelvin2025Total) {
-        if (!totalKm2025ChartCanvas) return;
+    // Consolidated function to render the Total Visits chart based on selected period
+    function renderTotalVisitsChart(chartData) {
+        if (!totalVisitsChartCanvas) return;
         const colors = getChartColors();
-        totalKm2025ChartInstance = renderBarChart(
-            totalKm2025ChartCanvas,
-            totalKm2025ChartInstance, 
-            '', // Title is now in HTML h2
-            ['Jason', 'Kelvin'],
-            [{ 
-                label: 'Total KM in 2025', 
-                data: [jason2025Total.toFixed(3), kelvin2025Total.toFixed(3)], 
-                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
-                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
-                borderWidth: 1 
-            }]
-        );
-    }
-
-    function renderTotalVisitsOverallChart(jasonVisits, kelvinVisits) {
-        if (!totalVisitsOverallChartCanvas) return;
-        const colors = getChartColors();
-        totalVisitsOverallChartInstance = renderBarChart(
-            totalVisitsOverallChartCanvas,
-            totalVisitsOverallChartInstance, 
+        totalVisitsChartInstance = renderBarChart(
+            totalVisitsChartCanvas,
+            totalVisitsChartInstance,
             '', // Title is in HTML h2
             ['Jason', 'Kelvin'],
-            [{ 
-                label: 'Total Visits Overall', 
-                data: [jasonVisits, kelvinVisits], 
-                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
-                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
-                borderWidth: 1 
-            }],
-            'Visits' // Y-axis label for visits
-        );
-    }
-
-    function renderTotalVisits2025Chart(jason2025Visits, kelvin2025Visits) {
-        if (!totalVisits2025ChartCanvas) return;
-        const colors = getChartColors();
-        totalVisits2025ChartInstance = renderBarChart(
-            totalVisits2025ChartCanvas,
-            totalVisits2025ChartInstance, 
-            '', // Title is in HTML h2
-            ['Jason', 'Kelvin'],
-            [{ 
-                label: 'Total Visits in 2025', 
-                data: [jason2025Visits, kelvin2025Visits], 
-                backgroundColor: [colors.jasonColor, colors.kelvinColor], 
-                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor], 
-                borderWidth: 1 
+            [{
+                label: 'Total Visits',
+                data: [chartData.jason, chartData.kelvin],
+                backgroundColor: [colors.jasonColor, colors.kelvinColor],
+                borderColor: [colors.jasonBorderColor, colors.kelvinBorderColor],
+                borderWidth: 1
             }],
             'Visits' // Y-axis label for visits
         );
@@ -1708,10 +1679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             } else {
                 // If switching away from summary, destroy chart instances to prevent issues if they are not visible
                 if (distanceOverTimeChartInstance) { distanceOverTimeChartInstance.destroy(); distanceOverTimeChartInstance = null; }
-                if (totalKmOverallChartInstance) { totalKmOverallChartInstance.destroy(); totalKmOverallChartInstance = null; }
-                if (totalKm2025ChartInstance) { totalKm2025ChartInstance.destroy(); totalKm2025ChartInstance = null; }
-                if (totalVisitsOverallChartInstance) { totalVisitsOverallChartInstance.destroy(); totalVisitsOverallChartInstance = null; }
-                if (totalVisits2025ChartInstance) { totalVisits2025ChartInstance.destroy(); totalVisits2025ChartInstance = null; }
+                if (totalKmChartInstance) { totalKmChartInstance.destroy(); totalKmChartInstance = null; }
+                if (totalVisitsChartInstance) { totalVisitsChartInstance.destroy(); totalVisitsChartInstance = null; }
             }
         }
         // Close log run form if it's open when switching tabs
@@ -1747,6 +1716,25 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error('renderAllRuns or updateStatistics is not available in dataChanged event listener scope');
         }
     });
+
+    // --- Event Listeners for new dropdowns ---
+    if (distanceChartPeriodSelect) {
+        distanceChartPeriodSelect.addEventListener('change', () => {
+            // if (activeTab === 'summary') {
+            //     updateStatistics(); // This will re-render charts with new period
+            // }
+            updateTotalKmChartUI(); // Call specific updater
+        });
+    }
+    if (visitsChartPeriodSelect) {
+        visitsChartPeriodSelect.addEventListener('change', () => {
+            // if (activeTab === 'summary') {
+            //     updateStatistics(); // This will re-render charts with new period
+            // }
+            updateTotalVisitsChartUI(); // Call specific updater
+        });
+    }
+    // --- End Event Listeners for new dropdowns ---
 
     // Initial Load
     (async () => {
@@ -1822,6 +1810,94 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
     })();
+
+    // New function to manage rendering of consolidated charts based on dropdowns
+    function renderConsolidatedCharts() {
+        if (activeTab !== 'summary') return;
+
+        const distancePeriod = document.getElementById('distanceChartPeriodSelect')?.value || 'allTime';
+        const visitsPeriod = document.getElementById('visitsChartPeriodSelect')?.value || 'allTime';
+
+        let jasonDistanceData = 0;
+        let kelvinDistanceData = 0;
+        let jasonVisitsData = 0;
+        let kelvinVisitsData = 0;
+
+        runs.forEach(run => {
+            const runDistance = parseFloat(run.distance) || 0;
+            const runYear = new Date(run.date).getFullYear();
+
+            // Calculate Distance Data
+            if (distancePeriod === 'allTime' || (distancePeriod !== 'allTime' && runYear === parseInt(distancePeriod))) {
+                if (run.user === 'Jason') {
+                    jasonDistanceData += runDistance;
+                }
+                if (run.user === 'Kelvin') {
+                    kelvinDistanceData += runDistance;
+                }
+            }
+
+            // Calculate Visits Data
+            if (visitsPeriod === 'allTime' || (visitsPeriod !== 'allTime' && runYear === parseInt(visitsPeriod))) {
+                if (run.user === 'Jason') {
+                    jasonVisitsData++;
+                }
+                if (run.user === 'Kelvin') {
+                    kelvinVisitsData++;
+                }
+            }
+        });
+
+        if (typeof renderTotalKmChart === 'function') {
+            renderTotalKmChart({ jason: jasonDistanceData, kelvin: kelvinDistanceData });
+        }
+        if (typeof renderTotalVisitsChart === 'function') {
+            renderTotalVisitsChart({ jason: jasonVisitsData, kelvin: kelvinVisitsData });
+        }
+    }
+
+    // New function to specifically update the Total KM chart from its dropdown
+    function updateTotalKmChartUI() {
+        if (activeTab !== 'summary' || !document.getElementById('distanceChartPeriodSelect')) return;
+
+        const distancePeriod = document.getElementById('distanceChartPeriodSelect').value;
+        let jasonDistanceData = 0;
+        let kelvinDistanceData = 0;
+
+        runs.forEach(run => {
+            const runDistance = parseFloat(run.distance) || 0;
+            const runYear = new Date(run.date).getFullYear();
+            if (distancePeriod === 'allTime' || (distancePeriod !== 'allTime' && runYear === parseInt(distancePeriod))) {
+                if (run.user === 'Jason') jasonDistanceData += runDistance;
+                if (run.user === 'Kelvin') kelvinDistanceData += runDistance;
+            }
+        });
+
+        if (typeof renderTotalKmChart === 'function') {
+            renderTotalKmChart({ jason: jasonDistanceData, kelvin: kelvinDistanceData });
+        }
+    }
+
+    // New function to specifically update the Total Visits chart from its dropdown
+    function updateTotalVisitsChartUI() {
+        if (activeTab !== 'summary' || !document.getElementById('visitsChartPeriodSelect')) return;
+
+        const visitsPeriod = document.getElementById('visitsChartPeriodSelect').value;
+        let jasonVisitsData = 0;
+        let kelvinVisitsData = 0;
+
+        runs.forEach(run => {
+            const runYear = new Date(run.date).getFullYear();
+            if (visitsPeriod === 'allTime' || (visitsPeriod !== 'allTime' && runYear === parseInt(visitsPeriod))) {
+                if (run.user === 'Jason') jasonVisitsData++;
+                if (run.user === 'Kelvin') kelvinVisitsData++;
+            }
+        });
+
+        if (typeof renderTotalVisitsChart === 'function') {
+            renderTotalVisitsChart({ jason: jasonVisitsData, kelvin: kelvinVisitsData });
+        }
+    }
 }); 
 
 function calculateUserStats() {

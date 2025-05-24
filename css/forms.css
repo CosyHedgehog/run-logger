@@ -26,6 +26,9 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
 }
 
 #logRunFormContainer.visible {
@@ -46,6 +49,39 @@
 #logRunFormContainer h2 span {
     color: var(--primary-color);
     font-weight: 700;
+}
+
+/* Make the form itself scrollable within the container */
+#logRunFormContainer #runForm {
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Reduce spacing within the log run form */
+#logRunFormContainer #runForm form div, /* Targets general divs holding label/input */
+#logRunFormContainer #runForm .form-row /* Targets specific .form-row divs */
+{
+    margin-top: 0; /* Explicitly remove margin-top for form-row */
+    margin-bottom: 3px; /* Set specific margin-bottom for form-row and other general divs */
+}
+
+/* Adjust general form div if .form-row is being too broadly targeted by the above */
+/* Or ensure the rule above is specific enough. Let's refine the above selector for .form-row */
+
+/* Revised approach: Target .form-row specifically for its margins, */
+/* and other direct div children of the form for theirs separately. */
+
+#logRunFormContainer #runForm > div { /* Direct div children of the form (single input rows) */
+    margin-bottom: 6px; /* Keep this as 6px from previous change, or adjust if all should be 3px */
+}
+
+#logRunFormContainer #runForm .form-row { /* Specific for .form-row */
+    margin-top: 0;
+    margin-bottom: 3px;
+}
+
+#logRunFormContainer #runForm label {
+    margin-bottom: 2px; /* Further reduced from 4px */
 }
 
 form div {
@@ -375,7 +411,7 @@ button[type="submit"]:hover,
 /* Styles for read-only form state */
 #logRunFormContainer.form-read-only input,
 #logRunFormContainer.form-read-only textarea {
-    background-color: var(--disabled-bg-color) !important; /* Ensure it overrides */
+    /* background-color: var(--disabled-bg-color) !important; Ensure it overrides */
     color: var(--disabled-text-color) !important;
     /* cursor: not-allowed !important; */ /* Removed */
     opacity: 0.8 !important;

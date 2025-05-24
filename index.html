@@ -154,32 +154,34 @@
 
                 <div class="dual-chart-row">
                     <div class="content-card">
-                        <h2>Total Distance Ran Overall (Km)</h2>
+                        <div class="chart-header-with-select">
+                            <h2>Total Distance Ran (Km)</h2>
+                            <select id="distanceChartPeriodSelect" class="chart-period-select">
+                                <option value="allTime">All Time</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <!-- Add other year options here if needed -->
+                            </select>
+                        </div>
                         <div class="chart-container">
-                            <canvas id="totalKmOverallChart"></canvas>
+                            <canvas id="totalKmChart"></canvas>
                         </div>
                     </div>
 
                     <div class="content-card">
-                        <h2>Total Distance Ran in 2025 (Km)</h2>
-                        <div class="chart-container">
-                            <canvas id="totalKm2025Chart"></canvas>
+                        <div class="chart-header-with-select">
+                            <h2>Total Visits</h2>
+                            <select id="visitsChartPeriodSelect" class="chart-period-select">
+                                <option value="allTime">All Time</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <!-- Add other year options here if needed -->
+                            </select>
                         </div>
-                    </div>
-                </div>
-
-                <div class="dual-chart-row">
-                    <div class="content-card">
-                        <h2>Total Visits Overall</h2>
                         <div class="chart-container">
-                            <canvas id="totalVisitsOverallChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <h2>Total Visits in 2025</h2>
-                        <div class="chart-container">
-                            <canvas id="totalVisits2025Chart"></canvas>
+                            <canvas id="totalVisitsChart"></canvas>
                         </div>
                     </div>
                 </div>
