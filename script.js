@@ -515,6 +515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Selectors for new dropdowns ---
     const distanceChartPeriodSelect = document.getElementById('distanceChartPeriodSelect');
     const visitsChartPeriodSelect = document.getElementById('visitsChartPeriodSelect');
+    const distanceOverTimeChartPeriodSelect = document.getElementById('distanceOverTimeChartPeriodSelect'); // New dropdown selector
     // --- End Selectors for new dropdowns ---
 
     // --- Dynamic Form Calculation for MPH/Distance ---
@@ -1265,7 +1266,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             distanceOverTimeChartInstance = null; // Ensure instance is nulled here too
         }
 
-        const sortedRuns = [...runs].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const selectedPeriod = distanceOverTimeChartPeriodSelect ? distanceOverTimeChartPeriodSelect.value : 'allTime';
+
+        let filteredRuns = [...runs];
+        if (selectedPeriod !== 'allTime') {
+            const yearToFilter = parseInt(selectedPeriod);
+            filteredRuns = runs.filter(run => new Date(run.date).getFullYear() === yearToFilter);
+        }
+
+        const sortedRuns = filteredRuns.sort((a, b) => new Date(a.date) - new Date(b.date));
         const jasonRuns = sortedRuns.filter(run => run.user === 'Jason');
         const kelvinRuns = sortedRuns.filter(run => run.user === 'Kelvin');
 
@@ -1734,6 +1743,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             updateTotalVisitsChartUI(); // Call specific updater
         });
     }
+    if (distanceOverTimeChartPeriodSelect) { // Event listener for the new dropdown
+        distanceOverTimeChartPeriodSelect.addEventListener('change', () => {
+            if (activeTab === 'summary') { // Only update if summary tab is active
+                updateDistanceOverTimeChart();
+            }
+        });
+    }
     // --- End Event Listeners for new dropdowns ---
 
     // Initial Load
@@ -1741,12 +1757,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (supabase) {
             runs = await fetchRunsFromSupabase();
         } else {
-            // Fallback to localStorage if Supabase client failed to initialize - REMOVED
             console.error("CRITICAL: Supabase client not initialized. Data cannot be loaded.");
             alert("Failed to connect to the database. Please check your internet connection or contact support.");
-            // Optionally disable UI elements here if the app is unusable without DB
-            runs = []; // Ensure runs is empty if DB fails
+            runs = [];
         }
+
+        // --- Set default dropdown values to current year if available, else allTime ---
+        const currentYearString = new Date().getFullYear().toString();
+
+        if (distanceOverTimeChartPeriodSelect) {
+            if (distanceOverTimeChartPeriodSelect.querySelector(`option[value="${currentYearString}"]`)) {
+                distanceOverTimeChartPeriodSelect.value = currentYearString;
+            } else {
+                distanceOverTimeChartPeriodSelect.value = 'allTime'; // Fallback
+            }
+        }
+        if (distanceChartPeriodSelect) {
+            if (distanceChartPeriodSelect.querySelector(`option[value="${currentYearString}"]`)) {
+                distanceChartPeriodSelect.value = currentYearString;
+            } else {
+                distanceChartPeriodSelect.value = 'allTime'; // Fallback
+            }
+        }
+        if (visitsChartPeriodSelect) {
+            if (visitsChartPeriodSelect.querySelector(`option[value="${currentYearString}"]`)) {
+                visitsChartPeriodSelect.value = currentYearString;
+            } else {
+                visitsChartPeriodSelect.value = 'allTime'; // Fallback
+            }
+        }
+        // --- End set default dropdown values ---
         
         // Attach sort listeners and apply initial sort (date desc)
         if(runsTableBodySummary) attachSortListenersToTable(runsTableBodySummary, () => [...runs], true);
