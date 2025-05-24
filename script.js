@@ -65,10 +65,20 @@ const SUPABASE_URL = 'https://qrjstijzhumrhwvdkuls.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyanN0aWp6aHVtcmh3dmRrdWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjQ0MzksImV4cCI6MjA2MzUwMDQzOX0.5CCuhm8rdwJQ_Of_B-XUWjNY9JyQb1EOMSmRREh7x6w';
 let supabase = null; // This variable will store our client instance
 
-// ---- ADD THESE NEW GLOBALISH VARIABLES ----
-let activeCalculatorInput = 'mph'; // 'mph' or 'distance', tracks which field drives the other
-let isCalculating = false; // Prevents event listener loops
-// ---- END OF ADDING NEW GLOBALISH VARIABLES ----
+// ---- Global-like variables ----
+let activeCalculatorInput = 'mph'; 
+let isCalculating = false; 
+let tabSpecificLogButtons = null; // Assigned in DOMContentLoaded
+let gModalContainer, gModalTitleEl, gModalMessageEl;
+let gModalConfirmBtn, gModalCancelBtn; 
+let gFormOverlay; 
+let gLogRunFormContainer; // Declared here, assigned in DOMContentLoaded
+let runForm = null;
+let runIdToEditInput = null;
+let deleteRunFromFormBtn = null;
+let logForUserSpan = null; 
+let currentUserForRunInput = null; 
+// ---- End Global-like variables ----
 
 // Check for the global `window.supabase` object from the CDN and its `createClient` method
 if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
@@ -212,11 +222,18 @@ async function updateRunInSupabase(runId, updatedRunObjectWithAuthKey) {
 }
 
 // --- Global variables for Modal Elements (Error Modal and shared) ---
-let gModalContainer, gModalTitleEl, gModalMessageEl;
-let gModalConfirmBtn, gModalCancelBtn; // New button refs
-let gFormOverlay; 
-let gLogRunFormContainer;
-let gModalConfirmCallback = null; // To store the action for the confirm button
+// let gModalContainer, gModalTitleEl, gModalMessageEl; // Moved to global-like section
+// let gModalConfirmBtn, gModalCancelBtn; // New button refs // Moved
+// let gFormOverlay; // Moved
+// let gLogRunFormContainer; // To be assigned in DOMContentLoaded // Moved
+
+// --- Global variables for Log Run Form Elements (needed for global closeLogRunForm) ---
+// let runForm = null; // Moved
+// let runIdToEditInput = null; // Moved
+// let deleteRunFromFormBtn = null; // Moved
+// let logForUserSpan = null; // Also used by closeLogRunForm indirectly via runForm.querySelector // Moved
+// let currentUserForRunInput = null; // Used by openLogRunForm/openEditForm, good to have if those become global // Moved
+// let gLogRunFormContainer = null; // Made this global-like for read-only class toggling // Already moved and handled
 
 // --- Global Modal Functions (Refactored from Error Modal) ---
 function openModal(title, message, type = 'error', onConfirm = null) {
@@ -285,6 +302,43 @@ function closeModal() {
     gModalConfirmCallback = null; 
 }
 
+// --- Global Function to Close Log Run Form ---
+function closeLogRunForm() {
+    if (gLogRunFormContainer) { 
+        gLogRunFormContainer.classList.remove('visible');
+        setTimeout(() => {
+            gLogRunFormContainer.classList.add('hidden');
+            
+            // Only hide overlay if the general modal is NOT active
+            if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) {
+                 gFormOverlay.classList.add('hidden');
+            }
+
+            // Reset form to "Add Run" mode after closing
+            if (runForm) { // runForm is now global
+                runForm.reset();
+                if(runIdToEditInput) runIdToEditInput.value = ''; // runIdToEditInput is now global
+                const submitButton = runForm.querySelector('button[type="submit"]');
+                if (submitButton) submitButton.textContent = 'Add Run';
+                // logForUserSpan is trickier if we don't make it global, query it inside if needed or ensure it is global.
+                // For now, assuming runForm.querySelector is sufficient as logForUserSpan itself is not directly manipulated by closeLogRunForm
+                // but rather its container h2 is. The #logForUser span will be within the h2.
+                const h2Title = runForm.querySelector('h2');
+                if (h2Title) {
+                    const existingSpan = h2Title.querySelector('#logForUser');
+                    if (existingSpan) h2Title.innerHTML = `Log New Run for <span id="logForUser"></span>`;
+                    else h2Title.innerHTML = `Log New Run for <span></span>`; // Fallback if span wasn't there
+                }
+            }
+            if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // deleteRunFromFormBtn is now global
+        }, 300); 
+    } else if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) { 
+        // If only overlay is somehow visible without log form AND general modal is not active
+         gFormOverlay.classList.add('hidden');
+         if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // Also hide here as a fallback
+    }
+}
+
 // Modified deleteRun function
 async function deleteRun(runIdToDelete) {
     const masterPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
@@ -338,6 +392,7 @@ async function deleteRun(runIdToDelete) {
                 console.log("Delete successful message from PG function:", data);
                 // Success! Close the modal.
                 closeModal(); 
+                closeLogRunForm(); // Close the edit form as well
             } else if (typeof data === 'string') { // Some other message from PG func, treat as info/error
                 openModal("Delete Operation Note", data, 'error'); // Stays open with this message
             } else {
@@ -363,7 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     gModalConfirmBtn = document.getElementById('modalConfirmBtn');
     gModalCancelBtn = document.getElementById('modalCancelBtn');
     gFormOverlay = document.getElementById('formOverlay');
-    gLogRunFormContainer = document.getElementById('logRunFormContainer');
+    gLogRunFormContainer = document.getElementById('logRunFormContainer'); // Assign here
     console.log("[DOMContentLoaded] Global modal element variables assigned:", 
         { gModalContainer, gModalTitleEl, gModalMessageEl, gModalConfirmBtn, gModalCancelBtn, gFormOverlay, gLogRunFormContainer }
     );
@@ -372,14 +427,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const documentElement = document.documentElement; // Use documentElement for theme class
 
-    const runForm = document.getElementById('runForm');
-    const formOverlay = document.getElementById('formOverlay');
-    const logRunFormContainer = document.getElementById('logRunFormContainer');
-    const tabSpecificLogButtons = document.querySelectorAll('.showLogRunFormBtn');
-    const cancelLogRunBtn = document.getElementById('cancelLogRunBtn');
-    const logForUserSpan = document.getElementById('logForUser');
-    const currentUserForRunInput = document.getElementById('currentUserForRun');
-    const runIdToEditInput = document.getElementById('runIdToEdit'); // Reference for the new hidden input
+    // Assign to global form element variables (previously const within DOMContentLoaded)
+    runForm = document.getElementById('runForm');
+    logForUserSpan = document.getElementById('logForUser');
+    currentUserForRunInput = document.getElementById('currentUserForRun');
+    runIdToEditInput = document.getElementById('runIdToEdit'); 
+    deleteRunFromFormBtn = document.getElementById('deleteRunFromFormBtn');
+    // Ensure these are logged or checked if issues persist
+    console.log("[DOMContentLoaded] Global form element variables assigned:", { runForm, logForUserSpan, currentUserForRunInput, runIdToEditInput, deleteRunFromFormBtn });
+
+    // const formOverlay = document.getElementById('formOverlay'); // Now global gFormOverlay
+    // const logRunFormContainer = document.getElementById('logRunFormContainer'); // Now global gLogRunFormContainer
+    tabSpecificLogButtons = document.querySelectorAll('.showLogRunFormBtn'); // Assign to global-like variable
+    const closeLogRunFormBtn = document.getElementById('closeLogRunFormBtn'); // New close button
+    // const logForUserSpan = document.getElementById('logForUser'); // Now global
+    // const currentUserForRunInput = document.getElementById('currentUserForRun'); // Now global
+    // const runIdToEditInput = document.getElementById('runIdToEdit'); // Now global
+    // const deleteRunFromFormBtn = document.getElementById('deleteRunFromFormBtn'); // Now global
 
     // ---- ADD THESE INPUT CONSTS ----
     const timeInput = document.getElementById('time');
@@ -521,6 +585,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateMasterPasswordStatus(transientMessage = null) {
         if (!masterPasswordStatusEl) return;
         const savedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
+        const isReadOnly = !savedPassword;
         
         // Helper to set enabled/disabled state
         const setInputDisabledState = (disabled) => {
@@ -568,6 +633,17 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Enter password to save";
                 setInputDisabledState(false);
             }
+        }
+
+        // Control visibility of "Log Run" buttons
+        if (tabSpecificLogButtons) {
+            tabSpecificLogButtons.forEach(btn => {
+                // Default display for buttons can vary (e.g., 'inline-block', 'block').
+                // Assuming they are 'inline-block' or similar by default from CSS.
+                // If CSS sets them to display: none initially for some reason, this logic might need adjustment.
+                // For now, '' should revert to CSS default.
+                btn.style.display = isReadOnly ? 'none' : ''; 
+            });
         }
     }
 
@@ -712,7 +788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTable(tableBody, runsToDisplay, isSummaryTable = false) {
         tableBody.innerHTML = '';
         if (!runsToDisplay || runsToDisplay.length === 0) {
-            const colspan = 10; // Now 10 for both summary and non-summary after removing Notes
+            const colspan = isSummaryTable ? 10 : 9; // Adjusted colspan
             tableBody.innerHTML = `<tr class="no-data-message"><td colspan="${colspan}">No runs logged yet.</td></tr>`;
             return;
         }
@@ -748,19 +824,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!isSummaryTable) deltaCell.classList.add('hide-on-mobile');
 
             if (!isSummaryTable) {
-                const actionsCell = row.insertCell();
-                actionsCell.classList.add('actions-cell');
+                // const actionsCell = row.insertCell(); // Removed
+                // actionsCell.classList.add('actions-cell'); // Removed
 
-                // Delete button
-                const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
-                deleteBtn.classList.add('action-btn', 'delete-btn');
-                deleteBtn.setAttribute('aria-label', 'Delete run');
-                deleteBtn.onclick = function(event) { // ADDED event PARAMETER
-                    event.stopPropagation(); // ADDED THIS LINE
-                    deleteRun(run.id);
-                };
-                actionsCell.appendChild(deleteBtn);
+                // Delete button (old one) - REMOVED
+                // const deleteBtn = document.createElement('button');
+                // deleteBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                // deleteBtn.classList.add('action-btn', 'delete-btn');
+                // deleteBtn.setAttribute('aria-label', 'Delete run');
+                // deleteBtn.onclick = function(event) { 
+                //     event.stopPropagation(); 
+                //     deleteRun(run.id);
+                // };
+                // actionsCell.appendChild(deleteBtn);
 
                 // Make the entire row clickable to edit
                 row.style.cursor = 'pointer'; // Add pointer cursor to indicate clickability
@@ -1320,6 +1396,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (submitButton) submitButton.textContent = 'Add Run';
         }
 
+        if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // Hide delete button for new runs
+
         if (gFormOverlay) gFormOverlay.classList.remove('hidden'); 
         if (gLogRunFormContainer) { 
             gLogRunFormContainer.classList.remove('hidden');
@@ -1333,6 +1411,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             alert('Run not found for editing.');
             return;
         }
+
+        const isReadOnly = !localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
+        const submitButton = runForm.querySelector('button[type="submit"]');
 
         if (runForm) {
             runForm.reset();
@@ -1360,44 +1441,55 @@ document.addEventListener('DOMContentLoaded', async () => {
             // The user's first interaction with time, mph, or distance will trigger it.
             // ---- END OF KEY LINES ----
 
-            runForm.querySelector('h2').innerHTML = `Edit Run for <span id="logForUser">${runToEdit.user}</span>`;
-            logForUserSpan.textContent = runToEdit.user;
-            const submitButton = runForm.querySelector('button[type="submit"]');
-            if (submitButton) submitButton.textContent = 'Save';
+            const formTitleH2 = runForm.querySelector('h2');
+            if (formTitleH2) {
+                formTitleH2.innerHTML = `${isReadOnly ? 'Run' : 'Edit Run'} for <span id="logForUser">${runToEdit.user}</span>`;
+            }
+            // runForm.querySelector('h2').innerHTML = `Edit Run for <span id="logForUser">${runToEdit.user}</span>`;
+            if (logForUserSpan) logForUserSpan.textContent = runToEdit.user; // logForUserSpan is global
+            
+            // Set read-only and disabled states
+            runForm.date.readOnly = isReadOnly;
+            runForm.time.readOnly = isReadOnly;
+            runForm.mph.readOnly = isReadOnly;
+            runForm.distance.readOnly = isReadOnly;
+            runForm.bpm.readOnly = isReadOnly;
+            runForm.plus1.readOnly = isReadOnly;
+            runForm.notes.readOnly = isReadOnly;
+
+            if (submitButton) {
+                submitButton.textContent = 'Save'; // Still set text
+                submitButton.style.display = isReadOnly ? 'none' : ''; // Hide if read-only, show if not
+            }
+
+            // Show and configure the delete button for edit mode
+            if (deleteRunFromFormBtn) { // deleteRunFromFormBtn is global
+                if (isReadOnly) {
+                    deleteRunFromFormBtn.style.display = 'none';
+                    deleteRunFromFormBtn.onclick = null; // Clear onclick if read-only
+                } else {
+                    deleteRunFromFormBtn.classList.remove('hidden'); // Ensure the .hidden class is removed
+                    deleteRunFromFormBtn.style.display = ''; // Revert to default display (or e.g., 'inline-block')
+                    deleteRunFromFormBtn.onclick = function() { 
+                        deleteRun(runId); 
+                    };
+                }
+            }
+        }
+        
+        // Add/remove class for styling read-only form
+        if (gLogRunFormContainer) {
+            if (isReadOnly) {
+                gLogRunFormContainer.classList.add('form-read-only');
+            } else {
+                gLogRunFormContainer.classList.remove('form-read-only');
+            }
         }
 
-        if (formOverlay) formOverlay.classList.remove('hidden');
-        if (logRunFormContainer) {
-            logRunFormContainer.classList.remove('hidden');
-            setTimeout(() => logRunFormContainer.classList.add('visible'), 10);
-        }
-    }
-
-    function closeLogRunForm() {
-        if (gLogRunFormContainer) { 
-            gLogRunFormContainer.classList.remove('visible');
-            setTimeout(() => {
-                gLogRunFormContainer.classList.add('hidden');
-                
-                // Only hide overlay if the general modal is NOT active
-                if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) {
-                     gFormOverlay.classList.add('hidden');
-                }
-
-                // Reset form to "Add Run" mode after closing
-                if (runForm) { // runForm is the const runForm = document.getElementById('runForm'); from DOMContentLoaded
-                    runForm.reset();
-                    if(runIdToEditInput) runIdToEditInput.value = ''; // runIdToEditInput is also from DOMContentLoaded
-                    const submitButton = runForm.querySelector('button[type="submit"]');
-                    if (submitButton) submitButton.textContent = 'Add Run';
-                    const logForUserSpan = runForm.querySelector('#logForUser'); // Get it here if needed
-                    if (logForUserSpan) runForm.querySelector('h2').innerHTML = `Log New Run for <span id="logForUser"></span>`;
-                    else runForm.querySelector('h2').innerHTML = `Log New Run for <span></span>`; // Fallback
-                }
-            }, 300); 
-        } else if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) { 
-            // If only overlay is somehow visible without log form AND general modal is not active
-             gFormOverlay.classList.add('hidden');
+        if (gFormOverlay) gFormOverlay.classList.remove('hidden'); // gFormOverlay is global
+        if (gLogRunFormContainer) { // gLogRunFormContainer is global
+            gLogRunFormContainer.classList.remove('hidden');
+            setTimeout(() => gLogRunFormContainer.classList.add('visible'), 10);
         }
     }
 
@@ -1621,7 +1713,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- Event Listeners ---
     if (runForm) runForm.addEventListener('submit', addRun);
     if (formOverlay) formOverlay.addEventListener('click', closeLogRunForm);
-    if (cancelLogRunBtn) cancelLogRunBtn.addEventListener('click', closeLogRunForm);
+    if (closeLogRunFormBtn) closeLogRunFormBtn.addEventListener('click', closeLogRunForm); // New event listener
 
     tabSpecificLogButtons.forEach(button => {
         button.addEventListener('click', () => {

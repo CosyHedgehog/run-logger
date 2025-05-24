@@ -2,6 +2,7 @@
 table {
     width: 100%;
     border-collapse: collapse;
+    border-spacing: 0; /* Explicitly remove spacing */
     margin-bottom: 30px;
     background-color: var(--card-bg); /* Table itself can use card-bg or a specific table-bg */
     font-size: 0.95em;
@@ -9,6 +10,8 @@ table {
 
 th, td {
     border-bottom: 1px solid var(--table-row-border);
+    /* border-left: 1px solid var(--table-row-border); */ /* Example if we needed side borders */
+    /* border-right: 1px solid var(--table-row-border); */
     padding: 14px 12px;
     text-align: center;
     vertical-align: middle;
@@ -16,20 +19,23 @@ th, td {
 }
 
 thead {
-    /* position: sticky; */ /* Let's apply to th directly for now */
-    /* top: 0; */
-    /* z-index: 10; */ /* Moved to th */
+    /* position: sticky; */ /* Not making thead itself sticky, but its children th are */
+    /* top: 0; */ 
+    position: relative; /* Add position to allow z-index */
+    z-index: 5;         /* Lower than th cells, but can establish stacking context */
     background-color: var(--table-header-bg); /* Keep this for solid background */
 }
 
 /* General th styling - no position here initially */
 th {
-    background-color: var(--table-header-bg);
+    background-color: var(--table-header-bg); /* This is for non-sticky state */
     font-weight: 600;
     color: var(--table-header-text);
     text-transform: uppercase;
     font-size: 0.85em;
     letter-spacing: 0.5px;
+    padding-left: 12px; /* Ensure consistent padding */
+    padding-right: 12px; /* Ensure consistent padding */
 }
 
 /* Sticky properties for ALL th elements inside thead > tr */
@@ -37,8 +43,10 @@ th {
 thead > tr > th {
     position: sticky;
     top: 0;
-    background-color: var(--table-header-bg); /* Ensures all th have background when sticky */
+    background-color: var(--table-header-bg); /* Restore background for sticky th */
     z-index: 10;
+    border-bottom: none; /* Remove actual border for sticky state */
+    box-shadow: 0 1px 0 0 var(--table-row-border); /* Simulate border-bottom with box-shadow */
 }
 
 /* Styles for sortable table headers */
@@ -48,8 +56,11 @@ th.sortable-header {
     cursor: pointer;
     position: sticky; /* Explicitly make sortable headers sticky */
     top: 0; /* Required with sticky */
+    background-color: var(--table-header-bg); /* Restore background for sortable sticky th */
     z-index: 10; /* Ensure it's on the same stacking context level */
     /* position: relative; */ /* Comment out to test if relative was the issue for sticky */
+    border-bottom: none; /* Also remove actual border here */
+    box-shadow: 0 1px 0 0 var(--table-row-border); /* Ensure consistent shadow here too */
 }
 
 /* If the arrow positioning requires relative, we might need a wrapper span inside th for the arrow instead */

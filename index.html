@@ -37,6 +37,7 @@
 
         <div id="formOverlay" class="hidden"></div>
         <div id="logRunFormContainer" class="hidden">
+            <button id="closeLogRunFormBtn" class="modal-close-btn">&times;</button>
             <form id="runForm">
                 <h2>Log New Run for <span id="logForUser"></span></h2>
                 <input type="hidden" id="currentUserForRun" name="currentUserForRun">
@@ -76,7 +77,7 @@
                     <textarea id="notes" name="notes"></textarea>
                 </div>
                 <div class="form-actions">
-                    <button type="button" id="cancelLogRunBtn">Cancel</button>
+                    <button type="button" id="deleteRunFromFormBtn" class="hidden">Delete</button>
                     <button type="submit">Add Run</button>
                 </div>
             </form>
@@ -218,7 +219,6 @@
                                 <th class="sortable-header hide-on-mobile" data-column="bpm">BPM <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="plus1">+1 <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="delta">Δ <span></span></th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="runsTableBodyJason">
@@ -247,7 +247,6 @@
                                 <th class="sortable-header hide-on-mobile" data-column="bpm">BPM <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="plus1">+1 <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="delta">Δ <span></span></th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="runsTableBodyKelvin">
@@ -261,28 +260,30 @@
             <div id="settings" class="tab-pane">
                 <!-- Data Migration card removed -->
                 
+                <div class="settings-card-row"> <!-- New wrapper div -->
+                    <div class="content-card app-settings-card"> <!-- New Card for App Settings -->
+                        <h2>App Security Settings</h2>
+                        <p>Set the Master Shared Password here. This password, once saved, will be used to authorize data changes. It is stored in your browser's local storage for convenience. Do not set this on a public or untrusted computer.</p>
+                        <div>
+                            <label for="masterSharedPassword">Master Shared Password:</label>
+                            <input type="password" id="masterSharedPassword" name="masterSharedPassword">
+                        </div>
+                        <div class="form-actions" style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button id="saveMasterPasswordBtn">Save</button>
+                            <button id="clearMasterPasswordBtn" style="background-color: var(--warning-color); color: var(--warning-text-color);">Clear</button>
+                        </div>
+                        <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
+                    </div>
 
-                <div class="content-card app-settings-card"> <!-- New Card for App Settings -->
-                    <h2>App Security Settings</h2>
-                    <p>Set the Master Shared Password here. This password, once saved, will be used to authorize data changes. It is stored in your browser's local storage for convenience. Do not set this on a public or untrusted computer.</p>
-                    <div>
-                        <label for="masterSharedPassword">Master Shared Password:</label>
-                        <input type="password" id="masterSharedPassword" name="masterSharedPassword">
+                    <div class="content-card export-data-card"> 
+                        <h2>Export Data</h2>
+                        <p>Download all logged runs as a JSON file. This file can be used for backup or for importing into other applications.</p>
+                        <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
+                            <button id="exportAllRunsBtn">Export All Runs (JSON)</button>
+                        </div>
                     </div>
-                    <div class="form-actions" style="display: flex; gap: 10px; margin-top: 15px;">
-                        <button id="saveMasterPasswordBtn">Save Password</button>
-                        <button id="clearMasterPasswordBtn" style="background-color: var(--warning-color); color: var(--warning-text-color);">Clear Saved Password</button>
-                    </div>
-                    <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
-                </div>
+                </div> <!-- Close settings-card-row -->
 
-                <div class="content-card export-data-card"> 
-                    <h2>Export Data</h2>
-                    <p>Download all logged runs as a JSON file. This file can be used for backup or for importing into other applications.</p>
-                    <div class="form-actions" style="justify-content: flex-start; margin-top: 15px;">
-                        <button id="exportAllRunsBtn">Export All Runs (JSON)</button>
-                    </div>
-                </div>
             </div>
 
         </div>

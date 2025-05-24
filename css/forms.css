@@ -140,7 +140,7 @@ button[type="submit"],
 {
     background-color: var(--success-color);
     color: white; /* Or var(--success-text-color) */
-    margin-left: 10px; /* Retain if only for submit next to cancel */
+    /* margin-left: 10px; /* Retain if only for submit next to cancel */ /* REMOVED to rely on parent gap */
 }
 
 button[type="submit"]:hover,
@@ -168,9 +168,14 @@ button[type="submit"]:hover,
 /* Specificity for log run form buttons if they need unique centering/gap */
 #logRunFormContainer form .form-actions {
     display: flex;
-    justify-content: center;
+    justify-content: center; /* Keeps buttons centered */
     gap: 10px; 
     margin-top: 20px;
+}
+
+#logRunFormContainer form .form-actions button {
+    flex: 1; /* Makes buttons take equal width */
+    text-align: center; /* Ensures text is centered within the button */
 }
 
 /* General Modal Styles (previously Error Modal) */
@@ -268,10 +273,22 @@ button[type="submit"]:hover,
 }
 
 /* Styles for App Security Settings buttons */
+.app-settings-card .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 0; /* Reset margin if input has its own bottom margin */
+    justify-content: flex-start; /* Align buttons to the start */
+    width: max-content; /* Make the container only as wide as its content */
+}
+
 .app-settings-card .form-actions button {
-    flex: 1; /* Each button takes equal width */
-    /* Ensure text is centered if it wasn't already */
-    text-align: center;
+    /* flex: 1; */ /* Remove flex: 1 to allow natural width */
+    flex-grow: 0; /* Explicitly prevent growing */
+    flex-shrink: 0; /* Prevent shrinking if container is too small */
+    flex-basis: auto; /* Size based on content */
+    width: 100px; /* Or a suitable fixed width, e.g., 100px */
+    padding: 10px 0; /* Adjust padding, especially L/R if width is fixed */
+    text-align: center; 
 }
 
 /* New style for side-by-side form inputs */
@@ -279,6 +296,10 @@ button[type="submit"]:hover,
     display: flex;
     gap: 15px; /* Adjust gap as needed */
     margin-bottom: 10px; /* Reduced margin for grouped rows */
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px;
 }
 
 .form-row > div {
@@ -292,4 +313,74 @@ button[type="submit"]:hover,
 
 .form-row input {
     width: 100%; /* Ensure inputs take full width of their flex container */
-} 
+}
+
+/* Style for the new Delete Run button in the form */
+#deleteRunFromFormBtn {
+    background-color: var(--danger-color);
+    color: white;
+    /* margin-right: auto; /* Pushes it to the far left if actions are justify-content: flex-end or center */
+    /* If form-actions is justify-content: center, this might not be needed or might need adjustment */
+}
+
+#deleteRunFromFormBtn:hover {
+    background-color: var(--danger-hover-color);
+    box-shadow: 0 2px 5px var(--danger-shadow-color);
+}
+
+/* Ensure the delete button in the form doesn't get general button styling that overrides its danger look */
+#logRunFormContainer .form-actions #deleteRunFromFormBtn {
+    /* This selector is more specific if needed, but direct ID styling should usually be enough */
+    /* No specific overrides here unless base .form-actions button styles conflict heavily */
+}
+
+/* Style for the new close button */
+.modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-color-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.modal-close-btn:hover {
+    color: var(--primary-color);
+    background-color: var(--button-hover-bg);
+}
+
+/* Reduce width of master password input */
+.app-settings-card #masterSharedPassword {
+    max-width: 300px; /* Or a specific width like width: 70%; */
+    margin-bottom: 15px; /* Add some space below input if buttons are on next line */
+}
+
+/* Align master password status text to the left */
+.app-settings-card #masterPasswordStatus {
+    text-align: left;
+}
+
+/* Styles for read-only form state */
+#logRunFormContainer.form-read-only input,
+#logRunFormContainer.form-read-only textarea {
+    background-color: var(--disabled-bg-color) !important; /* Ensure it overrides */
+    color: var(--disabled-text-color) !important;
+    /* cursor: not-allowed !important; */ /* Removed */
+    opacity: 0.8 !important;
+}
+
+/* Styles for .form-row are defined elsewhere and should not be here */
+
+/* Style for the new close button is defined elsewhere */ 

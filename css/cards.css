@@ -245,4 +245,45 @@ canvas {
 .app-settings-card #saveMasterPasswordBtn:disabled:hover {
     background-color: var(--disabled-bg-color); /* Keep background same as disabled state */
     box-shadow: none; /* No shadow on hover when disabled */
+}
+
+/* Add any other specific card styles here if needed */
+
+/* New styles for horizontal card layout in settings */
+.settings-card-row {
+    display: flex;
+    flex-direction: row; /* Arrange children (cards) horizontally */
+    gap: 20px; /* Space between the cards */
+    align-items: flex-start; /* Align cards to the top if they have different heights */
+    margin-bottom: 20px; /* Space below the row of cards */
+}
+
+.settings-card-row .content-card {
+    flex: 1; /* Allow cards to share the space, adjust as needed e.g., flex: 0 0 50%; for fixed width */
+    /* min-width: 300px; */ /* Optional: ensure cards don't get too squished */
+}
+
+/* Ensure card titles and content align well if needed */
+.settings-card-row .content-card h2 {
+    margin-top: 0; /* Consistent top margin for titles */
+}
+
+/* For smaller screens, stack them if they become too narrow */
+@media (max-width: 768px) { /* Adjust breakpoint as needed */
+    .settings-card-row {
+        flex-direction: column; /* Stack cards vertically */
+    }
+    .settings-card-row .content-card {
+        flex-basis: auto; /* Reset basis for vertical stacking */
+        width: 100%;     /* Ensure they take full width when stacked */
+    }
+}
+
+/* ----- General Stats Summary Card Specific Styles ----- */
+.stats-summary-card {
+    padding: 15px; /* Reduced padding from default 25px */
+}
+
+.stats-summary-card #userStatsTable {
+    margin-bottom: 0px; /* Remove bottom margin from the table inside this specific card */
 } 
