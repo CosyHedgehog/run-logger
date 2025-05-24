@@ -20,6 +20,8 @@
             const theme = localStorage.getItem('theme');
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark-mode');
+            } else if (theme === null) { // If no theme is set, default to dark
+                document.documentElement.classList.add('dark-mode');
             }
             // The button icon will be set by the main script once DOM is loaded
         })();

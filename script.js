@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
     
-    let currentTheme = localStorage.getItem('theme') || 'light'; // Restore localStorage for theme
+    let currentTheme = localStorage.getItem('theme') || 'dark'; // Default to dark mode
 
     // Chart instances
     let distanceOverTimeChartInstance;
