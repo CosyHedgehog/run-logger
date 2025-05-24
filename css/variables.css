@@ -63,6 +63,13 @@
     --disabled-text-color: #6c757d; /* Muted text color */
 
     /* Add more as needed */
+
+    /* ----- NEW Domino Toggle Variables ----- */
+    --dt-track-bg: #D1D5DB; /* A light-medium gray, good for both light/dark text */
+    --dt-knob-bg: var(--primary-color); /* Uses your existing primary color */
+    --dt-text-on-knob: #FFFFFF; /* White text on the knob */
+    --dt-text-off-knob: #374151; /* Dark gray text off the knob (contrasts with --dt-track-bg) */
+    --dt-focus-outline: var(--primary-focus-ring, var(--primary-color)); /* Use existing or a specific one */
 }
 
 html.dark-mode {
@@ -128,4 +135,11 @@ html.dark-mode {
     /* Disabled State Colors - Dark Mode */
     --disabled-bg-color: #3a3f44;  /* Darker gray background */
     --disabled-text-color: #7a8288; /* Muted text color for dark mode */
+
+    /* ----- Domino Toggle Dark Theme ----- */
+    --dt-track-bg: #4B5563; /* Darker gray for dark mode track */
+    --dt-knob-bg: var(--primary-color); /* Primary color might still work, or use a lighter variant if primary is very dark */
+    --dt-text-on-knob: #FFFFFF; /* White text on knob usually fine */
+    --dt-text-off-knob: #D1D5DB; /* Lighter gray text off knob for dark mode */
+    /* --dt-focus-outline: var(--primary-focus-ring-dark, var(--primary-color-light)); */ /* Optional: different focus for dark */
 } 

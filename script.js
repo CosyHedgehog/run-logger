@@ -595,66 +595,74 @@ document.addEventListener('DOMContentLoaded', async () => {
     function updateMasterPasswordStatus(transientMessage = null) {
         if (!masterPasswordStatusEl) return;
         const savedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
-        const isReadOnly = !savedPassword;
+        const isReadOnly = !savedPassword; // True if no password saved, meaning input should be editable
         
         // Helper to set enabled/disabled state
         const setInputDisabledState = (disabled) => {
             if (masterSharedPasswordInput) masterSharedPasswordInput.disabled = disabled;
             if (saveMasterPasswordBtn) saveMasterPasswordBtn.disabled = disabled;
+            // New logic for clear button
+            if (clearMasterPasswordBtn) clearMasterPasswordBtn.disabled = !disabled; // Opposite of save/input
         };
 
         if (transientMessage) {
             masterPasswordStatusEl.textContent = transientMessage;
-            if (transientMessage.toLowerCase().includes('please enter')) { // Special case for input error
+            if (transientMessage.toLowerCase().includes('please enter')) { 
                 masterPasswordStatusEl.style.color = "var(--warning-color)";
-                setInputDisabledState(false); // Ensure input is enabled if asking user to enter pass
-            } else if (transientMessage.toLowerCase().includes('saved')) { // This case might be removed based on prior changes
+                setInputDisabledState(false); 
+            } else if (transientMessage.toLowerCase().includes('saved')) { 
                  masterPasswordStatusEl.style.color = "var(--success-color)";
-                 // For "saved" transient message, immediately reflect disabled state
-                 setInputDisabledState(true);
+                 setInputDisabledState(true); // Password saved, so input/save are disabled, clear is enabled
             } else {
-                masterPasswordStatusEl.style.color = "var(--warning-color)"; // Default for other transient
+                masterPasswordStatusEl.style.color = "var(--warning-color)"; 
             }
 
             setTimeout(() => {
-                const currentSavedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY); // Re-check
+                const currentSavedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY); 
                 if (currentSavedPassword) {
-                    masterPasswordStatusEl.textContent = "A Master Shared Password is currently saved in this browser.";
+                    masterPasswordStatusEl.textContent = "A Master Shared Password is currently saved.";
                     masterPasswordStatusEl.style.color = "var(--success-color)";
                     if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Saved (hidden)";
-                    setInputDisabledState(true);
+                    setInputDisabledState(true); // Password saved, input/save disabled, clear enabled
                 } else {
-                    masterPasswordStatusEl.textContent = "No Master Shared Password saved. App is in read-only mode for data changes.";
+                    masterPasswordStatusEl.textContent = "No Master Shared Password saved.";
                     masterPasswordStatusEl.style.color = "var(--danger-color)";
                     if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Enter password to save";
-                    setInputDisabledState(false);
+                    setInputDisabledState(false); // No password, input/save enabled, clear disabled
                 }
             }, 2500); 
         } else {
             // Standard status update
             if (savedPassword) {
-                masterPasswordStatusEl.textContent = "A Master Shared Password is currently saved in this browser.";
+                masterPasswordStatusEl.textContent = "A Master Shared Password is currently saved.";
                 masterPasswordStatusEl.style.color = "var(--success-color)";
                 if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Saved (hidden)";
-                setInputDisabledState(true);
+                setInputDisabledState(true); // Password saved, input/save disabled, clear enabled
             } else {
-                masterPasswordStatusEl.textContent = "No Master Shared Password saved. App is in read-only mode for data changes.";
+                masterPasswordStatusEl.textContent = "No Master Shared Password saved.";
                 masterPasswordStatusEl.style.color = "var(--danger-color)";
                 if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Enter password to save";
-                setInputDisabledState(false);
+                setInputDisabledState(false); // No password, input/save enabled, clear disabled
             }
         }
 
-        // Control visibility of "Log Run" buttons
+        // Control visibility of "Log Run" buttons (remains the same)
         if (tabSpecificLogButtons) {
             tabSpecificLogButtons.forEach(btn => {
-                // Default display for buttons can vary (e.g., 'inline-block', 'block').
-                // Assuming they are 'inline-block' or similar by default from CSS.
-                // If CSS sets them to display: none initially for some reason, this logic might need adjustment.
-                // For now, '' should revert to CSS default.
                 btn.style.display = isReadOnly ? 'none' : ''; 
             });
         }
+    }
+
+    if (masterSharedPasswordInput) { // Add keypress listener for Enter key
+        masterSharedPasswordInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent any default action (like form submission)
+                if (saveMasterPasswordBtn && !saveMasterPasswordBtn.disabled) {
+                    saveMasterPasswordBtn.click();
+                }
+            }
+        });
     }
 
     if (saveMasterPasswordBtn) {

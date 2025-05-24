@@ -166,6 +166,29 @@
     .hide-on-mobile {
         display: none !important; /* Use !important to ensure override if needed */
     }
+
+    /* ----- Settings Card Row Responsive Adjustments ----- */
+    /* For medium screens (e.g., tablets) - stack to 2 columns */
+    @media (max-width: 1024px) { /* New breakpoint for 2-column settings */
+        .settings-card-row .content-card {
+            flex-basis: calc(50% - 15px); /* Adjust gap for 2 cards, e.g., 20px total / 2 cards + half of inter-card gap */
+            min-width: calc(50% - 15px);
+        }
+    }
+
+    /* For smaller screens (e.g., mobile) - stack to 1 column (existing rule, ensure it overrides correctly) */
+    @media (max-width: 768px) { 
+        .settings-card-row {
+            flex-direction: column; /* Stack cards vertically */
+            align-items: center; /* Center the single column of cards */
+        }
+        .settings-card-row .content-card {
+            flex-basis: 100%; /* Full width for stacked cards */
+            min-width: 90%; /* Or a specific min-width like 280px if preferred over percentage */
+            width: 100%;     /* Ensure they take full width when stacked */
+            max-width: 500px; /* Max width for single column cards for readability */
+        }
+    }
 }
 
 @media (max-width: 480px) {

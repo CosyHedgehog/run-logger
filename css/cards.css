@@ -247,26 +247,116 @@ canvas {
     box-shadow: none; /* No shadow on hover when disabled */
 }
 
+/* Center content in App Security card */
+.app-settings-card {
+    /* display: flex; flex-direction: column; align-items: center; */ /* Now handled by general .content-card in row */
+}
+
+/* Div containing master password label and input */
+.app-settings-card > div:has(#masterSharedPassword) { 
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the input field within this div */
+}
+
+.app-settings-card > div:has(#masterSharedPassword) #masterSharedPassword {
+    /* The input itself can remain width 100% of its constrained parent, 
+       or set a specific width if preferred, e.g., width: 250px; 
+       The parent div's align-items: center will handle the centering of this block */
+}
+
+.app-settings-card > div, /* Target the div holding the label and input */
+.app-settings-card > .form-actions,
+.app-settings-card > #masterPasswordStatus
+{
+    width: 100%; 
+    max-width: 350px; 
+}
+
+.app-settings-card label {
+    text-align: left; 
+}
+
+.app-settings-card .form-actions {
+    justify-content: center; 
+    width: 100%; /* Let it take full width of its 350px constrained parent for button centering */
+    /* width: auto; /* Reverted from previous */
+}
+
 /* Add any other specific card styles here if needed */
 
 /* New styles for horizontal card layout in settings */
 .settings-card-row {
     display: flex;
     flex-direction: row; /* Arrange children (cards) horizontally */
+    flex-wrap: wrap; /* Allow cards to wrap to the next line if not enough space */
     gap: 20px; /* Space between the cards */
     align-items: stretch; /* Changed from flex-start to make cards in a row same height */
     margin-bottom: 20px; /* Space below the row of cards */
+    justify-content: center; /* Center the row of cards if they don't fill the width */
 }
 
 .settings-card-row .content-card {
-    flex: 1; /* Allow cards to share the space, adjust as needed e.g., flex: 0 0 50%; for fixed width */
-    /* min-width: 300px; */ /* Optional: ensure cards don't get too squished */
+    flex-grow: 1; /* Allow cards to grow */
+    flex-shrink: 1; /* Allow cards to shrink */
+    flex-basis: calc(33.333% - 20px); /* Aim for 3 cards, subtract gap. Adjust calc if borders/padding are complex */
+    min-width: 280px; /* Minimum width before wrapping or shrinking too much */
+    display: flex; /* Make card a flex container */
+    flex-direction: column; /* Stack content vertically */
+    align-items: center; /* Horizontally center content within each card */
+    padding: 20px; /* Uniform padding */
 }
 
 /* Ensure card titles and content align well if needed */
 .settings-card-row .content-card h2 {
     margin-top: 0; /* Consistent top margin for titles */
+    text-align: center; /* Center card titles */
 }
+
+/* Center paragraph text within all settings cards */
+.settings-card-row .content-card p {
+    text-align: center;
+    width: 100%; /* Ensure paragraph takes width to center text properly */
+    max-width: 350px; /* Match max-width from app-settings for consistency */
+}
+
+/* Specific centering for Theme Toggle container */
+.theme-settings-card .theme-toggle-container {
+    /* display: flex; justify-content: center; align-items: center; */ /* Already flex and centered by card parent */
+    margin-top: 15px; /* Add some space above the toggle */
+}
+
+/* Specific centering for Export Data button container */
+.export-data-card .form-actions {
+    /* display: flex; justify-content: center; */ /* Already flex and centered by card parent */
+    margin-top: 15px; /* Add some space above the button */
+    width: auto; /* Ensure it doesn't take full width if only one button */
+}
+
+/* Center content in App Security card - existing styles will be augmented by the general .content-card centering */
+.app-settings-card {
+    /* display: flex; flex-direction: column; align-items: center; */ /* Now handled by general .content-card in row */
+}
+
+.app-settings-card > div, /* Target the div holding the label and input */
+.app-settings-card > .form-actions,
+.app-settings-card > #masterPasswordStatus
+{
+    width: 100%; 
+    max-width: 350px; 
+}
+
+.app-settings-card label {
+    text-align: left; 
+}
+
+.app-settings-card .form-actions {
+    justify-content: center; 
+    width: 100%; /* Let it take full width of its 350px constrained parent for button centering */
+    /* width: auto; /* Reverted from previous */
+}
+
+/* Add any other specific card styles here if needed */
 
 /* For smaller screens, stack them if they become too narrow */
 @media (max-width: 768px) { /* Adjust breakpoint as needed */
@@ -354,235 +444,107 @@ canvas {
     align-items: center;
 }
 
-/* Style for the darkModeToggle button if it needs to be different from tab buttons */
-#darkModeToggle {
-    padding: 10px 20px; /* Adjusted padding for text */
-    font-size: 1em; /* Adjusted font size for text */
-    border-radius: var(--border-radius-med);
-    background-color: var(--button-secondary-bg); /* Or another appropriate var */
-    color: var(--button-secondary-text);
-    border: 1px solid var(--button-secondary-border);
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-}
-
-#darkModeToggle:hover {
-    background-color: var(--button-secondary-hover-bg);
-    color: var(--button-secondary-hover-text);
-    border-color: var(--button-secondary-hover-border);
-}
-
-/* New Toggle Switch Styles */
-.toggle-switch {
+/* NEW DOMINO TOGGLE SWITCH STYLES */
+.domino-toggle {
+    display: inline-flex; /* Changed from inline-block to help with internal alignment */
+    align-items: center;
     position: relative;
-    display: inline-block;
-    width: 74px; /* Increased width */
-    height: 40px; /* Increased height */
+    width: 130px; /* Width for Light + Dark text */
+    height: 42px; /* ~Button height */
+    border-radius: 42px; /* Fully rounded ends */
+    cursor: pointer;
     user-select: none;
+    overflow: hidden; /* Important for the knob sliding effect */
+    transition: box-shadow 0.3s ease;
 }
 
-.toggle-switch input {
+.domino-toggle-input {
     opacity: 0;
     width: 0;
     height: 0;
+    position: absolute;
 }
 
-.slider {
+.domino-toggle-track {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    background-color: var(--dt-track-bg, #e0e0e0);
     position: absolute;
-    cursor: pointer;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--toggle-slider-bar-bg, #e0e0e0); 
-    transition: .4s;
-    display: flex; 
+    border-radius: inherit; /* Inherit from parent */
+}
+
+.domino-toggle-text {
+    flex: 1; /* Each text part takes half the space */
+    display: flex;
     align-items: center;
-    justify-content: space-around; 
-    padding: 0 4px; /* Adjusted padding for text within slider */
-    border-radius: 40px; /* Corresponds to height */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Subtle inner shadow for depth */
+    justify-content: center;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--dt-text-off-knob, #333);
+    transition: color 0.3s ease;
+    z-index: 1; /* Above the track, below the knob when knob is over it */
 }
 
-.slider:before { /* This is the sliding knob/highlight */
+.domino-toggle-knob {
     position: absolute;
-    content: "";
-    height: 32px; /* Knob height (40px height - 4px top/bottom padding = 32px) */
-    width: 32px;  /* Knob width */
-    left: 4px;    /* Knob initial position */
-    top: 4px; 
-    background-color: var(--toggle-knob-bg, white);
-    transition: .4s;
-    border-radius: 50%; /* Make it round */
-    z-index: 0; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for knob */
+    top: 3px;    /* Small padding from top */
+    left: 3px;   /* Small padding from left */
+    width: calc(50% - 3px); /* Covers one half, accounting for its own left offset */
+    height: calc(100% - 6px); /* Full height minus top/bottom padding */
+    background-color: var(--dt-knob-bg, var(--primary-color));
+    border-radius: 38px; /* Slightly less than parent to fit inside */
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
+    z-index: 2; /* Above the text it covers */
 }
 
-.toggle-switch:hover .slider:before {
-    background-color: var(--toggle-knob-hover-bg, #f0f0f0); /* Subtle hover on knob */
+/* Checked state: Knob slides to the right */
+.domino-toggle-input:checked + .domino-toggle-track + .domino-toggle-knob {
+    transform: translateX(calc(100% - 3px)); /* Moves it to cover the right half */
 }
 
-.toggle-text {
-    position: relative;
-    z-index: 1; 
-    font-size: 0.65em; /* Adjusted for new size, can be tweaked */
-    font-weight: bold;
-    color: var(--toggle-text-inactive-color, #444); 
-    transition: color 0.4s ease;
-    text-transform: uppercase; /* FRESH: Uppercase text */
-    letter-spacing: 0.5px;   /* FRESH: Slight letter spacing */
+/* Text color changes when knob is over it */
+/* Light mode active (knob on left) */
+.domino-toggle-input:not(:checked) + .domino-toggle-track .domino-toggle-text.left {
+    color: var(--dt-text-on-knob, white);
+}
+.domino-toggle-input:not(:checked) + .domino-toggle-track .domino-toggle-text.right {
+    color: var(--dt-text-off-knob, #333);
 }
 
-input:checked + .slider {
-    /* The bar itself doesn't change color, the knob does */
+/* Dark mode active (knob on right) */
+.domino-toggle-input:checked + .domino-toggle-track .domino-toggle-text.right {
+    color: var(--dt-text-on-knob, white);
+}
+.domino-toggle-input:checked + .domino-toggle-track .domino-toggle-text.left {
+    color: var(--dt-text-off-knob, #333);
 }
 
-input:checked + .slider .toggle-text-dark {
-    color: var(--toggle-text-active-on-dark-bg, white); 
-}
-input:not(:checked) + .slider .toggle-text-dark {
-    color: var(--toggle-text-inactive-color, #444);
-}
-
-input:not(:checked) + .slider .toggle-text-light {
-    color: var(--toggle-text-active-on-light-bg, white); 
-}
-input:checked + .slider .toggle-text-light {
-    color: var(--toggle-text-inactive-color, #444);
+/* Hover effect: slightly scale the knob or change its shadow */
+.domino-toggle:hover .domino-toggle-knob {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.25);
+    /* transform: scale(1.03); -- Optional: slight scale on hover */
 }
 
-input:focus + .slider {
-    box-shadow: 0 0 0 2px var(--body-bg), 0 0 0 4px var(--toggle-focus-shadow, var(--primary-color)); /* Clearer focus */
+/* Focus effect: outline on the entire toggle */
+.domino-toggle-input:focus + .domino-toggle-track {
+    /* The track itself might not be the best focus target visually, */
+    /* let's try focus on the parent label */
 }
-
-input:checked + .slider:before { 
-    transform: translateX(34px); /* (74px width - 32px knob - 4px left - 4px right container padding = 34px) */
-    background-color: var(--toggle-knob-active-dark-bg, var(--primary-color)); 
+.domino-toggle-input:focus-visible ~ .domino-toggle-knob {
+    /* To ensure focus is visible on the knob as well, but label focus is better */
 }
-
-input:not(:checked) + .slider:before { 
-    background-color: var(--toggle-knob-active-light-bg, var(--primary-color)); 
+.domino-toggle:has(.domino-toggle-input:focus-visible) {
+    outline: 2px solid var(--dt-focus-outline, var(--primary-color));
+    outline-offset: 2px;
 }
-
-/* Rounded sliders - .slider.round is already on the slider span */
-/* .slider.round {
-    border-radius: 40px;  -- Moved to .slider directly 
-} */
-
-.slider.round:before { /* Knob is already round via 50% */
-    /* border-radius: 50%; */
-}
-/* End New Toggle Switch Styles */
 
 /* General style for p tags within content cards in the settings tab */
-#settings .content-card p {
-    color: var(--card-subtle-text-color);
-    text-align: center; /* Center all descriptive p tags in settings cards */
-    margin-bottom: 15px; /* Consistent bottom margin */
-    /* Remove or adjust font-size if it should be inherited or set globally for p */
-}
-
-/* Style for the darkModeToggle button if it needs to be different from tab buttons */
-/* #darkModeToggle styling was here, but it's an input now, not a button */
-
-/* New Toggle Switch Styles */
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 74px; /* Increased width */
-    height: 40px; /* Increased height */
-    user-select: none;
-}
-
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: var(--toggle-slider-bar-bg, #e0e0e0); 
-    transition: .4s;
-    display: flex; 
-    align-items: center;
-    justify-content: space-around; 
-    padding: 0 4px; /* Adjusted padding for text within slider */
-    border-radius: 40px; /* Corresponds to height */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Subtle inner shadow for depth */
-}
-
-.slider:before { /* This is the sliding knob/highlight */
-    position: absolute;
-    content: "";
-    height: 32px; /* Knob height (40px height - 4px top/bottom padding = 32px) */
-    width: 32px;  /* Knob width */
-    left: 4px;    /* Knob initial position */
-    top: 4px; 
-    background-color: var(--toggle-knob-bg, white);
-    transition: .4s;
-    border-radius: 50%; /* Make it round */
-    z-index: 0; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2); /* Subtle shadow for knob */
-}
-
-.toggle-switch:hover .slider:before {
-    background-color: var(--toggle-knob-hover-bg, #f0f0f0); /* Subtle hover on knob */
-}
-
-.toggle-text {
-    position: relative;
-    z-index: 1; 
-    font-size: 0.65em; /* Adjusted for new size, can be tweaked */
-    font-weight: bold;
-    color: var(--toggle-text-inactive-color, #444); 
-    transition: color 0.4s ease;
-    text-transform: uppercase; /* FRESH: Uppercase text */
-    letter-spacing: 0.5px;   /* FRESH: Slight letter spacing */
-}
-
-input:checked + .slider {
-    /* The bar itself doesn't change color, the knob does */
-}
-
-input:checked + .slider .toggle-text-dark {
-    color: var(--toggle-text-active-on-dark-bg, white); 
-}
-input:not(:checked) + .slider .toggle-text-dark {
-    color: var(--toggle-text-inactive-color, #444);
-}
-
-input:not(:checked) + .slider .toggle-text-light {
-    color: var(--toggle-text-active-on-light-bg, white); 
-}
-input:checked + .slider .toggle-text-light {
-    color: var(--toggle-text-inactive-color, #444);
-}
-
-input:focus + .slider {
-    box-shadow: 0 0 0 2px var(--body-bg), 0 0 0 4px var(--toggle-focus-shadow, var(--primary-color)); /* Clearer focus */
-}
-
-input:checked + .slider:before { 
-    transform: translateX(34px); /* (74px width - 32px knob - 4px left - 4px right container padding = 34px) */
-    background-color: var(--toggle-knob-active-dark-bg, var(--primary-color)); 
-}
-
-input:not(:checked) + .slider:before { 
-    background-color: var(--toggle-knob-active-light-bg, var(--primary-color)); 
-}
-
-/* Rounded sliders - .slider.round is already on the slider span */
-/* .slider.round {
-    border-radius: 40px;  -- Moved to .slider directly 
-} */
-
-.slider.round:before { /* Knob is already round via 50% */
-    /* border-radius: 50%; */
-}
-/* End New Toggle Switch Styles */ 
+#settings .content-card p { /* This might be too general now, or conflict */
+    /* color: var(--card-subtle-text-color); */ /* Keep color if desired */
+    /* text-align: center; */ /* Handled by .settings-card-row .content-card p */
+    /* margin-bottom: 15px; */ /* Handled by .settings-card-row .content-card p */
+} 
