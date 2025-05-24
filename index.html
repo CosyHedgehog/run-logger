@@ -75,6 +75,14 @@
                     </div>
                 </div>
                 <div>
+                    <label for="type">Type:</label>
+                    <select id="type" name="type">
+                        <option value="Treadmill">Treadmill</option>
+                        <option value="Treadmill LHR">Treadmill LHR</option>
+                        <!-- Add other types here if needed in the future -->
+                    </select>
+                </div>
+                <div>
                     <label for="notes">Notes:</label>
                     <textarea id="notes" name="notes"></textarea>
                 </div>
@@ -185,6 +193,7 @@
                                     <th class="sortable-header" data-column="user">User <span></span></th>
                                     <th class="sortable-header" data-column="date">Date <span></span></th>
                                     <th class="sortable-header" data-column="day">Day <span></span></th>
+                                    <th class="sortable-header" data-column="type">Type <span></span></th>
                                     <th class="sortable-header" data-column="time">Time <span></span></th>
                                     <th class="sortable-header" data-column="mph">MPH <span></span></th>
                                     <th class="sortable-header" data-column="kph">Km/hr <span></span></th>
@@ -214,6 +223,7 @@
                             <tr>
                                 <th class="sortable-header" data-column="date">Date <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
+                                <th class="sortable-header" data-column="type">Type <span></span></th>
                                 <th class="sortable-header" data-column="time">Time <span></span></th>
                                 <th class="sortable-header" data-column="mph">MPH <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>
@@ -242,6 +252,7 @@
                             <tr>
                                 <th class="sortable-header" data-column="date">Date <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
+                                <th class="sortable-header" data-column="type">Type <span></span></th>
                                 <th class="sortable-header" data-column="time">Time <span></span></th>
                                 <th class="sortable-header" data-column="mph">MPH <span></span></th>
                                 <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>

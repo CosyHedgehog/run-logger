@@ -19,11 +19,13 @@ th, td {
 }
 
 thead {
-    /* position: sticky; */ /* Not making thead itself sticky, but its children th are */
-    /* top: 0; */ 
-    position: relative; /* Add position to allow z-index */
-    z-index: 5;         /* Lower than th cells, but can establish stacking context */
+    position: sticky; /* Make thead itself sticky */
+    top: 0; 
+    z-index: 10; /* Ensure it's above table body content */
     background-color: var(--table-header-bg); /* Keep this for solid background */
+    border-bottom: 1px solid var(--table-row-border); /* Add border to thead itself */
+    /* position: relative; */ /* No longer needed if thead is sticky */
+    /* z-index: 5; */       /* Will be overridden by new z-index */
 }
 
 /* General th styling - no position here initially */
@@ -38,29 +40,32 @@ th {
     padding-right: 12px; /* Ensure consistent padding */
 }
 
+/* Remove border-bottom from th inside thead, as thead now has it */
+thead th {
+    border-bottom: none;
+}
+
 /* Sticky properties for ALL th elements inside thead > tr */
 /* This will apply to both sortable and non-sortable headers like 'Actions' */
 thead > tr > th {
-    position: sticky;
-    top: 0;
-    background-color: var(--table-header-bg); /* Restore background for sticky th */
-    z-index: 10;
-    border-bottom: none; /* Remove actual border for sticky state */
-    box-shadow: 0 1px 0 0 var(--table-row-border); /* Simulate border-bottom with box-shadow */
+    /* position: sticky; */ /* Removed - thead is now sticky */
+    /* top: 0; */
+    /* background-color: var(--table-header-bg); */ /* th will inherit or use its own general style */
+    /* z-index: 10; */
+    /* border-bottom: none; */ /* Removed - th should have its normal border */
+    /* box-shadow: 0 1px 0 0 var(--table-row-border); */ /* Removed */
+    /* transform: translateZ(0); */ /* Removed */
 }
 
 /* Styles for sortable table headers */
-/* th.sortable-header still needs relative for its arrow, but sticky should take precedence if applied correctly on the element itself */
-/* Let's ensure sticky is *also* on th.sortable-header if the above doesn't catch it due to specificity for position. */
 th.sortable-header {
     cursor: pointer;
-    position: sticky; /* Explicitly make sortable headers sticky */
-    top: 0; /* Required with sticky */
-    background-color: var(--table-header-bg); /* Restore background for sortable sticky th */
-    z-index: 10; /* Ensure it's on the same stacking context level */
-    /* position: relative; */ /* Comment out to test if relative was the issue for sticky */
-    border-bottom: none; /* Also remove actual border here */
-    box-shadow: 0 1px 0 0 var(--table-row-border); /* Ensure consistent shadow here too */
+    /* position: sticky; */ /* Removed - thead is now sticky */
+    /* top: 0; */ 
+    /* background-color: var(--table-header-bg); */ /* th will use its own general style */
+    /* z-index: 10; */ 
+    /* border-bottom: none; */ /* Removed - th should have its normal border */
+    /* box-shadow: 0 1px 0 0 var(--table-row-border); */ /* Removed */
 }
 
 /* If the arrow positioning requires relative, we might need a wrapper span inside th for the arrow instead */

@@ -788,7 +788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTable(tableBody, runsToDisplay, isSummaryTable = false) {
         tableBody.innerHTML = '';
         if (!runsToDisplay || runsToDisplay.length === 0) {
-            const colspan = isSummaryTable ? 10 : 9; // Adjusted colspan
+            const colspan = isSummaryTable ? 11 : 10; // Adjusted colspan for Type column
             tableBody.innerHTML = `<tr class="no-data-message"><td colspan="${colspan}">No runs logged yet.</td></tr>`;
             return;
         }
@@ -800,6 +800,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             const dayCell = row.insertCell();
             dayCell.textContent = run.day;
             if (!isSummaryTable) dayCell.classList.add('hide-on-mobile');
+
+            row.insertCell().textContent = run.type || '-'; // Display type, default to '-'
 
             row.insertCell().textContent = run.time;
             row.insertCell().textContent = run.mph.toFixed(1);
@@ -910,6 +912,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 case 'plus1':
                 case 'delta':
                     return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase());
+                case 'type': // Add case for sorting by type
+                    valA = valA || ''; // Handle null/undefined as empty string for comparison
+                    valB = valB || '';
+                    return valA.toLowerCase().localeCompare(valB.toLowerCase());
                 default:
                     return 0;
             }
@@ -1426,6 +1432,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
             runForm.notes.value = runToEdit.notes || '';
+            runForm.type.value = runToEdit.type || 'Treadmill'; // Populate type, default if not present
             currentUserForRunInput.value = runToEdit.user;
             runIdToEditInput.value = runId;
 
@@ -1456,6 +1463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             runForm.bpm.readOnly = isReadOnly;
             runForm.plus1.readOnly = isReadOnly;
             runForm.notes.readOnly = isReadOnly;
+            runForm.type.disabled = isReadOnly; // Disable select if read-only
 
             if (submitButton) {
                 submitButton.textContent = 'Save'; // Still set text
@@ -1519,6 +1527,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         let mphInput = formData.get('mph');
         let distanceInput = formData.get('distance');
+        const type = formData.get('type'); // Get the type
 
         const bpm = formData.get('bpm') ? parseInt(formData.get('bpm')) : null;
         const plus1 = formData.get('plus1') ? parseInt(formData.get('plus1')) : null;
@@ -1638,6 +1647,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             mph: finalMph, 
             kph: parseFloat(finalKph.toFixed(3)), 
             distance: parseFloat(finalDistance.toFixed(3)), // Ensure stored distance is a number with 3dp
+            type, // Add type here
             bpm, plus1, delta, notes, day,
             auth_key: hashedAuthKey 
         };
