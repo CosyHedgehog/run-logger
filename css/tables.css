@@ -79,8 +79,8 @@ th.sortable-header:hover {
 th.sortable-header span { 
     font-size: 0.9em;
     margin-left: 5px;
-    /* display: inline-block; */ /* Ensure it takes space for alignment if needed */
-    /* width: 1em; */ /* Reserve space for the arrow */
+    display: inline-block; /* Ensure it takes space for alignment if needed */
+    width: 1em; /* Reserve space for the arrow */
 }
 
 th.sortable-header .sort-asc::after {
