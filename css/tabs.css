@@ -27,6 +27,16 @@
     margin-left: auto; /* Pushes the button group to the right */
 }
 
+/* Style for the filter count display */
+.filter-count-display {
+    font-size: 0.8em;
+    color: var(--text-muted-color); /* Or var(--secondary-color) */
+    /* margin-right: 4px; /* REMOVED - Small space between count and filter icon - handled by parent gap */
+    /* Ensure it aligns nicely with the buttons */
+    display: inline-flex;
+    align-items: center;
+}
+
 /* .filter-container {
     display: flex;
     align-items: center;

@@ -1939,6 +1939,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         //     kelvinTypeFilter.addEventListener('change', renderAllRuns);
         // }
 
+        // Initial update of filter counts
+        updateFilterCountDisplay('Jason');
+        updateFilterCountDisplay('Kelvin');
+
         const lastActiveTab = localStorage.getItem('activeTab'); // Get last active tab from localStorage
         let tabActivated = false;
         if (lastActiveTab) {
@@ -2069,6 +2073,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (filterForUserSpan) filterForUserSpan.textContent = userForFilter;
         
         populateFilterTypeOptions(); // Populate/update type options each time modal opens
+        updateFilterCountDisplay(userForFilter); // Update count when modal opens
 
         // Load current filters for this user into the form
         if (filterForm) {
@@ -2105,6 +2110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         closeFilterModal();
         renderAllRuns(); // Re-render tables with new filters
+        updateFilterCountDisplay(activeFilterUser); // Update count after applying filters
     }
 
     function resetCurrentUsersFilters() {
@@ -2112,6 +2118,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         currentFilters[activeFilterUser] = {}; // Clear filters for the active user
         if (filterForm) filterForm.reset(); // Reset the form fields
         console.log(`[resetCurrentUsersFilters] Filters reset for ${activeFilterUser}`);
+        updateFilterCountDisplay(activeFilterUser); // Update count after resetting filters
         // Optionally, re-apply (which means showing all data) and re-render immediately
         // renderAllRuns(); 
         // Or, wait for user to click "Apply Filters" after reset, which is current behavior without the line above.
@@ -2170,6 +2177,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     // --- End Filter Modal Logic ---
+
+    // --- New function to update filter count display ---
+    function updateFilterCountDisplay(user) {
+        const filterCountSpan = document.querySelector(`.filter-count-display[data-user="${user}"]`);
+        if (!filterCountSpan) return;
+
+        const userSpecificFilters = currentFilters[user] || {};
+        const count = Object.keys(userSpecificFilters).length;
+
+        if (count > 0) {
+            filterCountSpan.textContent = `(${count} filter${count > 1 ? 's' : ''})`;
+        } else {
+            filterCountSpan.textContent = ''; // Clear text if no filters
+        }
+    }
+    // --- End new function ---
 }); 
 
 function calculateUserStats() {

@@ -124,22 +124,36 @@
         display: grid;
         grid-template-columns: auto 1fr; /* Title takes auto, buttons take remaining space */
         grid-template-rows: auto auto; /* Two rows, one for title/filter, one for log run */
-        align-items: center; /* Vertically align items in their grid cells */
+        align-items: baseline; /* Align items along their baseline */
         width: 100%; /* Ensure header takes full width */
+        grid-template-columns: 1fr auto auto; /* Title | Filter Count | Filter Button */
+        column-gap: 8px; /* Space between title, count, and button */
     }
 
     .tab-header h2 { /* Title and entry count */
         margin-bottom: 0; 
         grid-column: 1 / 2; /* Span first column */
         grid-row: 1 / 2;    /* First row */
+        /* Allow h2 to shrink if necessary, prevent pushing buttons off */
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .tab-header-actions { /* This will use display: contents, so its children are positioned by the grid */
         display: contents;
     }
 
+    .filter-count-display {
+        grid-column: 2 / 3; /* Second column, first row */
+        grid-row: 1 / 2;
+        justify-self: end; /* Align to the right, towards the filter button */
+    }
+
     .tab-specific-filter-btn {
         grid-column: 2 / 3; /* Second column */
+        grid-column: 3 / 4; /* Third column, first row */
         grid-row: 1 / 2;    /* First row, next to title */
         justify-self: end; /* Align filter button to the right of its cell */
         margin-left: 0; /* Reset any specific margin */
