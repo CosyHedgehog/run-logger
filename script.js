@@ -807,7 +807,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderTable(tableBody, runsToDisplay, isSummaryTable = false) {
         tableBody.innerHTML = '';
         if (!runsToDisplay || runsToDisplay.length === 0) {
-            const colspan = isSummaryTable ? 11 : 10; // Adjusted colspan for Type column
+            let colspan = 11; // Default for summary table
+            if (tableBody.id === 'runsTableBodyJason') {
+                colspan = 8; // Date, Day, Type, Time, MPH, Km/hr, Distance, Notes
+            } else if (tableBody.id === 'runsTableBodyKelvin') {
+                colspan = 10; // Kelvin's table retains BPM, +1, Delta, excludes User
+            }
             tableBody.innerHTML = `<tr class="no-data-message"><td colspan="${colspan}">No runs logged yet.</td></tr>`;
             return;
         }
@@ -832,17 +837,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             const distanceCell = row.insertCell();
             distanceCell.textContent = run.distance.toFixed(3);
 
-            const bpmCell = row.insertCell();
-            bpmCell.textContent = run.bpm !== null ? run.bpm : '-';
-            if (!isSummaryTable) bpmCell.classList.add('hide-on-mobile');
+            if (tableBody.id === 'runsTableBodyJason') {
+                const notesCell = row.insertCell(); // Notes for Jason
+                notesCell.textContent = run.notes || '-';
+                notesCell.classList.add('hide-on-mobile');
+            } else {
+                // For Summary and Kelvin, include BPM, +1, Delta
+                const bpmCell = row.insertCell();
+                bpmCell.textContent = run.bpm !== null ? run.bpm : '-';
+                if (!isSummaryTable) bpmCell.classList.add('hide-on-mobile');
 
-            const plus1Cell = row.insertCell();
-            plus1Cell.textContent = run.plus1 !== null ? run.plus1 : '-';
-            if (!isSummaryTable) plus1Cell.classList.add('hide-on-mobile');
-            
-            const deltaCell = row.insertCell();
-            deltaCell.textContent = run.delta !== null ? run.delta : '-'; // Corrected from run.delta.toFixed(3) as delta can be null
-            if (!isSummaryTable) deltaCell.classList.add('hide-on-mobile');
+                const plus1Cell = row.insertCell();
+                plus1Cell.textContent = run.plus1 !== null ? run.plus1 : '-';
+                if (!isSummaryTable) plus1Cell.classList.add('hide-on-mobile');
+                
+                const deltaCell = row.insertCell();
+                deltaCell.textContent = run.delta !== null ? run.delta : '-'; 
+                if (!isSummaryTable) deltaCell.classList.add('hide-on-mobile');
+            }
 
             if (!isSummaryTable) {
                 // const actionsCell = row.insertCell(); // Removed
@@ -932,6 +944,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 case 'delta':
                     return valA.toString().toLowerCase().localeCompare(valB.toString().toLowerCase());
                 case 'type': // Add case for sorting by type
+                case 'notes': // Add case for sorting by notes
                     valA = valA || ''; // Handle null/undefined as empty string for comparison
                     valB = valB || '';
                     return valA.toLowerCase().localeCompare(valB.toLowerCase());
@@ -1089,6 +1102,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const jasonEntryCountEl = document.getElementById('jasonEntryCount');
         if (runsTableBodyJason) {
             let jasonRunsToRender = runs.filter(run => run.user === 'Jason');
+            // Apply type filter for Jason
+            const jasonFilter = document.getElementById('jasonTypeFilter');
+            if (jasonFilter && jasonFilter.value !== 'all') {
+                jasonRunsToRender = jasonRunsToRender.filter(run => run.type === jasonFilter.value);
+            }
             sortTableByColumn(runsTableBodyJason, 'date', jasonRunsToRender, false, 'desc');
             if (jasonEntryCountEl) {
                 jasonEntryCountEl.textContent = ` (${jasonRunsToRender.length} entries)`;
@@ -1099,6 +1117,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const kelvinEntryCountEl = document.getElementById('kelvinEntryCount');
         if (runsTableBodyKelvin) {
             let kelvinRunsToRender = runs.filter(run => run.user === 'Kelvin');
+            // Apply type filter for Kelvin
+            const kelvinFilter = document.getElementById('kelvinTypeFilter');
+            if (kelvinFilter && kelvinFilter.value !== 'all') {
+                kelvinRunsToRender = kelvinRunsToRender.filter(run => run.type === kelvinFilter.value);
+            }
             sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsToRender, false, 'desc');
             if (kelvinEntryCountEl) {
                 kelvinEntryCountEl.textContent = ` (${kelvinRunsToRender.length} entries)`;
@@ -1736,6 +1759,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('dataChanged event received:', event.detail);
         // Call your main UI refresh functions here
         if (typeof renderAllRuns === 'function' && typeof updateStatistics === 'function') {
+            // populateTypeFilters(); // REMOVED
             renderAllRuns();
             updateStatistics();
         } else {
@@ -1773,6 +1797,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     (async () => {
         if (supabase) {
             runs = await fetchRunsFromSupabase();
+            // populateTypeFilters(); // REMOVED
         } else {
             console.error("CRITICAL: Supabase client not initialized. Data cannot be loaded.");
             alert("Failed to connect to the database. Please check your internet connection or contact support.");
@@ -1849,6 +1874,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderAllRuns(); // This will now render tables with their default sort
         updateStatistics(); // This will calculate and render the initial state of the user stats table (sorted by default)
         
+        // Add event listeners for the new filters (REMOVED)
+        // const jasonTypeFilter = document.getElementById('jasonTypeFilter');
+        // if (jasonTypeFilter) {
+        //     jasonTypeFilter.addEventListener('change', renderAllRuns);
+        // }
+        // const kelvinTypeFilter = document.getElementById('kelvinTypeFilter');
+        // if (kelvinTypeFilter) {
+        //     kelvinTypeFilter.addEventListener('change', renderAllRuns);
+        // }
+
         const lastActiveTab = localStorage.getItem('activeTab'); // Get last active tab from localStorage
         let tabActivated = false;
         if (lastActiveTab) {

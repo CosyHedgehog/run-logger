@@ -161,4 +161,29 @@ tbody tr:hover {
     overflow-y: auto;
     display: block; /* To ensure max-height is respected properly */
     position: relative; /* Ensures that absolutely positioned elements within (like sort arrows) are relative to this container if needed, though th is currently relative */
-} 
+}
+
+/* Specific styling for the Notes column */
+#runsDisplayJason th[data-column="notes"],
+#runsDisplayJason td:nth-child(8) { /* Assuming Notes is the 8th column for Jason */
+    width: 15%; /* Start with a percentage */
+    min-width: 150px; /* Minimum width */
+    max-width: 300px; /* Maximum width */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* text-align: left; */ /* Removed: Default center alignment will apply */
+}
+
+#runsDisplayJason td:nth-child(8) {
+    /* cursor: default; */ /* Removed: Row style will apply for pointer */
+}
+
+/* Allow notes cell to expand on hover to see full content if truncated */
+/* #runsDisplayJason td:nth-child(8):hover {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    /* Optionally, add a background or slightly different style on hover for clarity */
+    /* background-color: var(--table-row-hover-bg); */ 
+/* } */ 

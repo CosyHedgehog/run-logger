@@ -3,26 +3,49 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px; /* Space below header before table */
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
 }
 
 .tab-header h2 {
-    margin: 0; /* Remove default h2 margins */
-    border-bottom: none; /* Remove border if h2 is part of tab-header */
-    color: var(--card-title-color); /* Use card title color */
+    margin: 0;
+    font-size: 1.6em;
+    color: var(--card-title-color);
 }
 
-.entry-count {
-    font-size: 0.85em;
-    color: var(--card-subtle-text-color);
-    font-weight: normal;
+.tab-header .entry-count {
+    font-size: 0.8em;
+    color: var(--text-muted-color);
     margin-left: 8px;
 }
+
+/* .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto; 
+    padding-right: 15px; 
+}
+
+.filter-container label {
+    font-size: 0.9em;
+    color: var(--text-color);
+}
+
+.filter-container select {
+    padding: 6px 10px;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--input-border);
+    background-color: var(--input-bg);
+    color: var(--text-color);
+    font-size: 0.9em;
+    min-width: 150px; 
+} */
 
 .tab-specific-log-btn {
     background-color: var(--button-primary-bg);
     color: var(--button-primary-text);
-    padding: 10px 18px;
+    padding: 8px 15px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
