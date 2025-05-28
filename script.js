@@ -1373,11 +1373,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             runForm.date.value = `${year}-${month}-${day}`;
             
             runForm.time.value = "30:00"; // Pre-populate with MM:SS
-            runForm.mph.value = 4;
-            runForm.distance.value = ''; // Clear distance field for new run
             
-            // ---- THESE ARE THE KEY LINES FOR openLogRunForm ----
-            activeCalculatorInput = 'mph'; // Set default focus for calculation
+            if (userForRun === 'Jason') {
+                runForm.distance.value = '5.000'; // Default 5km for Jason
+                runForm.mph.value = ''; // Clear MPH so it gets calculated
+                runForm.type.value = 'Treadmill LHR'; // Default type for Jason
+                activeCalculatorInput = 'distance'; // Prioritize distance for calculation
+            } else {
+                runForm.mph.value = 4; // Default MPH for others
+                runForm.distance.value = ''; // Clear distance field for others
+                runForm.type.value = 'Treadmill'; // Default type for others
+                activeCalculatorInput = 'mph'; // Set default focus for calculation
+            }
+            
             handleDynamicFormCalculation(); // Perform initial calculation
             // ---- END OF KEY LINES ----
             
