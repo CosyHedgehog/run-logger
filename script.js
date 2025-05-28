@@ -1008,7 +1008,22 @@ document.addEventListener('DOMContentLoaded', async () => {
             th.addEventListener('click', () => {
                 const columnKeyClicked = th.dataset.column;
                 if (columnKeyClicked) {
-                    const runsForThisTable = getRunsForTableFunction();
+                    let runsForThisTable = getRunsForTableFunction(); // Get user-specific runs
+                    // Determine the user based on the tableBody ID to apply correct filters
+                    let userForFiltering = null;
+                    if (tableBody.id === 'runsTableBodyJason') {
+                        userForFiltering = 'Jason';
+                    } else if (tableBody.id === 'runsTableBodyKelvin') {
+                        userForFiltering = 'Kelvin';
+                    }
+                    // If it's a user-specific table, apply current filters for that user
+                    if (userForFiltering) {
+                        runsForThisTable = applyAllFilters(runsForThisTable, userForFiltering);
+                    }
+                    // For the summary table, we don't apply user-specific active filters here, 
+                    // as it shows all runs (or could have its own separate filter logic if ever needed).
+                    // The initial render of summary table already handles general sorting.
+                    
                     // Call sortTableByColumn WITHOUT explicitDirection for clicks
                     sortTableByColumn(tableBody, columnKeyClicked, runsForThisTable, isSummaryTable);
                 }
