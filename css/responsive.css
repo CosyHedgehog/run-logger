@@ -120,15 +120,38 @@
         flex-direction: column; 
         align-items: flex-start; 
         gap: 10px; 
+        /* New Grid styles for mobile tab header */
+        display: grid;
+        grid-template-columns: auto 1fr; /* Title takes auto, buttons take remaining space */
+        grid-template-rows: auto auto; /* Two rows, one for title/filter, one for log run */
+        align-items: center; /* Vertically align items in their grid cells */
+        width: 100%; /* Ensure header takes full width */
     }
 
-    .tab-header h2 {
+    .tab-header h2 { /* Title and entry count */
         margin-bottom: 0; 
+        grid-column: 1 / 2; /* Span first column */
+        grid-row: 1 / 2;    /* First row */
+    }
+
+    .tab-header-actions { /* This will use display: contents, so its children are positioned by the grid */
+        display: contents;
+    }
+
+    .tab-specific-filter-btn {
+        grid-column: 2 / 3; /* Second column */
+        grid-row: 1 / 2;    /* First row, next to title */
+        justify-self: end; /* Align filter button to the right of its cell */
+        margin-left: 0; /* Reset any specific margin */
+        /* Adjust padding or font size if needed for mobile */
     }
 
     .tab-specific-log-btn {
         align-self: stretch; 
         text-align: center;
+        grid-column: 1 / -1; /* Span full width */
+        grid-row: 2 / 3;     /* Second row */
+        margin-top: 10px;    /* Add some space above the log run button */
     }
 
     /* Responsive adjustments for cards and new variables */
@@ -189,6 +212,34 @@
             max-width: 500px; /* Max width for single column cards for readability */
         }
     }
+
+    /* Specific adjustments for Filter Modal on mobile */
+    #filterModalContainer {
+        width: 95%; /* Slightly more width for filter modal */
+        padding: 20px;
+        max-height: 90vh;
+    }
+
+    #filterModalContainer h2 {
+        font-size: 1.4em;
+    }
+
+    #filterModalContainer .form-row {
+        flex-direction: column; /* Stack form-row children vertically */
+        gap: 0; /* Remove gap if stacking, rely on margin-bottom of inner divs */
+    }
+
+    #filterModalContainer .form-row > div { /* Target the divs holding label/input */
+        margin-bottom: 12px; /* Add some space between stacked input groups */
+        width: 100%; /* Ensure they take full width when stacked */
+    }
+
+    /* Ensure inputs inside stacked form-rows take full width */
+    #filterModalContainer .form-row input,
+    #filterModalContainer .form-row select {
+        width: 100%;
+    }
+    /* End of Specific adjustments for Filter Modal on mobile */
 }
 
 @media (max-width: 480px) {
@@ -210,11 +261,13 @@
         font-size: 1.1em;
     }
 
-    #logRunFormContainer {
+    #logRunFormContainer,
+    #filterModalContainer { /* Apply to filter modal as well */
         padding: 15px; 
     }
 
-    #logRunFormContainer h2 {
+    #logRunFormContainer h2,
+    #filterModalContainer h2 { /* Apply to filter modal as well */
         font-size: 1.2em;
     }
 

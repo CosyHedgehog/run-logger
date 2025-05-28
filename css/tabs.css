@@ -19,6 +19,14 @@
     margin-left: 8px;
 }
 
+/* New styles for the actions wrapper */
+.tab-header-actions {
+    display: flex; /* Align buttons in a row */
+    align-items: center;
+    gap: 8px; /* Space between Filter and Log Run buttons */
+    margin-left: auto; /* Pushes the button group to the right */
+}
+
 /* .filter-container {
     display: flex;
     align-items: center;
@@ -57,6 +65,33 @@
 .tab-specific-log-btn:hover {
     background-color: var(--button-primary-hover-bg);
     box-shadow: 0 3px 7px rgba(0, 86, 179, 0.35); /* May need dark mode adjustment */
+}
+
+/* Style for the new Filter button */
+.tab-specific-filter-btn {
+    background-color: var(--button-default-bg); /* Or another color like var(--info-color) */
+    color: var(--button-default-text);
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95em;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 5px var(--button-shadow-color); /* Generic shadow */
+    /* margin-left: 8px; /* Space between Log Run and Filter buttons - Handled by parent gap */
+    /* New styles for icon button */
+    width: 33px; /* Adjust as needed to be square-ish with padding */
+    height: 33px; /* Match width for a square button */
+    padding: 0; /* Reset padding if using fixed width/height for icon centering */
+    display: inline-flex; /* For centering icon */
+    align-items: center;
+    justify-content: center;
+    font-size: 1em; /* Adjust icon size if needed */
+}
+
+.tab-specific-filter-btn:hover {
+    background-color: var(--button-default-hover-bg);
+    box-shadow: 0 3px 7px var(--button-shadow-color); /* Slightly more prominent shadow on hover */
 }
 
 /* Tab Styles */

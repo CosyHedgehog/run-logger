@@ -80,6 +80,12 @@ let logForUserSpan = null;
 let currentUserForRunInput = null; 
 // ---- End Global-like variables ----
 
+// --- Filter Modal Globals ---
+let gFilterModalContainer, filterForm, filterForUserSpan, closeFilterModalBtn, resetFiltersBtn;
+let activeFilterUser = null; // To store which user's filter is active ('Jason' or 'Kelvin')
+let currentFilters = {}; // Object to store active filters for each user
+// ---- End Global-like variables ----
+
 // Check for the global `window.supabase` object from the CDN and its `createClient` method
 if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
     // Initialize our script-scoped `supabase` variable with the client instance
@@ -302,6 +308,23 @@ function closeModal() {
     gModalConfirmCallback = null; 
 }
 
+// --- Global Function to Close Filter Modal ---
+function closeFilterModal() {
+    if (gFilterModalContainer) {
+        gFilterModalContainer.classList.remove('visible');
+        setTimeout(() => {
+            gFilterModalContainer.classList.add('hidden');
+            // Only hide overlay if neither the general modal nor the log run form is active
+            if (gFormOverlay && 
+                (!gModalContainer || !gModalContainer.classList.contains('modal-active')) &&
+                (!gLogRunFormContainer || !gLogRunFormContainer.classList.contains('visible'))
+            ) {
+                 gFormOverlay.classList.add('hidden');
+            }
+        }, 300);
+    }
+}
+
 // --- Global Function to Close Log Run Form ---
 function closeLogRunForm() {
     if (gLogRunFormContainer) { 
@@ -502,6 +525,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const saveMasterPasswordBtn = document.getElementById('saveMasterPasswordBtn');
     const clearMasterPasswordBtn = document.getElementById('clearMasterPasswordBtn');
     const masterPasswordStatusEl = document.getElementById('masterPasswordStatus');
+
+    // ---- Filter Modal Elements ----
+    gFilterModalContainer = document.getElementById('filterModalContainer');
+    filterForm = document.getElementById('filterForm');
+    filterForUserSpan = document.getElementById('filterForUser');
+    closeFilterModalBtn = document.getElementById('closeFilterModalBtn');
+    resetFiltersBtn = document.getElementById('resetFiltersBtn');
+    const showFilterModalBtns = document.querySelectorAll('.showFilterModalBtn');
+    // ---- End Filter Modal Elements ----
 
     // Export Button
     const exportAllRunsBtn = document.getElementById('exportAllRunsBtn');
@@ -748,6 +780,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 closeModal(); 
             } else if (gLogRunFormContainer && gLogRunFormContainer.classList.contains('visible')) { // Then check log run form
                 closeLogRunForm(); 
+            } else if (gFilterModalContainer && gFilterModalContainer.classList.contains('visible')) { // Then check filter form
+                closeFilterModal();
             }
         });
     }
@@ -1102,11 +1136,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const jasonEntryCountEl = document.getElementById('jasonEntryCount');
         if (runsTableBodyJason) {
             let jasonRunsToRender = runs.filter(run => run.user === 'Jason');
-            // Apply type filter for Jason
-            const jasonFilter = document.getElementById('jasonTypeFilter');
-            if (jasonFilter && jasonFilter.value !== 'all') {
-                jasonRunsToRender = jasonRunsToRender.filter(run => run.type === jasonFilter.value);
-            }
+            // Apply type filter for Jason - NOW HANDLED BY applyAllFilters
+            // const jasonFilter = document.getElementById('jasonTypeFilter');
+            // if (jasonFilter && jasonFilter.value !== 'all') {
+            //     jasonRunsToRender = jasonRunsToRender.filter(run => run.type === jasonFilter.value);
+            // }
+            jasonRunsToRender = applyAllFilters(jasonRunsToRender, 'Jason');
             sortTableByColumn(runsTableBodyJason, 'date', jasonRunsToRender, false, 'desc');
             if (jasonEntryCountEl) {
                 jasonEntryCountEl.textContent = ` (${jasonRunsToRender.length} entries)`;
@@ -1117,11 +1152,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         const kelvinEntryCountEl = document.getElementById('kelvinEntryCount');
         if (runsTableBodyKelvin) {
             let kelvinRunsToRender = runs.filter(run => run.user === 'Kelvin');
-            // Apply type filter for Kelvin
-            const kelvinFilter = document.getElementById('kelvinTypeFilter');
-            if (kelvinFilter && kelvinFilter.value !== 'all') {
-                kelvinRunsToRender = kelvinRunsToRender.filter(run => run.type === kelvinFilter.value);
-            }
+            // Apply type filter for Kelvin - NOW HANDLED BY applyAllFilters
+            // const kelvinFilter = document.getElementById('kelvinTypeFilter');
+            // if (kelvinFilter && kelvinFilter.value !== 'all') {
+            //     kelvinRunsToRender = kelvinRunsToRender.filter(run => run.type === kelvinFilter.value);
+            // }
+            kelvinRunsToRender = applyAllFilters(kelvinRunsToRender, 'Kelvin');
             sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsToRender, false, 'desc');
             if (kelvinEntryCountEl) {
                 kelvinEntryCountEl.textContent = ` (${kelvinRunsToRender.length} entries)`;
@@ -1736,6 +1772,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (logRunFormContainer && logRunFormContainer.classList.contains('visible')) {
             closeLogRunForm();
         }
+        // Close filter modal if it's open when switching tabs
+        if (gFilterModalContainer && gFilterModalContainer.classList.contains('visible')) {
+            closeFilterModal();
+        }
     }
 
     // --- Event Listeners ---
@@ -1990,6 +2030,131 @@ document.addEventListener('DOMContentLoaded', async () => {
             renderTotalVisitsChart({ jason: jasonVisitsData, kelvin: kelvinVisitsData });
         }
     }
+
+    // --- Filter Modal Logic ---
+    function populateFilterTypeOptions() {
+        const filterTypeSelect = document.getElementById('filterType');
+        if (!filterTypeSelect) return;
+
+        const uniqueTypes = [...new Set(runs.map(run => run.type).filter(type => type))].sort(); // Get unique, sorted types
+        
+        // Preserve the "All Types" option
+        filterTypeSelect.innerHTML = '<option value="">All Types</option>'; 
+
+        uniqueTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            filterTypeSelect.appendChild(option);
+        });
+    }
+
+    function openFilterModal(userForFilter) {
+        activeFilterUser = userForFilter;
+        if (filterForUserSpan) filterForUserSpan.textContent = userForFilter;
+        
+        populateFilterTypeOptions(); // Populate/update type options each time modal opens
+
+        // Load current filters for this user into the form
+        if (filterForm) {
+            filterForm.reset(); // Reset form first
+            const userSpecificFilters = currentFilters[userForFilter] || {};
+            console.log(`[openFilterModal] Loading filters for ${userForFilter}:`, userSpecificFilters);
+            for (const key in userSpecificFilters) {
+                if (filterForm.elements[key]) {
+                    filterForm.elements[key].value = userSpecificFilters[key];
+                }
+            }
+        }
+
+        if (gFormOverlay) gFormOverlay.classList.remove('hidden');
+        if (gFilterModalContainer) {
+            gFilterModalContainer.classList.remove('hidden');
+            setTimeout(() => gFilterModalContainer.classList.add('visible'), 10);
+        }
+    }
+
+    function applyFiltersFromModal(event) {
+        event.preventDefault();
+        if (!activeFilterUser || !filterForm) return;
+
+        const formData = new FormData(filterForm);
+        const newFiltersForUser = {};
+        for (let [key, value] of formData.entries()) {
+            if (value) { // Only store non-empty filter values
+                newFiltersForUser[key] = value;
+            }
+        }
+        currentFilters[activeFilterUser] = newFiltersForUser;
+        console.log(`[applyFiltersFromModal] Filters saved for ${activeFilterUser}:`, currentFilters[activeFilterUser]);
+
+        closeFilterModal();
+        renderAllRuns(); // Re-render tables with new filters
+    }
+
+    function resetCurrentUsersFilters() {
+        if (!activeFilterUser) return;
+        currentFilters[activeFilterUser] = {}; // Clear filters for the active user
+        if (filterForm) filterForm.reset(); // Reset the form fields
+        console.log(`[resetCurrentUsersFilters] Filters reset for ${activeFilterUser}`);
+        // Optionally, re-apply (which means showing all data) and re-render immediately
+        // renderAllRuns(); 
+        // Or, wait for user to click "Apply Filters" after reset, which is current behavior without the line above.
+    }
+    
+    function applyAllFilters(runsToFilter, user) {
+        const filtersToApply = currentFilters[user] || {};
+        if (Object.keys(filtersToApply).length === 0) {
+            return runsToFilter; // No filters for this user, return original array
+        }
+        console.log(`[applyAllFilters] Applying filters for ${user}:`, filtersToApply, `on ${runsToFilter.length} runs`);
+
+        return runsToFilter.filter(run => {
+            let passesAll = true;
+
+            // Date Range
+            if (filtersToApply.filterDateStart && new Date(run.date) < new Date(filtersToApply.filterDateStart + 'T00:00:00')) passesAll = false;
+            if (filtersToApply.filterDateEnd && new Date(run.date) > new Date(filtersToApply.filterDateEnd + 'T23:59:59')) passesAll = false;
+
+            // Type
+            if (filtersToApply.filterType && run.type !== filtersToApply.filterType) passesAll = false;
+
+            // Time Range (MM:SS)
+            const runTimeMinutes = parseMMSS(run.time);
+            if (filtersToApply.filterTimeMin) {
+                const minTimeMinutes = parseMMSS(filtersToApply.filterTimeMin);
+                if (!isNaN(minTimeMinutes) && (isNaN(runTimeMinutes) || runTimeMinutes < minTimeMinutes)) passesAll = false;
+            }
+            if (filtersToApply.filterTimeMax) {
+                const maxTimeMinutes = parseMMSS(filtersToApply.filterTimeMax);
+                if (!isNaN(maxTimeMinutes) && (isNaN(runTimeMinutes) || runTimeMinutes > maxTimeMinutes)) passesAll = false;
+            }
+            
+            // MPH Range
+            if (filtersToApply.filterMphMin && run.mph < parseFloat(filtersToApply.filterMphMin)) passesAll = false;
+            if (filtersToApply.filterMphMax && run.mph > parseFloat(filtersToApply.filterMphMax)) passesAll = false;
+
+            // Distance Range
+            if (filtersToApply.filterDistanceMin && run.distance < parseFloat(filtersToApply.filterDistanceMin)) passesAll = false;
+            if (filtersToApply.filterDistanceMax && run.distance > parseFloat(filtersToApply.filterDistanceMax)) passesAll = false;
+            
+            return passesAll;
+        });
+    }
+
+    if (filterForm) filterForm.addEventListener('submit', applyFiltersFromModal);
+    if (resetFiltersBtn) resetFiltersBtn.addEventListener('click', resetCurrentUsersFilters);
+    if (closeFilterModalBtn) closeFilterModalBtn.addEventListener('click', closeFilterModal);
+
+    if (showFilterModalBtns) {
+        showFilterModalBtns.forEach(button => {
+            button.addEventListener('click', () => {
+                const user = button.dataset.user;
+                openFilterModal(user);
+            });
+        });
+    }
+    // --- End Filter Modal Logic ---
 }); 
 
 function calculateUserStats() {

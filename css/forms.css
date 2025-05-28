@@ -419,4 +419,85 @@ button[type="submit"]:hover,
 
 /* Styles for .form-row are defined elsewhere and should not be here */
 
-/* Style for the new close button is defined elsewhere */ 
+/* Style for the new close button is defined elsewhere */
+
+/* Filter Modal Container */
+#filterModalContainer {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px var(--card-shadow);
+    z-index: 1002; /* Same as log run form */
+    width: 90%;
+    max-width: 520px; /* Slightly wider for more filters */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh; /* Increased max-height */
+}
+
+#filterModalContainer.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+#filterModalContainer h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: center;
+    color: var(--card-title-color);
+    font-size: 1.6em;
+    font-family: inherit;
+}
+
+#filterModalContainer h2 span {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+#filterModalContainer #filterForm {
+    overflow-y: auto;
+    flex-grow: 1;
+    padding-right: 10px; /* Add some padding for the scrollbar */
+}
+
+/* General form div and form-row adjustments for filter form */
+#filterModalContainer #filterForm > div,
+#filterModalContainer #filterForm .form-row {
+    margin-bottom: 10px; /* Consistent spacing */
+}
+
+#filterModalContainer #filterForm label {
+    margin-bottom: 4px;
+}
+
+/* Adjust form actions for filter modal */
+#filterModalContainer #filterForm .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+#filterModalContainer #filterForm .form-actions button {
+    flex: 1; /* Make buttons take equal width */
+    text-align: center;
+}
+
+#filterModalContainer #filterForm .form-actions #resetFiltersBtn {
+    background-color: var(--button-default-bg);
+    color: var(--button-default-text);
+}
+
+#filterModalContainer #filterForm .form-actions #resetFiltersBtn:hover {
+    background-color: var(--button-default-hover-bg);
+    box-shadow: 0 2px 5px var(--button-shadow-color);
+} 
