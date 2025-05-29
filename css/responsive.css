@@ -1,15 +1,12 @@
-/* Responsive Design */
-
-/* Styles for side-by-side charts on larger screens - these are default */
 .dual-chart-row {
     display: flex;
-    gap: 20px; /* Adjust gap as needed */
-    margin-bottom: 20px; /* Keep consistent margin with other cards */
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
 .dual-chart-row > .content-card {
-    flex: 1; /* Each card takes equal width */
-    margin-bottom: 0; /* Remove individual bottom margin as row has it */
+    flex: 1;
+    margin-bottom: 0;
 }
 
 @media (max-width: 768px) {
@@ -120,55 +117,51 @@
         flex-direction: column; 
         align-items: flex-start; 
         gap: 10px; 
-        /* New Grid styles for mobile tab header */
         display: grid;
-        grid-template-columns: auto 1fr; /* Title takes auto, buttons take remaining space */
-        grid-template-rows: auto auto; /* Two rows, one for title/filter, one for log run */
-        align-items: baseline; /* Align items along their baseline */
-        width: 100%; /* Ensure header takes full width */
-        grid-template-columns: 1fr auto auto; /* Title | Filter Count | Filter Button */
-        column-gap: 8px; /* Space between title, count, and button */
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        align-items: baseline;
+        width: 100%;
+        grid-template-columns: 1fr auto auto;
+        column-gap: 8px;
     }
 
-    .tab-header h2 { /* Title and entry count */
+    .tab-header h2 {
         margin-bottom: 0; 
-        grid-column: 1 / 2; /* Span first column */
-        grid-row: 1 / 2;    /* First row */
-        /* Allow h2 to shrink if necessary, prevent pushing buttons off */
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
         min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
     }
 
-    .tab-header-actions { /* This will use display: contents, so its children are positioned by the grid */
+    .tab-header-actions {
         display: contents;
     }
 
     .filter-count-display {
-        grid-column: 2 / 3; /* Second column, first row */
+        grid-column: 2 / 3;
         grid-row: 1 / 2;
-        justify-self: end; /* Align to the right, towards the filter button */
+        justify-self: end;
     }
 
     .tab-specific-filter-btn {
-        grid-column: 2 / 3; /* Second column */
-        grid-column: 3 / 4; /* Third column, first row */
-        grid-row: 1 / 2;    /* First row, next to title */
-        justify-self: end; /* Align filter button to the right of its cell */
-        margin-left: 0; /* Reset any specific margin */
-        /* Adjust padding or font size if needed for mobile */
+        grid-column: 2 / 3;
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+        justify-self: end;
+        margin-left: 0;
     }
 
     .tab-specific-log-btn {
         align-self: stretch; 
         text-align: center;
-        grid-column: 1 / -1; /* Span full width */
-        grid-row: 2 / 3;     /* Second row */
-        margin-top: 10px;    /* Add some space above the log run button */
+        grid-column: 1 / -1;
+        grid-row: 2 / 3;
+        margin-top: 10px;
     }
 
-    /* Responsive adjustments for cards and new variables */
     .content-card {
         padding: 20px;
         margin-bottom: 20px;
@@ -183,14 +176,14 @@
         padding: 20px;
     }
 
-    #statistics { /* Added for horizontal scrolling of user stats table */
+    #statistics {
         overflow-x: auto;
         display: block;
         width: 100%;
     }
 
     .dual-chart-row {
-        flex-direction: column; /* Stack them on smaller screens */
+        flex-direction: column;
         gap: 0;
         margin-bottom: 0;
     }
@@ -199,9 +192,8 @@
         margin-bottom: 20px;
     }
 
-    /* Make dual activity cards stack on mobile */
     .dual-activity-row {
-        flex-direction: column; /* Stack them on smaller screens */
+        flex-direction: column;
         gap: 0;
         margin-bottom: 0;
     }
@@ -210,42 +202,36 @@
         margin-bottom: 20px;
     }
 
-    /* Hide specific table columns on mobile */
     .hide-on-mobile {
-        display: none !important; /* Use !important to ensure override if needed */
+        display: none !important;
     }
 
-    /* Hide activity visualization on mobile */
     .activity-visualization-card.hidden-on-mobile {
         display: none !important;
     }
 
-    /* ----- Settings Card Row Responsive Adjustments ----- */
-    /* For medium screens (e.g., tablets) - stack to 2 columns */
-    @media (max-width: 1024px) { /* New breakpoint for 2-column settings */
+    @media (max-width: 1024px) {
         .settings-card-row .content-card {
-            flex-basis: calc(50% - 15px); /* Adjust gap for 2 cards, e.g., 20px total / 2 cards + half of inter-card gap */
+            flex-basis: calc(50% - 15px);
             min-width: calc(50% - 15px);
         }
     }
 
-    /* For smaller screens (e.g., mobile) - stack to 1 column (existing rule, ensure it overrides correctly) */
     @media (max-width: 768px) { 
         .settings-card-row {
-            flex-direction: column; /* Stack cards vertically */
-            align-items: center; /* Center the single column of cards */
+            flex-direction: column;
+            align-items: center;
         }
         .settings-card-row .content-card {
-            flex-basis: 100%; /* Full width for stacked cards */
-            min-width: 90%; /* Or a specific min-width like 280px if preferred over percentage */
-            width: 100%;     /* Ensure they take full width when stacked */
-            max-width: 500px; /* Max width for single column cards for readability */
+            flex-basis: 100%;
+            min-width: 90%;
+            width: 100%;
+            max-width: 500px;
         }
     }
 
-    /* Specific adjustments for Filter Modal on mobile */
     #filterModalContainer {
-        width: 95%; /* Slightly more width for filter modal */
+        width: 95%;
         padding: 20px;
         max-height: 90vh;
     }
@@ -255,32 +241,22 @@
     }
 
     #filterModalContainer .form-row {
-        flex-direction: column; /* Stack form-row children vertically */
-        gap: 0; /* Remove gap if stacking, rely on margin-bottom of inner divs */
+        flex-direction: column;
+        gap: 0;
     }
 
-    #filterModalContainer .form-row > div { /* Target the divs holding label/input */
-        margin-bottom: 12px; /* Add some space between stacked input groups */
-        width: 100%; /* Ensure they take full width when stacked */
+    #filterModalContainer .form-row > div {
+        margin-bottom: 12px;
+        width: 100%;
     }
 
-    /* Ensure inputs inside stacked form-rows take full width */
     #filterModalContainer .form-row input,
     #filterModalContainer .form-row select {
         width: 100%;
     }
-    /* End of Specific adjustments for Filter Modal on mobile */
 }
 
 @media (max-width: 480px) {
-    body {
-        /* Potentially adjust overall font size for very small screens */
-    }
-
-    .tabs {
-        /* Could further adjust tab styling if needed, e.g., scrollable tabs */
-    }
-    
     .tab-button {
         padding: 8px 10px;
         font-size: 0.8em;
@@ -292,12 +268,12 @@
     }
 
     #logRunFormContainer,
-    #filterModalContainer { /* Apply to filter modal as well */
+    #filterModalContainer {
         padding: 15px; 
     }
 
     #logRunFormContainer h2,
-    #filterModalContainer h2 { /* Apply to filter modal as well */
+    #filterModalContainer h2 {
         font-size: 1.2em;
     }
 
@@ -319,7 +295,6 @@
         height: 250px; 
     }
 
-    /* Responsive adjustments for cards and new variables */
     .content-card {
         padding: 15px;
         margin-bottom: 15px;

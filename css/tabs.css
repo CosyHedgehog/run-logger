@@ -1,10 +1,9 @@
-/* Tab Header (for title and button within tab) */
 .tab-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap;
 }
 
 .tab-header h2 {
@@ -19,46 +18,19 @@
     margin-left: 8px;
 }
 
-/* New styles for the actions wrapper */
 .tab-header-actions {
-    display: flex; /* Align buttons in a row */
-    align-items: center;
-    gap: 8px; /* Space between Filter and Log Run buttons */
-    margin-left: auto; /* Pushes the button group to the right */
-}
-
-/* Style for the filter count display */
-.filter-count-display {
-    font-size: 0.8em;
-    color: var(--text-muted-color); /* Or var(--secondary-color) */
-    /* margin-right: 4px; /* REMOVED - Small space between count and filter icon - handled by parent gap */
-    /* Ensure it aligns nicely with the buttons */
-    display: inline-flex;
-    align-items: center;
-}
-
-/* .filter-container {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-left: auto; 
-    padding-right: 15px; 
+    margin-left: auto;
 }
 
-.filter-container label {
-    font-size: 0.9em;
-    color: var(--text-color);
+.filter-count-display {
+    font-size: 0.8em;
+    color: var(--text-muted-color);
+    display: inline-flex;
+    align-items: center;
 }
-
-.filter-container select {
-    padding: 6px 10px;
-    border-radius: var(--border-radius-sm);
-    border: 1px solid var(--input-border);
-    background-color: var(--input-bg);
-    color: var(--text-color);
-    font-size: 0.9em;
-    min-width: 150px; 
-} */
 
 .tab-specific-log-btn {
     background-color: var(--button-primary-bg);
@@ -69,17 +41,16 @@
     cursor: pointer;
     font-size: 0.95em;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.25); /* May need dark mode adjustment if color specific */
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.25);
 }
 
 .tab-specific-log-btn:hover {
     background-color: var(--button-primary-hover-bg);
-    box-shadow: 0 3px 7px rgba(0, 86, 179, 0.35); /* May need dark mode adjustment */
+    box-shadow: 0 3px 7px rgba(0, 86, 179, 0.35);
 }
 
-/* Style for the new Filter button */
 .tab-specific-filter-btn {
-    background-color: var(--button-default-bg); /* Or another color like var(--info-color) */
+    background-color: var(--button-default-bg);
     color: var(--button-default-text);
     padding: 8px 15px;
     border: none;
@@ -87,24 +58,21 @@
     cursor: pointer;
     font-size: 0.95em;
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 2px 5px var(--button-shadow-color); /* Generic shadow */
-    /* margin-left: 8px; /* Space between Log Run and Filter buttons - Handled by parent gap */
-    /* New styles for icon button */
-    width: 33px; /* Adjust as needed to be square-ish with padding */
-    height: 33px; /* Match width for a square button */
-    padding: 0; /* Reset padding if using fixed width/height for icon centering */
-    display: inline-flex; /* For centering icon */
+    box-shadow: 0 2px 5px var(--button-shadow-color);
+    width: 33px;
+    height: 33px;
+    padding: 0;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1em; /* Adjust icon size if needed */
+    font-size: 1em;
 }
 
 .tab-specific-filter-btn:hover {
     background-color: var(--button-default-hover-bg);
-    box-shadow: 0 3px 7px var(--button-shadow-color); /* Slightly more prominent shadow on hover */
+    box-shadow: 0 3px 7px var(--button-shadow-color);
 }
 
-/* Tab Styles */
 .tabs {
     display: flex;
     background-color: var(--tab-bg);
@@ -113,8 +81,8 @@
     position: sticky;
     top: 0;
     z-index: 999;
-    align-items: center; /* Vertically align items in tab bar */
-    border-radius: 8px; /* Rounded corners for the tab bar */
+    align-items: center;
+    border-radius: 8px;
 }
 
 .tab-button {
@@ -140,8 +108,8 @@
 }
 
 #settingsTabButton {
-    margin-left: auto; /* Pushes this specific button to the far right */
-    margin-right: 0; /* Ensure no right margin if it had one from .tab-button */
+    margin-left: auto;
+    margin-right: 0;
 }
 
 .tab-pane { 
@@ -157,61 +125,50 @@
     display: block;
 }
 
-/* Add margin to tab content to create space below sticky tab bar */
 #tabContent {
     margin-top: 20px;
-    display: flex; /* Make #tabContent a flex container */
-    flex-direction: column; /* Stack tab panes vertically */
-    flex-grow: 1; /* Allow #tabContent to grow */
-    /* min-height: 0; Might be needed if parent is also flex column */
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
-/* Adjustments for Summary tab-pane to act as a container */
 #summary.tab-pane {
-    /* display: flex; // Moved to #summary.tab-pane.active */
     flex-direction: column;
-    background-color: transparent; /* Summary pane itself is transparent */
+    background-color: transparent;
     box-shadow: none;
     padding: 0; 
     margin-bottom: 0; 
 }
 
-/* Add this new rule specifically for the active summary tab */
 #summary.tab-pane.active {
     display: flex;
-    /* flex-grow: 1; /* Summary does not need to take full height, content dictates */
 } 
 
-/* New rule for #settings.tab-pane */
 #settings.tab-pane {
     background-color: transparent;
     box-shadow: none;
-    padding: 0; /* Or a smaller padding like 10px if you want some space around the inner card */
-    margin-bottom: 0; /* Or adjust if needed */
+    padding: 0;
+    margin-bottom: 0;
 }
 
-/* Specific styles for Jason and Kelvin panes to take full height */
 #jason.tab-pane.active,
 #kelvin.tab-pane.active {
-    display: flex; /* Already set by .tab-pane.active but good to be explicit */
+    display: flex;
     flex-direction: column;
-    flex-grow: 1; /* This pane should grow */
+    flex-grow: 1;
 }
 
-/* Remove card-like styling from Jason and Kelvin tab panes */
 #jason.tab-pane,
 #kelvin.tab-pane {
     background-color: transparent !important;
     box-shadow: none !important;
     padding: 0 !important; 
-    border-radius: 0 !important; /* If there was any */
-    /* Margin might still be desired from #tabContent or .tab-pane general rules */
+    border-radius: 0 !important;
 }
 
 #runsDisplayJason,
 #runsDisplayKelvin {
-    flex-grow: 1; /* The table container should grow within the pane */
-    /* overflow-y: auto; Already set in tables.css */
-    min-height: 0; /* Crucial for scrollable flex children */
-    max-height: none; /* Override fixed max-height from tables.css for full height behavior */
+    flex-grow: 1;
+    min-height: 0;
+    max-height: none;
 } 

@@ -15,15 +15,13 @@
     <link rel="stylesheet" href="css/responsive.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
-        // Immediately apply theme from localStorage to prevent flash
         (function() {
             const theme = localStorage.getItem('theme');
             if (theme === 'dark') {
                 document.documentElement.classList.add('dark-mode');
-            } else if (theme === null) { // If no theme is set, default to dark
+            } else if (theme === null) {
                 document.documentElement.classList.add('dark-mode');
             }
-            // The button icon will be set by the main script once DOM is loaded
         })();
     </script>
 </head>
@@ -78,7 +76,6 @@
                     <select id="type" name="type">
                         <option value="Treadmill">Treadmill</option>
                         <option value="Treadmill LHR">Treadmill LHR</option>
-                        <!-- Add other types here if needed in the future -->
                     </select>
                 </div>
                 <div>
@@ -91,8 +88,6 @@
                 </div>
             </form>
         </div>
-
-        <!-- Modal (Previously Error Modal, now General Purpose) -->
         <div id="modalContainer" class="hidden">
             <div id="modalContent">
                 <h2 id="modalTitle">Notification</h2>
@@ -103,9 +98,74 @@
                 </div>
             </div>
         </div>
-
         <div id="tabContent">
             <div id="summary" class="tab-pane">
+                <div class="content-card">
+                    <div class="chart-header-with-select">
+                        <h2>Distance Ran Over Time (Km)</h2>
+                        <select id="distanceOverTimeChartPeriodSelect" class="chart-period-select">
+                            <option value="allTime">All Time</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="distanceOverTimeChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="dual-activity-row"> 
+                    <div class="content-card activity-visualization-card">
+                        <div class="chart-header-with-select">
+                            <h2 id="jasonSummaryActivityTitle">Jason's Activity</h2>
+                            <select id="jasonSummaryActivityMonthSelect" class="chart-period-select"></select>
+                        </div>
+                        <div id="jasonSummaryActivityGrid" class="activity-grid">
+                        </div>
+                    </div>
+                    <div class="content-card activity-visualization-card">
+                        <div class="chart-header-with-select">
+                            <h2 id="kelvinSummaryActivityTitle">Kelvin's Activity</h2>
+                            <select id="kelvinSummaryActivityMonthSelect" class="chart-period-select"></select>
+                        </div>
+                        <div id="kelvinSummaryActivityGrid" class="activity-grid">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dual-chart-row">
+                    <div class="content-card">
+                        <div class="chart-header-with-select">
+                            <h2>Total Distance Ran (Km)</h2>
+                            <select id="distanceChartPeriodSelect" class="chart-period-select">
+                                <option value="allTime">All Time</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="totalKmChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="content-card">
+                        <div class="chart-header-with-select">
+                            <h2>Total Visits</h2>
+                            <select id="visitsChartPeriodSelect" class="chart-period-select">
+                                <option value="allTime">All Time</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="totalVisitsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="content-card stats-summary-card">
                     <div id="statistics">
                         <table id="userStatsTable">
@@ -145,76 +205,6 @@
                 </div>
 
                 <div class="content-card">
-                    <div class="chart-header-with-select">
-                        <h2>Distance Ran Over Time (Km)</h2>
-                        <select id="distanceOverTimeChartPeriodSelect" class="chart-period-select">
-                            <option value="allTime">All Time</option>
-                            <option value="2025">2025</option>
-                            <option value="2024">2024</option>
-                            <option value="2023">2023</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="distanceOverTimeChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="dual-activity-row"> 
-                    <div class="content-card activity-visualization-card">
-                        <div class="chart-header-with-select">
-                            <h2 id="jasonSummaryActivityTitle">Jason's Activity</h2>
-                            <select id="jasonSummaryActivityMonthSelect" class="chart-period-select"></select>
-                        </div>
-                        <div id="jasonSummaryActivityGrid" class="activity-grid">
-                            <!-- Jason's activity squares will be generated here by JS -->
-                        </div>
-                    </div>
-                    <div class="content-card activity-visualization-card">
-                        <div class="chart-header-with-select">
-                            <h2 id="kelvinSummaryActivityTitle">Kelvin's Activity</h2>
-                            <select id="kelvinSummaryActivityMonthSelect" class="chart-period-select"></select>
-                        </div>
-                        <div id="kelvinSummaryActivityGrid" class="activity-grid">
-                            <!-- Kelvin's activity squares will be generated here by JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <div class="dual-chart-row">
-                    <div class="content-card">
-                        <div class="chart-header-with-select">
-                            <h2>Total Distance Ran (Km)</h2>
-                            <select id="distanceChartPeriodSelect" class="chart-period-select">
-                                <option value="allTime">All Time</option>
-                                <option value="2025">2025</option>
-                                <option value="2024">2024</option>
-                                <option value="2023">2023</option>
-                                <!-- Add other year options here if needed -->
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="totalKmChart"></canvas>
-                        </div>
-                    </div>
-
-                    <div class="content-card">
-                        <div class="chart-header-with-select">
-                            <h2>Total Visits</h2>
-                            <select id="visitsChartPeriodSelect" class="chart-period-select">
-                                <option value="allTime">All Time</option>
-                                <option value="2025">2025</option>
-                                <option value="2024">2024</option>
-                                <option value="2023">2023</option>
-                                <!-- Add other year options here if needed -->
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="totalVisitsChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-card">
                     <h2>Logged Runs (All)</h2>
                     <div id="runsDisplaySummary">
                         <table>
@@ -234,7 +224,6 @@
                                 </tr>
                             </thead>
                             <tbody id="runsTableBodySummary">
-                                <!-- Run data will be inserted here -->
                             </tbody>
                         </table>
                     </div>
@@ -245,12 +234,6 @@
             <div id="jason" class="tab-pane">
                 <div class="tab-header">
                     <h2>Jason's Runs <span class="entry-count" id="jasonEntryCount">(0 entries)</span></h2>
-                    <!-- <div class="filter-container">
-                        <label for="jasonTypeFilter">Filter by Type:</label>
-                        <select id="jasonTypeFilter">
-                            <option value="all">All Types</option>
-                        </select>
-                    </div> -->
                     <div class="tab-header-actions">
                         <span class="filter-count-display" data-user="Jason"></span>
                         <button class="showFilterModalBtn tab-specific-filter-btn" data-user="Jason" title="Filter runs"><i class="fas fa-filter"></i></button>
@@ -274,28 +257,19 @@
                                 </tr>
                             </thead>
                             <tbody id="runsTableBodyJason">
-                                <!-- Jason's run data will be inserted here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="content-card activity-visualization-card hidden-on-mobile">
                     <div class="activity-grid" id="jasonTabActivityGrid">
-                        <!-- Jason's tab-specific activity squares -->
                     </div>
                 </div>
-                 <!-- Potentially Jason-specific stats/graphs here -->
             </div>
 
             <div id="kelvin" class="tab-pane">
                 <div class="tab-header">
                     <h2>Kelvin's Runs <span class="entry-count" id="kelvinEntryCount">(0 entries)</span></h2>
-                    <!-- <div class="filter-container">
-                        <label for="kelvinTypeFilter">Filter by Type:</label>
-                        <select id="kelvinTypeFilter">
-                            <option value="all">All Types</option>
-                        </select>
-                    </div> -->
                     <div class="tab-header-actions">
                         <span class="filter-count-display" data-user="Kelvin"></span>
                         <button class="showFilterModalBtn tab-specific-filter-btn" data-user="Kelvin" title="Filter runs"><i class="fas fa-filter"></i></button>
@@ -321,22 +295,19 @@
                                 </tr>
                             </thead>
                             <tbody id="runsTableBodyKelvin">
-                                <!-- Kelvin's run data will be inserted here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="content-card activity-visualization-card hidden-on-mobile">
                     <div class="activity-grid" id="kelvinTabActivityGrid">
-                        <!-- Kelvin's tab-specific activity squares -->
                     </div>
                 </div>
-                <!-- Potentially Kelvin-specific stats/graphs here -->
             </div>
 
             <div id="settings" class="tab-pane">
                 
-                <div class="settings-card-row"> <!-- Single Row for all three cards -->
+                <div class="settings-card-row">
                     <div class="content-card theme-settings-card"> 
                         <h2>Theme Settings</h2>
                         <p>Toggle between light and dark mode for the application.</p>
@@ -372,14 +343,13 @@
                         </div>
                         <p id="masterPasswordStatus" style="margin-top: 10px; font-style: italic;"></p>
                     </div>
-                </div> <!-- Close single settings-card-row -->
+                </div>
 
             </div>
 
         </div>
-    </div> <!-- Closing container -->
+    </div>
 
-    <!-- Filter Modal -->
     <div id="filterModalContainer" class="hidden">
         <button id="closeFilterModalBtn" class="modal-close-btn">&times;</button>
         <form id="filterForm">
@@ -398,7 +368,6 @@
                 <label for="filterType">Type:</label>
                 <select id="filterType" name="filterType">
                     <option value="">All Types</option>
-                    <!-- Types will be populated by JS -->
                 </select>
             </div>
             <div class="form-row">
@@ -437,7 +406,6 @@
             </div>
         </form>
     </div>
-    <!-- End Filter Modal -->
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@2.x/dist/date-fns.min.js"></script>

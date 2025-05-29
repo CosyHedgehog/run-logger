@@ -1,17 +1,13 @@
-/* Statistics and Graphs Sections (Now part of .content-card) */
 #statistics {
-    /* background-color: #fff; // Handled by content-card */
-    padding: 0; /* Reset from previous direct styling */
-    /* border-radius: 8px; // Handled by content-card */
-    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); // Handled by content-card */
-    margin-bottom: 0; /* Reset */
+    padding: 0;
+    margin-bottom: 0;
 }
 
 #statistics h3, .content-card > h2 { 
     margin-top: 0;
     margin-bottom: 20px;
     color: var(--card-title-color);
-    font-size: 1.4em; 
+    font-size: 1.4em;
     border-bottom: 1px solid var(--card-border-color);
     padding-bottom: 10px;
 }
@@ -40,10 +36,8 @@ canvas {
     display: block;
     width: 100% !important;
     height: 100% !important;
-    /* Chart.js might need specific re-render for theme change if colors are static */
 }
 
-/* Data Management Buttons - Adjusted for placement within Summary tab */
 .data-management-buttons {
     display: flex;
     justify-content: center; 
@@ -58,17 +52,17 @@ canvas {
     border-radius: 6px;
     cursor: pointer;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    border: none; /* ensure no default borders */
+    border: none;
 }
 
 #exportRunsBtn {
     background-color: var(--info-color);
-    color: white; /* Or specific var */
+    color: white;
 }
 
 #exportRunsBtn:hover {
     background-color: var(--info-hover-color);
-    box-shadow: 0 2px 5px rgba(23, 162, 184, 0.3); /* Needs var or dark mode adjustment */
+    box-shadow: 0 2px 5px rgba(23, 162, 184, 0.3);
 }
 
 #importRunsBtn {
@@ -78,29 +72,27 @@ canvas {
 
 #importRunsBtn:hover {
     background-color: var(--warning-hover-color);
-    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3); /* Needs var or dark mode adjustment */
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.3);
 }
 
-/* Danger button style (for Delete All) */
 .danger-btn {
     background-color: var(--danger-color);
-    color: white; /* Or specific var */
+    color: white;
 }
 
 .danger-btn:hover {
     background-color: var(--danger-hover-color);
-    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3); /* Needs var or dark mode adjustment */
+    box-shadow: 0 2px 5px rgba(220, 53, 69, 0.3);
 }
 
-/* Content Card for Summary Page Sections */
 .content-card {
     background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 4px 12px var(--card-shadow);
     padding: 25px;
     margin-bottom: 25px; 
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
-    position: relative; /* Ensure it forms a stacking context */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
 }
 
 .content-card > h2 { 
@@ -110,11 +102,10 @@ canvas {
     color: var(--card-title-color);
     border-bottom: 1px solid var(--card-border-color);
     padding-bottom: 10px;
-    transition: color 0.3s ease, border-bottom-color 0.3s ease; /* Smooth transition */
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
 }
 
-/* Remove direct card styling from these elements as they are now IN a card */
-#statistics { /* #graphs was removed, this rule now only applies to #statistics */
+#statistics {
     background-color: transparent;
     padding: 0;
     border-radius: 0;
@@ -122,7 +113,6 @@ canvas {
     margin-bottom: 0;
 }
 
-/* Specific styling for sub-headings within cards if needed */
 #statistics h3 {
     margin-top: 0; 
     margin-bottom: 15px;
@@ -130,12 +120,9 @@ canvas {
     color: var(--card-subtle-text-color);
     border-bottom: 1px dotted var(--card-dotted-border-color);
     padding-bottom: 8px;
-    transition: color 0.3s ease, border-bottom-color 0.3s ease; /* Smooth transition */
+    transition: color 0.3s ease, border-bottom-color 0.3s ease;
 }
 
-/* Chart titles are now h2 handled by .content-card > h2, so .chart-container h3 style is removed. */
-
-/* Adjust data management buttons for its new card */
 .data-management-card .data-management-buttons {
     margin-top: 0; 
     padding-top: 0;
@@ -154,36 +141,34 @@ canvas {
     text-align: center;
 }
 
-/* Specific adjustments for the summary statistics card */
 .stats-summary-card {
-    padding: 15px; /* Reduced padding from default 25px */
+    padding: 15px;
 }
 
 .stats-summary-card #userStatsTable {
-    margin-bottom: 0px; /* Remove bottom margin from the table inside this specific card */
+    margin-bottom: 0px;
 }
 
-/* Styling for App Security Settings Card */
 .app-settings-card .form-actions {
     display: flex;
-    gap: 15px; /* Spacing between buttons */
-    margin-top: 20px; /* Space above the buttons */
+    gap: 15px;
+    margin-top: 20px;
 }
 
 .app-settings-card .form-actions button {
-    padding: 10px 20px; /* Adjusted padding, can be same as form buttons if preferred (12px 20px) */
+    padding: 10px 20px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 0.95em; /* Slightly smaller or match form buttons (1em) */
+    font-size: 0.95em;
     font-weight: 500;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
-    flex-grow: 1; /* Make buttons grow to fill space if needed, or remove for natural width */
+    flex-grow: 1;
 }
 
 #saveMasterPasswordBtn {
     background-color: var(--success-color);
-    color: white; /* Or var(--button-text-light) or similar */
+    color: white;
 }
 
 #saveMasterPasswordBtn:hover {
@@ -191,12 +176,9 @@ canvas {
     box-shadow: 0 2px 5px rgba(40, 167, 69, 0.2);
 }
 
-/* #clearMasterPasswordBtn already has inline styles for its specific warning colors */
-/* We just need to ensure its hover state is consistent if desired */
 #clearMasterPasswordBtn:hover {
-    /* Assuming var(--warning-hover-color) is defined and works well with its text color */
     background-color: var(--warning-hover-color);
-    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.2); /* Example shadow, adjust color if needed */
+    box-shadow: 0 2px 5px rgba(255, 193, 7, 0.2);
 }
 
 .app-settings-card label {
@@ -226,15 +208,13 @@ canvas {
 }
 
 .app-settings-card #masterPasswordStatus {
-    font-size: 1em; /* Changed from 0.9em to match standard paragraph text */
-    text-align: center; /* Horizontally center the text */
-    /* Italic is already set inline, color changes via JS */
-    margin-top: 15px; /* Add a bit more margin on top for spacing if needed */
+    font-size: 1em;
+    text-align: center;
+    margin-top: 15px;
 }
 
-/* Custom styling for disabled elements in the settings card */
 .app-settings-card input[type="password"]:disabled,
-.app-settings-card #saveMasterPasswordBtn:disabled { /* Target #saveMasterPasswordBtn specifically */
+.app-settings-card #saveMasterPasswordBtn:disabled {
     background-color: var(--disabled-bg-color);
     color: var(--disabled-text-color);
     cursor: default;
@@ -242,31 +222,18 @@ canvas {
     box-shadow: none;
 }
 
-/* Ensure hover effect on save button is removed when disabled */
 .app-settings-card #saveMasterPasswordBtn:disabled:hover {
-    background-color: var(--disabled-bg-color); /* Keep background same as disabled state */
-    box-shadow: none; /* No shadow on hover when disabled */
+    background-color: var(--disabled-bg-color);
+    box-shadow: none;
 }
 
-/* Center content in App Security card */
-.app-settings-card {
-    /* display: flex; flex-direction: column; align-items: center; */ /* Now handled by general .content-card in row */
-}
-
-/* Div containing master password label and input */
 .app-settings-card > div:has(#masterSharedPassword) { 
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the input field within this div */
+    align-items: center;
 }
 
-.app-settings-card > div:has(#masterSharedPassword) #masterSharedPassword {
-    /* The input itself can remain width 100% of its constrained parent, 
-       or set a specific width if preferred, e.g., width: 250px; 
-       The parent div's align-items: center will handle the centering of this block */
-}
-
-.app-settings-card > div, /* Target the div holding the label and input */
+.app-settings-card > div,
 .app-settings-card > .form-actions,
 .app-settings-card > #masterPasswordStatus
 {
@@ -280,66 +247,51 @@ canvas {
 
 .app-settings-card .form-actions {
     justify-content: center; 
-    width: 100%; /* Let it take full width of its 350px constrained parent for button centering */
-    /* width: auto; /* Reverted from previous */
+    width: 100%;
 }
 
-/* Add any other specific card styles here if needed */
-
-/* New styles for horizontal card layout in settings */
 .settings-card-row {
     display: flex;
-    flex-direction: row; /* Arrange children (cards) horizontally */
-    flex-wrap: wrap; /* Allow cards to wrap to the next line if not enough space */
-    gap: 20px; /* Space between the cards */
-    align-items: stretch; /* Changed from flex-start to make cards in a row same height */
-    margin-bottom: 20px; /* Space below the row of cards */
-    justify-content: center; /* Center the row of cards if they don't fill the width */
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 20px;
+    justify-content: center;
 }
 
 .settings-card-row .content-card {
-    flex-grow: 1; /* Allow cards to grow */
-    flex-shrink: 1; /* Allow cards to shrink */
-    flex-basis: calc(33.333% - 20px); /* Aim for 3 cards, subtract gap. Adjust calc if borders/padding are complex */
-    min-width: 280px; /* Minimum width before wrapping or shrinking too much */
-    display: flex; /* Make card a flex container */
-    flex-direction: column; /* Stack content vertically */
-    align-items: center; /* Horizontally center content within each card */
-    padding: 20px; /* Uniform padding */
+    flex-grow: 1;
+    flex-shrink: 1;
+    flex-basis: calc(33.333% - 20px);
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
 }
 
-/* Ensure card titles and content align well if needed */
 .settings-card-row .content-card h2 {
-    margin-top: 0; /* Consistent top margin for titles */
-    text-align: center; /* Center card titles */
+    margin-top: 0;
+    text-align: center;
 }
 
-/* Center paragraph text within all settings cards */
 .settings-card-row .content-card p {
     text-align: center;
-    width: 100%; /* Ensure paragraph takes width to center text properly */
-    max-width: 350px; /* Match max-width from app-settings for consistency */
+    width: 100%;
+    max-width: 350px;
 }
 
-/* Specific centering for Theme Toggle container */
 .theme-settings-card .theme-toggle-container {
-    /* display: flex; justify-content: center; align-items: center; */ /* Already flex and centered by card parent */
-    margin-top: 15px; /* Add some space above the toggle */
+    margin-top: 15px;
 }
 
-/* Specific centering for Export Data button container */
 .export-data-card .form-actions {
-    /* display: flex; justify-content: center; */ /* Already flex and centered by card parent */
-    margin-top: 15px; /* Add some space above the button */
-    width: auto; /* Ensure it doesn't take full width if only one button */
+    margin-top: 15px;
+    width: auto;
 }
 
-/* Center content in App Security card - existing styles will be augmented by the general .content-card centering */
-.app-settings-card {
-    /* display: flex; flex-direction: column; align-items: center; */ /* Now handled by general .content-card in row */
-}
-
-.app-settings-card > div, /* Target the div holding the label and input */
+.app-settings-card > div,
 .app-settings-card > .form-actions,
 .app-settings-card > #masterPasswordStatus
 {
@@ -353,109 +305,89 @@ canvas {
 
 .app-settings-card .form-actions {
     justify-content: center; 
-    width: 100%; /* Let it take full width of its 350px constrained parent for button centering */
-    /* width: auto; /* Reverted from previous */
+    width: 100%;
 }
 
-/* Add any other specific card styles here if needed */
-
-/* For smaller screens, stack them if they become too narrow */
-@media (max-width: 768px) { /* Adjust breakpoint as needed */
+@media (max-width: 768px) {
     .settings-card-row {
-        flex-direction: column; /* Stack cards vertically */
+        flex-direction: column;
     }
     .settings-card-row .content-card {
-        flex-basis: auto; /* Reset basis for vertical stacking */
-        width: 100%;     /* Ensure they take full width when stacked */
+        flex-basis: auto;
+        width: 100%;
     }
 }
 
-/* ----- General Stats Summary Card Specific Styles ----- */
 .stats-summary-card {
-    padding: 15px; /* Reduced padding from default 25px */
+    padding: 15px;
 }
 
 .stats-summary-card #userStatsTable {
-    margin-bottom: 0px; /* Remove bottom margin from the table inside this specific card */
+    margin-bottom: 0px;
 }
 
-/* New styles for chart header with select dropdown */
 .chart-header-with-select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px; /* Adjust as needed */
+    margin-bottom: 10px;
 }
 
 .chart-header-with-select h2 {
-    margin-bottom: 0; /* Remove bottom margin from h2 if it's now part of flex */
+    margin-bottom: 0;
 }
 
 .chart-period-select {
-    padding: 12px; /* Match forms.css select padding */
-    border-radius: 6px; /* Match forms.css select border-radius */
-    border: 1px solid var(--input-border); /* Match forms.css select variable */
-    background-color: var(--input-bg);    /* Match forms.css select variable */
-    color: var(--body-text);           /* Match forms.css select variable */
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--input-border);
+    background-color: var(--input-bg);
+    color: var(--body-text);
     font-size: 1em;
-    width: auto; /* Adjust width to fit content */
-    /* box-sizing: border-box; Ensure padding and border don't add to width unexpectedly */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease; /* Match forms.css select transition */
-    /* font-family: inherit; Match forms.css select font-family if not already inherited */
+    width: auto;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .chart-period-select:focus {
-    border-color: var(--input-focus-border); /* Match forms.css select variable */
-    box-shadow: 0 0 0 0.2rem var(--input-focus-shadow); /* Match forms.css select variable */
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 0.2rem var(--input-focus-shadow);
     outline: none;
 }
 
-/* Ensure chart canvas container takes up available space */
 .chart-container {
     width: 100%;
     max-width: 100%;
     margin: 0 auto;
-    margin-bottom: 20px;
     position: relative; 
-    height: 400px; 
+    height: 300px; 
 }
 
-/* New Card for Theme Settings in Settings Tab */
 .theme-settings-card {
-    /* max-width: 300px; /* Adjust as needed for desired smallness */
-    /* margin-left: auto;   /* Center the card on the page */
-    /* margin-right: auto;  /* Center the card on the page */
-    margin-bottom: 25px; /* Ensure spacing like other cards */
-}
-
-.theme-settings-card h2 {
-    /* Standard h2 styling from .content-card > h2 will apply */
-    /* Add specific overrides if needed */
+    margin-bottom: 25px;
 }
 
 .theme-settings-card p {
-    margin-bottom: 15px; /* Space between paragraph and button container */
+    margin-bottom: 15px;
     color: var(--card-subtle-text-color);
-    text-align: center; /* Center the descriptive text */
+    text-align: center;
 }
 
 .theme-toggle-container {
     display: flex;
-    justify-content: center; /* Center the button horizontally */
+    justify-content: center;
     align-items: center;
 }
 
-/* NEW DOMINO TOGGLE SWITCH STYLES */
 .domino-toggle {
-    display: inline-flex; /* Changed from inline-block to help with internal alignment */
+    display: inline-flex;
     align-items: center;
     position: relative;
-    width: 130px; /* Width for Light + Dark text */
-    height: 42px; /* ~Button height */
-    border-radius: 42px; /* Fully rounded ends */
+    width: 130px;
+    height: 42px;
+    border-radius: 42px;
     cursor: pointer;
     user-select: none;
-    overflow: hidden; /* Important for the knob sliding effect */
+    overflow: hidden;
     transition: box-shadow 0.3s ease;
 }
 
@@ -474,11 +406,11 @@ canvas {
     position: absolute;
     top: 0;
     left: 0;
-    border-radius: inherit; /* Inherit from parent */
+    border-radius: inherit;
 }
 
 .domino-toggle-text {
-    flex: 1; /* Each text part takes half the space */
+    flex: 1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -486,29 +418,26 @@ canvas {
     font-weight: 500;
     color: var(--dt-text-off-knob, #333);
     transition: color 0.3s ease;
-    z-index: 1; /* Above the track, below the knob when knob is over it */
+    z-index: 1;
 }
 
 .domino-toggle-knob {
     position: absolute;
-    top: 3px;    /* Small padding from top */
-    left: 3px;   /* Small padding from left */
-    width: calc(50% - 3px); /* Covers one half, accounting for its own left offset */
-    height: calc(100% - 6px); /* Full height minus top/bottom padding */
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
     background-color: var(--dt-knob-bg, var(--primary-color));
-    border-radius: 38px; /* Slightly less than parent to fit inside */
+    border-radius: 38px;
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), background-color 0.3s ease;
     box-shadow: 0 1px 3px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.2);
-    z-index: 2; /* Above the text it covers */
+    z-index: 2;
 }
 
-/* Checked state: Knob slides to the right */
 .domino-toggle-input:checked + .domino-toggle-track + .domino-toggle-knob {
-    transform: translateX(calc(100% - 3px)); /* Moves it to cover the right half */
+    transform: translateX(calc(100% - 3px));
 }
 
-/* Text color changes when knob is over it */
-/* Light mode active (knob on left) */
 .domino-toggle-input:not(:checked) + .domino-toggle-track .domino-toggle-text.left {
     color: var(--dt-text-on-knob, white);
 }
@@ -516,7 +445,6 @@ canvas {
     color: var(--dt-text-off-knob, #333);
 }
 
-/* Dark mode active (knob on right) */
 .domino-toggle-input:checked + .domino-toggle-track .domino-toggle-text.right {
     color: var(--dt-text-on-knob, white);
 }
@@ -524,104 +452,70 @@ canvas {
     color: var(--dt-text-off-knob, #333);
 }
 
-/* Hover effect: slightly scale the knob or change its shadow */
 .domino-toggle:hover .domino-toggle-knob {
     box-shadow: 0 2px 6px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.25);
-    /* transform: scale(1.03); -- Optional: slight scale on hover */
 }
 
-/* Focus effect: outline on the entire toggle */
-.domino-toggle-input:focus + .domino-toggle-track {
-    /* The track itself might not be the best focus target visually, */
-    /* let's try focus on the parent label */
-}
-.domino-toggle-input:focus-visible ~ .domino-toggle-knob {
-    /* To ensure focus is visible on the knob as well, but label focus is better */
-}
 .domino-toggle:has(.domino-toggle-input:focus-visible) {
     outline: 2px solid var(--dt-focus-outline, var(--primary-color));
     outline-offset: 2px;
 }
 
-/* General style for p tags within content cards in the settings tab */
-#settings .content-card p { /* This might be too general now, or conflict */
-    /* color: var(--card-subtle-text-color); */ /* Keep color if desired */
-    /* text-align: center; */ /* Handled by .settings-card-row .content-card p */
-    /* margin-bottom: 15px; */ /* Handled by .settings-card-row .content-card p */
-}
-
-/* New Activity Visualization Card Styles */
 .activity-visualization-card {
-    padding: 10px; /* Reduced padding if no title */
+    padding: 10px;
     margin-bottom: 20px;
-    flex-grow: 1; /* Allow cards to grow in the container */
-    /* min-width: 280px; /* May conflict with wide scrollable content */
-    /* Consider setting a specific width or max-width if needed, or let content dictate */
-    /* width: 100%; /* This might constrain the inner scrollable grid */ 
-    /* overflow: hidden; */ /* REMOVED - This was clipping the tooltips */
 }
 
 .activity-visualization-card h2 {
-    /* Inherits from .content-card > h2 generally */
-    /* text-align: center; /* Already centered by .content-card > h2 or specific h3 rule if that was kept */
-    font-size: 1.5em; /* Matches .content-card > h2 */
+    font-size: 1.5em;
     color: var(--card-title-color);
-    margin-top: 0; /* Explicitly set if not inheriting correctly */
+    margin-top: 0;
     padding-left: 10px;
 }
 
-/* Style for the new H3 titles in activity cards */
 .activity-visualization-card h3 {
     margin-top: 0;
     margin-bottom: 15px;
     text-align: center;
-    font-size: 1.2em; /* Adjust size as needed */
+    font-size: 1.2em;
     color: var(--card-title-color);
 }
 
 .activity-grid {
-    /* display: grid; /* Removed, JS makes it flex */
-    /* grid-template-columns: repeat(7, 30px); /* Removed, JS applies to inner grid */
-    /* gap: 5px; /* Removed, JS applies to inner grid */
-    /* justify-content: center; /* Removed */ 
-    /* padding: 5px; */
-    /* Styles applied by JS: display:flex, justifyContent:flex-start, overflowX: auto */
-    /* min-height is to ensure it doesn't collapse if empty before JS runs, adjust as needed */
     min-height: 50px; 
 }
 
 .activity-square {
-    width: 30px; /* Increased square size */
-    height: 30px; /* Increased square size */
-    background-color: var(--table-row-even-bg); /* Default empty color */
-    border-radius: 4px; /* Slightly more rounded */
+    width: 30px;
+    height: 30px;
+    background-color: var(--table-row-even-bg);
+    border-radius: 4px;
     border: 1px solid var(--table-row-border);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 0.7em;
     color: var(--body-text);
-    position: relative; /* For tooltip */
-    cursor: default; /* Change cursor to default */
+    position: relative;
+    cursor: default;
 }
 
 .activity-square.has-run-low {
-    background-color: #c6e48b; /* Light green */
+    background-color: #c6e48b;
 }
 
 .activity-square.has-run-medium {
-    background-color: #7bc96f; /* Medium green */
+    background-color: #7bc96f;
 }
 
 .activity-square.has-run-high {
-    background-color: #239a3b; /* Dark green */
+    background-color: #239a3b;
 }
 
 .activity-square.has-run-very-high {
-    background-color: #196127; /* Very dark green */
+    background-color: #196127;
 }
 
-/* Tooltip for activity square */
 .activity-square .tooltip {
     visibility: hidden;
     width: max-content;
@@ -631,13 +525,13 @@ canvas {
     text-align: center;
     padding: 5px 8px;
     position: absolute;
-    z-index: 100; /* High z-index to appear on top */
-    bottom: 125%; /* Position above the square */
+    z-index: 100;
+    bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
     transition: opacity 0.3s;
-    white-space: nowrap; /* Prevent tooltip text from wrapping */
+    white-space: nowrap;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
@@ -647,7 +541,7 @@ canvas {
 }
 
 html.dark-mode .activity-square {
-    background-color: var(--table-header-bg); /* Darker empty color */
+    background-color: var(--table-header-bg);
     border: 1px solid var(--card-border-color);
 }
 
@@ -673,68 +567,38 @@ html.dark-mode .activity-square .tooltip {
     border: 1px solid var(--card-border-color);
 }
 
-/* Container for the two activity visualization cards */
 .activity-visualizations-container {
     display: flex;
-    gap: 20px; /* Space between Jason's and Kelvin's activity cards */
-    margin-bottom: 20px; /* Space below the container */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed, though hidden-on-mobile applies */
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-/* New styles for dual activity row, similar to dual chart row */
 .dual-activity-row {
     display: flex;
-    gap: 20px; /* Adjust gap as needed */
-    margin-bottom: 20px; /* Keep consistent margin with other cards */
+    gap: 20px;
+    margin-bottom: 20px;
 }
 
 .dual-activity-row > .content-card {
-    flex: 1; /* Each card takes equal width */
-    margin-bottom: 0; /* Remove individual bottom margin as row has it */
+    flex: 1;
+    margin-bottom: 0;
 }
 
-/* Ensure h2 in activity cards matches general card h2 styling */
 .activity-visualization-card h2 {
-    /* Inherits from .content-card > h2 generally */
-    /* text-align: center; /* Already centered by .content-card > h2 or specific h3 rule if that was kept */
-    font-size: 1.5em; /* Matches .content-card > h2 */
+    font-size: 1.5em;
     color: var(--card-title-color);
-    margin-top: 0; /* Explicitly set if not inheriting correctly */
+    margin-top: 0;
 }
 
-/* Styling for the container of each month in multi-month view - REMOVE IF NO LONGER USED */
-/*
-.activity-month-container {
-}
-*/
-
-/* Styling for month titles - REMOVE IF NO LONGER USED */
-/*
-.activity-month-title {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: var(--card-subtle-text-color);
-    text-align: center;
-    margin-bottom: 8px;
-}
-*/
-
-/* Styling for the grid of a single month (when multiple months are shown) - REMOVE IF NO LONGER USED or repurpose for continuous grid */
-/*
-.activity-grid-single-month {
-}
-*/
-
-/* Container for the two activity visualization cards */
 .activity-visualizations-container {
     display: flex;
-    gap: 20px; /* Space between Jason's and Kelvin's activity cards */
-    margin-bottom: 20px; /* Space below the container */
-    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed, though hidden-on-mobile applies */
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
-/* Reposition tooltip for Sundays to appear below the square */
 .activity-square.sunday-square .tooltip {
-    bottom: auto; /* Remove the default bottom positioning */
-    top: 115%;    /* Position below the square (100% + a small gap) */
+    bottom: auto;
+    top: 115%;
 } 

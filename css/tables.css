@@ -1,86 +1,56 @@
-/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
-    border-spacing: 0; /* Explicitly remove spacing */
+    border-spacing: 0;
     margin-bottom: 30px;
-    background-color: var(--card-bg); /* Table itself can use card-bg or a specific table-bg */
+    background-color: var(--card-bg);
     font-size: 0.95em;
 }
 
 th, td {
     border-bottom: 1px solid var(--table-row-border);
-    /* border-left: 1px solid var(--table-row-border); */ /* Example if we needed side borders */
-    /* border-right: 1px solid var(--table-row-border); */
     padding: 14px 12px;
     text-align: center;
     vertical-align: middle;
-    color: var(--body-text); /* Ensure table text color inherits */
+    color: var(--body-text);
 }
 
 thead {
-    position: sticky; /* Make thead itself sticky */
+    position: sticky;
     top: 0; 
-    z-index: 10; /* Ensure it's above table body content */
-    background-color: var(--table-header-bg); /* Keep this for solid background */
-    border-bottom: 1px solid var(--table-row-border); /* Add border to thead itself */
-    /* position: relative; */ /* No longer needed if thead is sticky */
-    /* z-index: 5; */       /* Will be overridden by new z-index */
+    z-index: 10;
+    background-color: var(--table-header-bg);
+    border-bottom: 1px solid var(--table-row-border);
 }
 
-/* General th styling - no position here initially */
 th {
-    background-color: var(--table-header-bg); /* This is for non-sticky state */
+    background-color: var(--table-header-bg);
     font-weight: 600;
     color: var(--table-header-text);
     text-transform: uppercase;
     font-size: 0.85em;
     letter-spacing: 0.5px;
-    padding-left: 12px; /* Ensure consistent padding */
-    padding-right: 12px; /* Ensure consistent padding */
+    padding-left: 12px;
+    padding-right: 12px;
 }
 
-/* Remove border-bottom from th inside thead, as thead now has it */
 thead th {
     border-bottom: none;
 }
 
-/* Sticky properties for ALL th elements inside thead > tr */
-/* This will apply to both sortable and non-sortable headers like 'Actions' */
-thead > tr > th {
-    /* position: sticky; */ /* Removed - thead is now sticky */
-    /* top: 0; */
-    /* background-color: var(--table-header-bg); */ /* th will inherit or use its own general style */
-    /* z-index: 10; */
-    /* border-bottom: none; */ /* Removed - th should have its normal border */
-    /* box-shadow: 0 1px 0 0 var(--table-row-border); */ /* Removed */
-    /* transform: translateZ(0); */ /* Removed */
-}
-
-/* Styles for sortable table headers */
 th.sortable-header {
     cursor: pointer;
-    /* position: sticky; */ /* Removed - thead is now sticky */
-    /* top: 0; */ 
-    /* background-color: var(--table-header-bg); */ /* th will use its own general style */
-    /* z-index: 10; */ 
-    /* border-bottom: none; */ /* Removed - th should have its normal border */
-    /* box-shadow: 0 1px 0 0 var(--table-row-border); */ /* Removed */
 }
-
-/* If the arrow positioning requires relative, we might need a wrapper span inside th for the arrow instead */
-/* For now, let's see if making .sortable-header sticky itself works. */ 
 
 th.sortable-header:hover {
     background-color: var(--table-row-hover-bg);
 }
 
-/* Sort indicator arrows */
 th.sortable-header span { 
     font-size: 0.9em;
     margin-left: 5px;
-    display: inline-block; /* Ensure it takes space for alignment if needed */
-    width: 1em; /* Reserve space for the arrow */
+    display: inline-block;
+    width: 1em;
 }
 
 th.sortable-header .sort-asc::after {
@@ -102,50 +72,48 @@ tbody tr:hover {
 .delete-btn {
     background-color: transparent;
     color: var(--danger-color);
-    width: 32px; /* Fixed width */
-    height: 32px; /* Fixed height */
-    padding: 0; /* Remove padding, use flex to center */
+    width: 32px;
+    height: 32px;
+    padding: 0;
     border: 1px solid var(--danger-color);
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em; /* Icon size will be relative to this */
-    line-height: 1; /* Ensure consistent line height for the icon container */
-    display: inline-flex; /* Enable flex container */
-    align-items: center; /* Center icon vertically */
-    justify-content: center; /* Center icon horizontally */
+    font-size: 0.9em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .delete-btn:hover {
     background-color: var(--danger-color);
-    color: white; /* Or a specific var */
+    color: white;
 }
 
-/* Edit Button Style */
 .edit-btn {
     background-color: transparent;
-    color: var(--info-color); /* Or your primary color */
-    border: 1px solid var(--info-color); /* Or your primary color */
-    width: 32px; /* Fixed width */
-    height: 32px; /* Fixed height */
-    padding: 0; /* Remove padding, use flex to center */
+    color: var(--info-color);
+    border: 1px solid var(--info-color);
+    width: 32px;
+    height: 32px;
+    padding: 0;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 0.9em; /* Icon size will be relative to this */
-    line-height: 1; /* Ensure consistent line height for the icon container */
-    display: inline-flex; /* Enable flex container */
-    align-items: center; /* Center icon vertically */
-    justify-content: center; /* Center icon horizontally */
-    margin-right: 5px; /* Space between edit and delete buttons */
+    font-size: 0.9em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 5px;
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 .edit-btn:hover {
-    background-color: var(--info-color); /* Or your primary color */
+    background-color: var(--info-color);
     color: white;
 }
 
-/* Utility for no data messages */
 .no-data-message td {
     text-align: center !important;
     padding: 20px !important;
@@ -153,48 +121,30 @@ tbody tr:hover {
     font-style: italic;
 }
 
-/* Table container scroll */
 #runsDisplaySummary,
 #runsDisplayJason,
 #runsDisplayKelvin {
-    max-height: 50vh; /* Reduced max-height to fit activity viz */
+    max-height: 50vh;
     overflow-y: auto;
-    display: block; /* To ensure max-height is respected properly */
-    position: relative; /* Ensures that absolutely positioned elements within (like sort arrows) are relative to this container if needed, though th is currently relative */
+    display: block;
+    position: relative;
 }
 
-/* Specific styling for the Notes column */
 #runsDisplayJason th[data-column="notes"],
-#runsDisplayJason td:nth-child(8) { /* Assuming Notes is the 8th column for Jason */
-    width: 15%; /* Start with a percentage */
-    min-width: 150px; /* Minimum width */
-    max-width: 300px; /* Maximum width */
+#runsDisplayJason td:nth-child(8) {
+    width: 15%;
+    min-width: 150px;
+    max-width: 300px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    /* text-align: left; */ /* Removed: Default center alignment will apply */
 }
 
-#runsDisplayJason td:nth-child(8) {
-    /* cursor: default; */ /* Removed: Row style will apply for pointer */
-}
-
-/* Allow notes cell to expand on hover to see full content if truncated */
-/* #runsDisplayJason td:nth-child(8):hover {
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
-    /* Optionally, add a background or slightly different style on hover for clarity */
-    /* background-color: var(--table-row-hover-bg); */ 
-/* } */ 
-
-/* Specific max-height for user tables in their tabs */
 #runsDisplayJason,
 #runsDisplayKelvin {
-    max-height: 40vh; /* Reduced height for these specific tables */
+    max-height: 40vh;
 }
 
-/* No Data Message */
 .no-data-message td {
     text-align: center !important;
     padding: 20px !important;

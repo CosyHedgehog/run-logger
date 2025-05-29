@@ -1,4 +1,3 @@
-/* Form Overlay for Pop-out Card */
 #formOverlay {
     position: fixed;
     top: 0;
@@ -9,7 +8,6 @@
     z-index: 1001;
 }
 
-/* Log Run Form Container (Pop-out Card) */
 #logRunFormContainer {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: fixed;
@@ -51,37 +49,29 @@
     font-weight: 700;
 }
 
-/* Make the form itself scrollable within the container */
 #logRunFormContainer #runForm {
     overflow-y: auto;
     flex-grow: 1;
 }
 
-/* Reduce spacing within the log run form */
-#logRunFormContainer #runForm form div, /* Targets general divs holding label/input */
-#logRunFormContainer #runForm .form-row /* Targets specific .form-row divs */
+#logRunFormContainer #runForm form div,
+#logRunFormContainer #runForm .form-row
 {
-    margin-top: 0; /* Explicitly remove margin-top for form-row */
-    margin-bottom: 3px; /* Set specific margin-bottom for form-row and other general divs */
+    margin-top: 0;
+    margin-bottom: 3px;
 }
 
-/* Adjust general form div if .form-row is being too broadly targeted by the above */
-/* Or ensure the rule above is specific enough. Let's refine the above selector for .form-row */
-
-/* Revised approach: Target .form-row specifically for its margins, */
-/* and other direct div children of the form for theirs separately. */
-
-#logRunFormContainer #runForm > div { /* Direct div children of the form (single input rows) */
-    margin-bottom: 6px; /* Keep this as 6px from previous change, or adjust if all should be 3px */
+#logRunFormContainer #runForm > div {
+    margin-bottom: 6px;
 }
 
-#logRunFormContainer #runForm .form-row { /* Specific for .form-row */
+#logRunFormContainer #runForm .form-row {
     margin-top: 0;
     margin-bottom: 3px;
 }
 
 #logRunFormContainer #runForm label {
-    margin-bottom: 2px; /* Further reduced from 4px */
+    margin-bottom: 2px;
 }
 
 form div {
@@ -114,19 +104,13 @@ select {
     font-family: inherit;
 }
 
-/* Dark mode specific styles for input controls */
 html.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
-    filter: invert(1); /* Common trick to make dark icons light */
+    filter: invert(1);
 }
 
 html.dark-mode input[type="number"]::-webkit-inner-spin-button,
 html.dark-mode input[type="number"]::-webkit-outer-spin-button {
-    /* Attempt to style the spinner buttons themselves */
-    /* This is highly browser-dependent and might not have a visible effect or might need more specific selectors */
-    opacity: 1; /* Ensure they are not transparent by default in dark mode if that was an issue */
-    /* You could try setting their color if the browser supports it, e.g., color: var(--body-text); */
-    /* However, direct coloring of spinners is often not supported. */
-    /* The filter: invert(1) trick is less reliable here than on the calendar picker. */
+    opacity: 1;
 }
 
 input[type="date"]:focus,
@@ -150,71 +134,49 @@ textarea {
     margin-top: 25px;
 }
 
-/* Base style for all buttons within form-actions */
 .form-actions button {
     padding: 12px 20px;
-    border: none; /* Or 1px solid var(--button-default-border-color) if you want borders */
+    border: none;
     border-radius: 6px;
     cursor: pointer;
     font-size: 1em;
     font-weight: 500;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     font-family: inherit;
-    /* Default styling - can be overridden by more specific rules */
     background-color: var(--button-default-bg);
     color: var(--button-default-text);
 }
 
 .form-actions button:hover {
     background-color: var(--button-default-hover-bg);
-    /* box-shadow: 0 2px 5px rgba(108, 117, 125, 0.3); Remove generic shadow, apply per button type if needed */
 }
 
-/* Specific button types */
 button[type="submit"],
-.form-actions .btn-success /* For general success buttons not type=submit */
+.form-actions .btn-success
 {
     background-color: var(--success-color);
-    color: white; /* Or var(--success-text-color) */
-    /* margin-left: 10px; /* Retain if only for submit next to cancel */ /* REMOVED to rely on parent gap */
+    color: white;
 }
 
 button[type="submit"]:hover,
 .form-actions .btn-success:hover 
 {
     background-color: var(--success-hover-color);
-    box-shadow: 0 2px 5px var(--success-shadow-color); /* Use variable for shadow */
+    box-shadow: 0 2px 5px var(--success-shadow-color);
 }
 
-#cancelLogRunBtn /* This is already specific enough if it only applies to the log run form cancel */
-{
-    /* It will inherit the base .form-actions button style. 
-       If it needs to be different from the default, add overrides here.
-       If it IS the default, this rule might become redundant if base is identical. */
-    /* margin-left: 0; Ensure no margin if it's the first button */
-}
-
-/* Keep #cancelLogRunBtn:hover if it has unique hover from default, otherwise base hover applies */
-/* #cancelLogRunBtn:hover {
-    background-color: var(--button-default-hover-bg);
-    box-shadow: 0 2px 5px var(--button-shadow-color); 
-} */
-
-
-/* Specificity for log run form buttons if they need unique centering/gap */
 #logRunFormContainer form .form-actions {
     display: flex;
-    justify-content: center; /* Keeps buttons centered */
+    justify-content: center;
     gap: 10px; 
     margin-top: 20px;
 }
 
 #logRunFormContainer form .form-actions button {
-    flex: 1; /* Makes buttons take equal width */
-    text-align: center; /* Ensures text is centered within the button */
+    flex: 1;
+    text-align: center;
 }
 
-/* General Modal Styles (previously Error Modal) */
 #modalContainer {
     font-family: inherit;
     position: fixed;
@@ -265,7 +227,6 @@ button[type="submit"]:hover,
     font-weight: 500;
     transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
     font-family: inherit;
-    /* Base styles are now inherited from .form-actions button if structure matches */
 }
 
 #modalCancelBtn {
@@ -275,17 +236,17 @@ button[type="submit"]:hover,
 
 #modalCancelBtn:hover {
     background-color: var(--button-default-hover-bg);
-    box-shadow: 0 2px 5px var(--button-shadow-color); /* Use variable */
+    box-shadow: 0 2px 5px var(--button-shadow-color);
 }
 
 #modalConfirmBtn {
     background-color: var(--primary-color);
-    color: white; /* or var(--primary-text-color) */
+    color: white;
 }
 
 #modalConfirmBtn:hover {
     background-color: var(--primary-hover-color);
-    box-shadow: 0 2px 5px var(--primary-shadow-color); /* Use variable */
+    box-shadow: 0 2px 5px var(--primary-shadow-color);
 }
 
 #modalConfirmBtn.btn-danger {
@@ -308,55 +269,44 @@ button[type="submit"]:hover,
     box-shadow: 0 2px 5px rgba(40, 167, 69, 0.3);
 }
 
-/* Styles for App Security Settings buttons */
 .app-settings-card .form-actions {
     display: flex;
     gap: 10px;
-    margin-top: 0; /* Reset margin if input has its own bottom margin */
-    justify-content: flex-start; /* Align buttons to the start */
-    width: max-content; /* Make the container only as wide as its content */
+    margin-top: 0;
+    justify-content: flex-start;
+    width: max-content;
 }
 
 .app-settings-card .form-actions button {
-    /* flex: 1; */ /* Remove flex: 1 to allow natural width */
-    flex-grow: 0; /* Explicitly prevent growing */
-    flex-shrink: 0; /* Prevent shrinking if container is too small */
-    flex-basis: auto; /* Size based on content */
-    width: 100px; /* Or a suitable fixed width, e.g., 100px */
-    padding: 10px 0; /* Adjust padding, especially L/R if width is fixed */
+    flex-grow: 0;
+    flex-shrink: 0;
+    flex-basis: auto;
+    width: 100px;
+    padding: 10px 0;
     text-align: center; 
 }
 
-/* New style for side-by-side form inputs */
 .form-row {
     display: flex;
-    gap: 15px; /* Adjust gap as needed */
-    margin-bottom: 10px; /* Reduced margin for grouped rows */
+    gap: 15px;
+    margin-bottom: 10px;
     margin-top: 20px;
     display: flex;
-    justify-content: flex-end; /* Align buttons to the right */
+    justify-content: flex-end;
     gap: 10px;
 }
 
 .form-row > div {
-    flex: 1; /* Each input container takes equal width */
-}
-
-/* Ensure labels and inputs within the row behave as expected */
-.form-row label {
-    /* Existing label styles should be fine */
+    flex: 1;
 }
 
 .form-row input {
-    width: 100%; /* Ensure inputs take full width of their flex container */
+    width: 100%;
 }
 
-/* Style for the new Delete Run button in the form */
 #deleteRunFromFormBtn {
     background-color: var(--danger-color);
     color: white;
-    /* margin-right: auto; /* Pushes it to the far left if actions are justify-content: flex-end or center */
-    /* If form-actions is justify-content: center, this might not be needed or might need adjustment */
 }
 
 #deleteRunFromFormBtn:hover {
@@ -364,13 +314,6 @@ button[type="submit"]:hover,
     box-shadow: 0 2px 5px var(--danger-shadow-color);
 }
 
-/* Ensure the delete button in the form doesn't get general button styling that overrides its danger look */
-#logRunFormContainer .form-actions #deleteRunFromFormBtn {
-    /* This selector is more specific if needed, but direct ID styling should usually be enough */
-    /* No specific overrides here unless base .form-actions button styles conflict heavily */
-}
-
-/* Style for the new close button */
 .modal-close-btn {
     position: absolute;
     top: 10px;
@@ -397,31 +340,21 @@ button[type="submit"]:hover,
     background-color: var(--button-hover-bg);
 }
 
-/* Reduce width of master password input */
 .app-settings-card #masterSharedPassword {
-    max-width: 300px; /* Or a specific width like width: 70%; */
-    margin-bottom: 15px; /* Add some space below input if buttons are on next line */
+    max-width: 300px;
+    margin-bottom: 15px;
 }
 
-/* Align master password status text to the left */
 .app-settings-card #masterPasswordStatus {
     text-align: left;
 }
 
-/* Styles for read-only form state */
 #logRunFormContainer.form-read-only input,
 #logRunFormContainer.form-read-only textarea {
-    /* background-color: var(--disabled-bg-color) !important; Ensure it overrides */
     color: var(--disabled-text-color) !important;
-    /* cursor: not-allowed !important; */ /* Removed */
     opacity: 0.8 !important;
 }
 
-/* Styles for .form-row are defined elsewhere and should not be here */
-
-/* Style for the new close button is defined elsewhere */
-
-/* Filter Modal Container */
 #filterModalContainer {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: fixed;
@@ -432,15 +365,15 @@ button[type="submit"]:hover,
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 30px var(--card-shadow);
-    z-index: 1002; /* Same as log run form */
+    z-index: 1002;
     width: 90%;
-    max-width: 520px; /* Slightly wider for more filters */
+    max-width: 520px;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease, background-color 0.3s ease;
     display: flex;
     flex-direction: column;
-    max-height: 90vh; /* Increased max-height */
+    max-height: 90vh;
 }
 
 #filterModalContainer.visible {
@@ -466,20 +399,18 @@ button[type="submit"]:hover,
 #filterModalContainer #filterForm {
     overflow-y: auto;
     flex-grow: 1;
-    padding-right: 10px; /* Add some padding for the scrollbar */
+    padding-right: 10px;
 }
 
-/* General form div and form-row adjustments for filter form */
 #filterModalContainer #filterForm > div,
 #filterModalContainer #filterForm .form-row {
-    margin-bottom: 10px; /* Consistent spacing */
+    margin-bottom: 10px;
 }
 
 #filterModalContainer #filterForm label {
     margin-bottom: 4px;
 }
 
-/* Adjust form actions for filter modal */
 #filterModalContainer #filterForm .form-actions {
     display: flex;
     justify-content: center;
@@ -488,7 +419,7 @@ button[type="submit"]:hover,
 }
 
 #filterModalContainer #filterForm .form-actions button {
-    flex: 1; /* Make buttons take equal width */
+    flex: 1;
     text-align: center;
 }
 

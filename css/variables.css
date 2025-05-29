@@ -51,31 +51,26 @@
     --button-primary-text: white;
     --button-primary-hover-bg: var(--primary-hover-color);
 
-    /* Shadow variables for buttons */
     --button-shadow-color: rgba(108, 117, 125, 0.25);
     --primary-shadow-color: rgba(0, 123, 255, 0.25);
     --success-shadow-color: rgba(40, 167, 69, 0.25);
     --danger-shadow-color: rgba(220, 53, 69, 0.25);
     --warning-shadow-color: rgba(255, 193, 7, 0.25);
 
-    /* Disabled State Colors */
-    --disabled-bg-color: #e9ecef;  /* Light gray background */
-    --disabled-text-color: #6c757d; /* Muted text color */
+    --disabled-bg-color: #e9ecef;
+    --disabled-text-color: #6c757d;
 
-    /* Add more as needed */
-
-    /* ----- NEW Domino Toggle Variables ----- */
-    --dt-track-bg: #D1D5DB; /* A light-medium gray, good for both light/dark text */
-    --dt-knob-bg: var(--primary-color); /* Uses your existing primary color */
-    --dt-text-on-knob: #FFFFFF; /* White text on the knob */
-    --dt-text-off-knob: #374151; /* Dark gray text off the knob (contrasts with --dt-track-bg) */
-    --dt-focus-outline: var(--primary-focus-ring, var(--primary-color)); /* Use existing or a specific one */
+    --dt-track-bg: #D1D5DB;
+    --dt-knob-bg: var(--primary-color);
+    --dt-text-on-knob: #FFFFFF;
+    --dt-text-off-knob: #374151;
+    --dt-focus-outline: var(--primary-focus-ring, var(--primary-color));
 }
 
 html.dark-mode {
     --bg-color: #121212;
     --text-color: #e0e0e0;
-    --primary-color: #0d6efd; /* Slightly different blue for dark mode if needed */
+    --primary-color: #0d6efd;
     --primary-hover-color: #0b5ed7;
     --secondary-color: #6c757d;
     --secondary-hover-color: #5c636a;
@@ -85,13 +80,13 @@ html.dark-mode {
     --info-hover-color: #31d2f2;
     --warning-color: #ffc107;
     --warning-hover-color: #ffca2c;
-    --warning-text-color: #212529; /* Keep dark text on yellow for contrast */
+    --warning-text-color: #212529;
     --danger-color: #dc3545;
     --danger-hover-color: #bb2d3b;
 
-    --body-bg: #1a1a1a; /* Slightly lighter than pure black for depth */
+    --body-bg: #1a1a1a;
     --body-text: #e0e0e0;
-    --card-bg: #2c2c2c; /* Darker card background */
+    --card-bg: #2c2c2c;
     --card-shadow: rgba(0, 0, 0, 0.4);
     --card-title-color: #f5f5f5;
     --card-border-color: #444444;
@@ -125,21 +120,17 @@ html.dark-mode {
     --button-primary-text: #e0e0e0;
     --button-primary-hover-bg: var(--primary-hover-color);
 
-    /* Shadow variables for buttons - Dark Mode */
     --button-shadow-color: rgba(200, 200, 200, 0.15);
-    --primary-shadow-color: rgba(13, 110, 253, 0.25); /* Might be same as light or adjusted */
-    --success-shadow-color: rgba(25, 135, 84, 0.25);  /* Might be same as light or adjusted */
-    --danger-shadow-color: rgba(220, 53, 69, 0.25);   /* Might be same as light or adjusted */
-    --warning-shadow-color: rgba(255, 193, 7, 0.25);  /* Might be same as light or adjusted */
+    --primary-shadow-color: rgba(13, 110, 253, 0.25);
+    --success-shadow-color: rgba(25, 135, 84, 0.25);
+    --danger-shadow-color: rgba(220, 53, 69, 0.25);
+    --warning-shadow-color: rgba(255, 193, 7, 0.25);
 
-    /* Disabled State Colors - Dark Mode */
-    --disabled-bg-color: #3a3f44;  /* Darker gray background */
-    --disabled-text-color: #7a8288; /* Muted text color for dark mode */
+    --disabled-bg-color: #3a3f44;
+    --disabled-text-color: #7a8288;
 
-    /* ----- Domino Toggle Dark Theme ----- */
-    --dt-track-bg: #4B5563; /* Darker gray for dark mode track */
-    --dt-knob-bg: var(--primary-color); /* Primary color might still work, or use a lighter variant if primary is very dark */
-    --dt-text-on-knob: #FFFFFF; /* White text on knob usually fine */
-    --dt-text-off-knob: #D1D5DB; /* Lighter gray text off knob for dark mode */
-    /* --dt-focus-outline: var(--primary-focus-ring-dark, var(--primary-color-light)); */ /* Optional: different focus for dark */
+    --dt-track-bg: #4B5563;
+    --dt-knob-bg: var(--primary-color);
+    --dt-text-on-knob: #FFFFFF;
+    --dt-text-off-knob: #D1D5DB;
 } 

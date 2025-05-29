@@ -1,32 +1,26 @@
-let runs = []; // Define runs in the global scope
-
-// --- New Security Setup ---
+let runs = [];
 const MASTER_PASSWORD_LOCALSTORAGE_KEY = "runLoggerMasterPassword";
-// SHARED_PASSWORD and SUPABASE_SECRET_KEY_VALUE are removed.
-
-// Global functions that don't need DOMContentLoaded scope or don't call UI updaters
 const MPH_TO_KPH_FACTOR = 1.60934;
 const KPH_TO_MPH_FACTOR = 1 / MPH_TO_KPH_FACTOR;
 
 function calculateKph(mph) { return (mph * MPH_TO_KPH_FACTOR); }
+
 function calculateDistance(timeMinutes, kph) { const timeHours = timeMinutes / 60; return (timeHours * kph); }
+
 function calculateMph(timeMinutes, distanceKm) {
     if (timeMinutes <= 0 || distanceKm < 0) return 0;
     const timeHours = timeMinutes / 60;
     const kph = distanceKm / timeHours;
     return kph * KPH_TO_MPH_FACTOR;
 }
+
 function getDayOfWeek(dateString) { const date = new Date(dateString + 'T00:00:00'); const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']; return days[date.getDay()]; }
 
-// --- Time Format Helper Functions ---
 function parseMMSS(timeString) {
     if (!timeString || typeof timeString !== 'string') return NaN;
-
-    // Check if the input is just a number (e.g., "40") and convert to "MM:00"
     if (/^\d+$/.test(timeString)) {
         timeString = timeString + ":00";
     }
-
     const parts = timeString.split(':');
     if (parts.length !== 2) return NaN;
     const minutes = parseInt(parts[0], 10);
@@ -43,72 +37,52 @@ function formatMinutesToMMSS(totalMinutes) {
     const seconds = Math.round((totalMinutes - minutes) * 60);
     return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
-// --- End Time Format Helper Functions ---
 
-// Helper function to get the number of days passed in a specific year until today
 function getNumberOfDaysSoFarInYear(year) {
     const today = new Date();
-    const startOfYear = new Date(year, 0, 1); // January 1st of the specified year
-    if (today.getFullYear() < year) return 0; // If year is in future, 0 days passed
-    if (today.getFullYear() > year) { // If year is in past, return total days in that year
+    const startOfYear = new Date(year, 0, 1);
+    if (today.getFullYear() < year) return 0;
+    if (today.getFullYear() > year) {
         const isLeap = new Date(year, 1, 29).getDate() === 29;
         return isLeap ? 366 : 365;
     }
-    // If current year, calculate difference in days
     const diffInMilliseconds = today - startOfYear;
     const diffInDays = Math.ceil(diffInMilliseconds / (1000 * 60 * 60 * 24));
     return diffInDays;
 }
 
-// Supabase Client Initialization
 const SUPABASE_URL = 'https://qrjstijzhumrhwvdkuls.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFyanN0aWp6aHVtcmh3dmRrdWxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc5MjQ0MzksImV4cCI6MjA2MzUwMDQzOX0.5CCuhm8rdwJQ_Of_B-XUWjNY9JyQb1EOMSmRREh7x6w';
-let supabase = null; // This variable will store our client instance
-
-// ---- Global-like variables ----
-let activeCalculatorInput = 'mph'; 
-let isCalculating = false; 
-let tabSpecificLogButtons = null; // Assigned in DOMContentLoaded
+let supabase = null;
+let activeCalculatorInput = 'mph';
+let isCalculating = false;
+let tabSpecificLogButtons = null;
 let gModalContainer, gModalTitleEl, gModalMessageEl;
-let gModalConfirmBtn, gModalCancelBtn; 
-let gFormOverlay; 
-let gLogRunFormContainer; // Declared here, assigned in DOMContentLoaded
+let gModalConfirmBtn, gModalCancelBtn;
+let gFormOverlay;
+let gLogRunFormContainer;
 let runForm = null;
 let runIdToEditInput = null;
 let deleteRunFromFormBtn = null;
-let logForUserSpan = null; 
-let currentUserForRunInput = null; 
-// ---- End Global-like variables ----
-
-// --- Filter Modal Globals ---
+let logForUserSpan = null;
+let currentUserForRunInput = null;
 let gFilterModalContainer, filterForm, filterForUserSpan, closeFilterModalBtn, resetFiltersBtn;
-let activeFilterUser = null; // To store which user's filter is active ('Jason' or 'Kelvin')
-let currentFilters = {}; // Object to store active filters for each user
-// ---- End Global-like variables ----
+let activeFilterUser = null;
+let currentFilters = {};
 
-// Check for the global `window.supabase` object from the CDN and its `createClient` method
 if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
-    // Initialize our script-scoped `supabase` variable with the client instance
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         db: {
-            schema: 'public', // Explicitly state schema, though it's default
-            // detectChanges: true, // This was for realtime, might not be relevant for schema cache for inserts
+            schema: 'public',
         },
-        auth: {
-            // autoRefreshToken: true, // Defaults to true
-            // persistSession: true, // Defaults to true
-            // detectSessionInUrl: true // Defaults to true for OAuth
-        },
-        global: {
-            // headers: { 'x-my-custom-header': 'my-app-v1' } // Example custom headers
-        }
+        auth: {},
+        global: {}
     });
 } else {
     console.error("Supabase JS SDK (window.supabase.createClient) not loaded or found. Ensure SDK is included before this script.");
     alert("Critical error: Supabase SDK not loaded. App may not function correctly.");
 }
 
-// Helper function to get SHA256 hash (async)
 async function getSha256Hash(inputString) {
     if (!inputString) {
         console.warn("[getSha256Hash] Input string is null or empty.");
@@ -119,7 +93,7 @@ async function getSha256Hash(inputString) {
         const hashBuffer = await crypto.subtle.digest('SHA-256', textAsBuffer);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        console.log("[getSha256Hash] Hashed \"" + inputString + "\" to: " + hashHex);
+
         return hashHex;
     } catch (error) {
         console.error("[getSha256Hash] Error hashing string:", error);
@@ -127,17 +101,16 @@ async function getSha256Hash(inputString) {
     }
 }
 
-// Function to fetch runs from Supabase
 async function fetchRunsFromSupabase() {
     if (!supabase) {
         console.warn('Supabase client not initialized. Cannot fetch runs.');
-        return []; // Return empty array or handle as an error
+        return [];
     }
     try {
         const { data, error } = await supabase
             .from('runs')
-            .select('*') // Selects all columns
-            .order('date', { ascending: false }); // Default sort by date descending
+            .select('*')
+            .order('date', { ascending: false });
 
         if (error) {
             console.error('Error fetching runs from Supabase:', error);
@@ -152,9 +125,8 @@ async function fetchRunsFromSupabase() {
     }
 }
 
-// Function to add a run to Supabase
 async function addRunToSupabase(runObjectWithAuthKey) {
-    console.log("[addRunToSupabase] Received run object:", JSON.parse(JSON.stringify(runObjectWithAuthKey)));
+
     if (!supabase) {
         console.warn('Supabase client not initialized. Cannot add run.');
         return null;
@@ -179,7 +151,7 @@ async function addRunToSupabase(runObjectWithAuthKey) {
             openModal(title, message, 'error');
             return null;
         }
-        console.log('Added run to Supabase:', data ? data[0] : null);
+
         return data ? data[0] : null;
     } catch (err) {
         console.error('Catch block error adding run:', err);
@@ -188,9 +160,8 @@ async function addRunToSupabase(runObjectWithAuthKey) {
     }
 }
 
-// Function to update a run in Supabase
 async function updateRunInSupabase(runId, updatedRunObjectWithAuthKey) {
-    console.log("[updateRunInSupabase] Received ID:", runId, "and run object:", JSON.parse(JSON.stringify(updatedRunObjectWithAuthKey)));
+
     if (!supabase) {
         console.warn('Supabase client not initialized. Cannot update run.');
         return null;
@@ -216,7 +187,7 @@ async function updateRunInSupabase(runId, updatedRunObjectWithAuthKey) {
             openModal(title, message, 'error');
             return null;
         }
-        console.log('Updated run in Supabase:', data ? data[0] : null);
+
         return data ? data[0] : null;
     } catch (err) {
         console.error('Catch block error updating run:', err);
@@ -225,52 +196,34 @@ async function updateRunInSupabase(runId, updatedRunObjectWithAuthKey) {
     }
 }
 
-// --- Global variables for Modal Elements (Error Modal and shared) ---
-// let gModalContainer, gModalTitleEl, gModalMessageEl; // Moved to global-like section
-// let gModalConfirmBtn, gModalCancelBtn; // New button refs // Moved
-// let gFormOverlay; // Moved
-// let gLogRunFormContainer; // To be assigned in DOMContentLoaded // Moved
-
-// --- Global variables for Log Run Form Elements (needed for global closeLogRunForm) ---
-// let runForm = null; // Moved
-// let runIdToEditInput = null; // Moved
-// let deleteRunFromFormBtn = null; // Moved
-// let logForUserSpan = null; // Also used by closeLogRunForm indirectly via runForm.querySelector // Moved
-// let currentUserForRunInput = null; // Used by openLogRunForm/openEditForm, good to have if those become global // Moved
-// let gLogRunFormContainer = null; // Made this global-like for read-only class toggling // Already moved and handled
-
-// --- Global Modal Functions (Refactored from Error Modal) ---
 function openModal(title, message, type = 'error', onConfirm = null) {
-    console.log("[openModal] Called with title:", title, "message:", message, "type:", type);
-    // ... (logging for gModalTitleEl etc. can remain for debugging if needed)
 
     if (gModalTitleEl) {
         gModalTitleEl.textContent = title;
-        // Style title based on type
         if (type === 'error') {
             gModalTitleEl.style.color = 'var(--danger-color)';
         } else if (type === 'success') {
             gModalTitleEl.style.color = 'var(--success-color)';
         } else {
-            gModalTitleEl.style.color = 'var(--card-title-color)'; // Default for confirmation or other types
+            gModalTitleEl.style.color = 'var(--card-title-color)';
         }
     }
     if (gModalMessageEl) gModalMessageEl.textContent = message;
-    
-    gModalConfirmCallback = null; // Reset callback
+
+    gModalConfirmCallback = null;
 
     if (gModalConfirmBtn && gModalCancelBtn) {
         if (type === 'confirmation' && typeof onConfirm === 'function') {
             gModalConfirmBtn.classList.remove('hidden', 'btn-danger', 'btn-success');
-            gModalConfirmBtn.classList.add('btn-danger'); 
-            gModalConfirmBtn.style.display = ''; 
+            gModalConfirmBtn.classList.add('btn-danger');
+            gModalConfirmBtn.style.display = '';
             gModalCancelBtn.textContent = 'Cancel';
             gModalConfirmCallback = onConfirm;
         } else if (type === 'success') {
-            gModalConfirmBtn.style.display = 'none'; // Hide confirm button for success
-            gModalCancelBtn.textContent = 'Close'; 
-        } else { // 'error' type or no valid onConfirm
-            gModalConfirmBtn.style.display = 'none'; 
+            gModalConfirmBtn.style.display = 'none';
+            gModalCancelBtn.textContent = 'Close';
+        } else {
+            gModalConfirmBtn.style.display = 'none';
             gModalCancelBtn.textContent = 'Close';
         }
     } else {
@@ -297,70 +250,58 @@ function closeModal() {
         setTimeout(() => {
             gModalContainer.classList.add('hidden');
             gModalContainer.classList.remove('modal-active');
-            
+
             if (!gLogRunFormContainer || !gLogRunFormContainer.classList.contains('visible')) {
                 if (gFormOverlay) gFormOverlay.classList.add('hidden');
             }
         }, 300);
     }
-    gModalConfirmCallback = null; 
+    gModalConfirmCallback = null;
 }
 
-// --- Global Function to Close Filter Modal ---
 function closeFilterModal() {
     if (gFilterModalContainer) {
         gFilterModalContainer.classList.remove('visible');
         setTimeout(() => {
             gFilterModalContainer.classList.add('hidden');
-            // Only hide overlay if neither the general modal nor the log run form is active
-            if (gFormOverlay && 
+            if (gFormOverlay &&
                 (!gModalContainer || !gModalContainer.classList.contains('modal-active')) &&
                 (!gLogRunFormContainer || !gLogRunFormContainer.classList.contains('visible'))
             ) {
-                 gFormOverlay.classList.add('hidden');
+                gFormOverlay.classList.add('hidden');
             }
         }, 300);
     }
 }
 
-// --- Global Function to Close Log Run Form ---
 function closeLogRunForm() {
-    if (gLogRunFormContainer) { 
+    if (gLogRunFormContainer) {
         gLogRunFormContainer.classList.remove('visible');
         setTimeout(() => {
             gLogRunFormContainer.classList.add('hidden');
-            
-            // Only hide overlay if the general modal is NOT active
             if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) {
-                 gFormOverlay.classList.add('hidden');
+                gFormOverlay.classList.add('hidden');
             }
-
-            // Reset form to "Add Run" mode after closing
-            if (runForm) { // runForm is now global
+            if (runForm) {
                 runForm.reset();
-                if(runIdToEditInput) runIdToEditInput.value = ''; // runIdToEditInput is now global
+                if (runIdToEditInput) runIdToEditInput.value = '';
                 const submitButton = runForm.querySelector('button[type="submit"]');
                 if (submitButton) submitButton.textContent = 'Add Run';
-                // logForUserSpan is trickier if we don't make it global, query it inside if needed or ensure it is global.
-                // For now, assuming runForm.querySelector is sufficient as logForUserSpan itself is not directly manipulated by closeLogRunForm
-                // but rather its container h2 is. The #logForUser span will be within the h2.
                 const h2Title = runForm.querySelector('h2');
                 if (h2Title) {
                     const existingSpan = h2Title.querySelector('#logForUser');
                     if (existingSpan) h2Title.innerHTML = `Log New Run for <span id="logForUser"></span>`;
-                    else h2Title.innerHTML = `Log New Run for <span></span>`; // Fallback if span wasn't there
+                    else h2Title.innerHTML = `Log New Run for <span></span>`;
                 }
             }
-            if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // deleteRunFromFormBtn is now global
-        }, 300); 
-    } else if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) { 
-        // If only overlay is somehow visible without log form AND general modal is not active
-         gFormOverlay.classList.add('hidden');
-         if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // Also hide here as a fallback
+            if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden');
+        }, 300);
+    } else if (gFormOverlay && (!gModalContainer || !gModalContainer.classList.contains('modal-active'))) {
+        gFormOverlay.classList.add('hidden');
+        if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden');
     }
 }
 
-// Modified deleteRun function
 async function deleteRun(runIdToDelete) {
     const masterPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
     if (!masterPassword) {
@@ -374,19 +315,18 @@ async function deleteRun(runIdToDelete) {
     }
 
     const runToDelete = runs.find(run => run.id === runIdToDelete);
-    const confirmMsg = runToDelete 
-        ? `Are you sure you want to delete this run? \n${runToDelete.date} - ${runToDelete.user} - ${runToDelete.distance} Km`
-        : `Are you sure you want to delete run with ID: ${runIdToDelete}? (Run details not found in local cache)`;
+    const confirmMsg = runToDelete ?
+        `Are you sure you want to delete this run? \n${runToDelete.date} - ${runToDelete.user} - ${runToDelete.distance} Km` :
+        `Are you sure you want to delete run with ID: ${runIdToDelete}? (Run details not found in local cache)`;
 
-    openModal("Confirm Deletion", confirmMsg, 'confirmation', async () => {
-        // This is the onConfirm callback
+    openModal("Confirm Deletion", confirmMsg, 'confirmation', async() => {
         try {
             if (!supabase) {
                 openModal("Connection Error", "Supabase client not available. Cannot delete run.", 'error');
-                return; // Still inside the callback, modal stays with error
+                return;
             }
-            
-            console.log(`[deleteRun] Calling PostgreSQL function 'secure_delete_run' with run_id: ${runIdToDelete} and client_auth_key.`);
+
+
             const { data, error } = await supabase.rpc('secure_delete_run', {
                 run_id_to_delete: runIdToDelete,
                 client_auth_key_param: hashedClientAuthKey
@@ -397,88 +337,66 @@ async function deleteRun(runIdToDelete) {
                 if (error.message && error.message.toLowerCase().includes('unauthorized: invalid auth key')) {
                     openModal("Delete Failed: Unauthorized", "The provided Master Password was incorrect. Run not deleted.", 'error');
                 } else if (error.message && error.message.toLowerCase().includes('networkerror')) {
-                     openModal("Network Error", "Could not connect to the server to delete the run. Please check your internet connection.", 'error');
+                    openModal("Network Error", "Could not connect to the server to delete the run. Please check your internet connection.", 'error');
                 } else {
                     openModal("Delete Error", `An error occurred: ${error.message}`, 'error');
                 }
-                return; // Modal stays open with the error message
-            }
-            
-            // If successful so far
-            console.log('[deleteRun] secure_delete_run RPC returned data:', data);
-            runs = runs.filter(run => run.id !== runIdToDelete);
-            document.dispatchEvent(new CustomEvent('dataChanged', { detail: { operation: 'delete', id: runIdToDelete } }));
-            
-            if (typeof data === 'string' && data.toLowerCase().includes('successfully deleted')){
-                console.log("Delete successful message from PG function:", data);
-                // Success! Close the modal.
-                closeModal(); 
-                closeLogRunForm(); // Close the edit form as well
-            } else if (typeof data === 'string') { // Some other message from PG func, treat as info/error
-                openModal("Delete Operation Note", data, 'error'); // Stays open with this message
-            } else {
-                // Default success case if PG func returns no specific string or unexpected data
-                closeModal(); // Assume success and close
+                return;
             }
 
-        } catch (rpcCatchError) { // Catch errors from the try block itself (e.g. if supabase was null and we missed the check somehow)
+
+            runs = runs.filter(run => run.id !== runIdToDelete);
+            document.dispatchEvent(new CustomEvent('dataChanged', { detail: { operation: 'delete', id: runIdToDelete } }));
+
+            if (typeof data === 'string' && data.toLowerCase().includes('successfully deleted')) {
+
+                closeModal();
+                closeLogRunForm();
+            } else if (typeof data === 'string') {
+                openModal("Delete Operation Note", data, 'error');
+            } else {
+                closeModal();
+            }
+
+        } catch (rpcCatchError) {
             console.error('[deleteRun onConfirm callback] Catch block: Error during RPC call or processing:', rpcCatchError);
             openModal("Client-Side Error", `Error during delete operation: ${rpcCatchError.message}`, 'error');
-            // Modal stays open with error
         }
-        // No explicit return needed here, if an error occurred and called openModal, it stays open.
-        // If success occurred and called closeModal, it closes.
     });
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Assign to global modal element variables FIRST
+document.addEventListener('DOMContentLoaded', async() => {
     gModalContainer = document.getElementById('modalContainer');
     gModalTitleEl = document.getElementById('modalTitle');
     gModalMessageEl = document.getElementById('modalMessage');
     gModalConfirmBtn = document.getElementById('modalConfirmBtn');
     gModalCancelBtn = document.getElementById('modalCancelBtn');
     gFormOverlay = document.getElementById('formOverlay');
-    gLogRunFormContainer = document.getElementById('logRunFormContainer'); // Assign here
-    console.log("[DOMContentLoaded] Global modal element variables assigned:", 
-        { gModalContainer, gModalTitleEl, gModalMessageEl, gModalConfirmBtn, gModalCancelBtn, gFormOverlay, gLogRunFormContainer }
-    );
+    gLogRunFormContainer = document.getElementById('logRunFormContainer');
+    console.log("[DOMContentLoaded] Global modal element variables assigned:", { gModalContainer, gModalTitleEl, gModalMessageEl, gModalConfirmBtn, gModalCancelBtn, gFormOverlay, gLogRunFormContainer });
 
-    // Dark Mode Elements
-    const darkModeToggle = document.getElementById('darkModeToggle'); // This is now the checkbox input
-    const documentElement = document.documentElement; // Use documentElement for theme class
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    const documentElement = document.documentElement;
 
-    // Assign to global form element variables (previously const within DOMContentLoaded)
     runForm = document.getElementById('runForm');
     logForUserSpan = document.getElementById('logForUser');
     currentUserForRunInput = document.getElementById('currentUserForRun');
-    runIdToEditInput = document.getElementById('runIdToEdit'); 
+    runIdToEditInput = document.getElementById('runIdToEdit');
     deleteRunFromFormBtn = document.getElementById('deleteRunFromFormBtn');
-    // Ensure these are logged or checked if issues persist
-    console.log("[DOMContentLoaded] Global form element variables assigned:", { runForm, logForUserSpan, currentUserForRunInput, runIdToEditInput, deleteRunFromFormBtn });
 
-    // const formOverlay = document.getElementById('formOverlay'); // Now global gFormOverlay
-    // const logRunFormContainer = document.getElementById('logRunFormContainer'); // Now global gLogRunFormContainer
-    tabSpecificLogButtons = document.querySelectorAll('.showLogRunFormBtn'); // Assign to global-like variable
-    const closeLogRunFormBtn = document.getElementById('closeLogRunFormBtn'); // New close button
-    // const logForUserSpan = document.getElementById('logForUser'); // Now global
-    // const currentUserForRunInput = document.getElementById('currentUserForRun'); // Now global
-    // const runIdToEditInput = document.getElementById('runIdToEdit'); // Now global
-    // const deleteRunFromFormBtn = document.getElementById('deleteRunFromFormBtn'); // Now global
 
-    // ---- ADD THESE INPUT CONSTS ----
+    tabSpecificLogButtons = document.querySelectorAll('.showLogRunFormBtn');
+    const closeLogRunFormBtn = document.getElementById('closeLogRunFormBtn');
+
     const timeInput = document.getElementById('time');
     const mphInput = document.getElementById('mph');
     const distanceInput = document.getElementById('distance');
-    // ---- END OF ADDING INPUT CONSTS ----
 
-    // Table bodies
     const runsTableBodySummary = document.getElementById('runsTableBodySummary');
     const runsTableBodyJason = document.getElementById('runsTableBodyJason');
     const runsTableBodyKelvin = document.getElementById('runsTableBodyKelvin');
     const userStatsTableBody = document.getElementById('userStatsTableBody'); // New reference
 
-    // Statistics elements (summary tab - updated)
     const totalDistanceOverallJasonEl = document.getElementById('totalDistanceOverallJason');
     const totalDistance2025JasonEl = document.getElementById('totalDistance2025Jason');
     const totalVisits2025JasonEl = document.getElementById('totalVisits2025Jason');
@@ -493,29 +411,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const goal2025KelvinEl = document.getElementById('goal2025Kelvin'); // To read the goal value
     const percentToGoal2025KelvinEl = document.getElementById('percentToGoal2025Kelvin');
 
-    // Canvas contexts for charts
     const distanceOverTimeChartCanvas = document.getElementById('distanceOverTimeChart')?.getContext('2d');
-    // const totalKmOverallChartCanvas = document.getElementById('totalKmOverallChart')?.getContext('2d'); // Removed
-    // const totalKm2025ChartCanvas = document.getElementById('totalKm2025Chart')?.getContext('2d');     // Removed
-    // const totalVisitsOverallChartCanvas = document.getElementById('totalVisitsOverallChart')?.getContext('2d'); // Removed
-    // const totalVisits2025ChartCanvas = document.getElementById('totalVisits2025Chart')?.getContext('2d');   // Removed
     const totalKmChartCanvas = document.getElementById('totalKmChart')?.getContext('2d'); // New Consolidated
     const totalVisitsChartCanvas = document.getElementById('totalVisitsChart')?.getContext('2d'); // New Consolidated
 
     // Tabs
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanes = document.querySelectorAll('.tab-pane');
-    
+
     let currentTheme = localStorage.getItem('theme') || 'dark'; // Default to dark mode
 
-    // Chart instances
     let distanceOverTimeChartInstance;
-    // let totalKmOverallChartInstance; // Removed
-    // let totalKm2025ChartInstance;    // Removed
-    // let totalVisitsOverallChartInstance; // Removed
-    // let totalVisits2025ChartInstance;   // Removed
-    let totalKmChartInstance; // New Consolidated
-    let totalVisitsChartInstance; // New Consolidated
+    let totalKmChartInstance;
+    let totalVisitsChartInstance;
 
     let activeTab = 'summary'; // Default active tab
 
@@ -532,8 +440,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     kelvinSummaryActivityTitleEl = document.getElementById('kelvinSummaryActivityTitle');
     kelvinSummaryActivityMonthSelectEl = document.getElementById('kelvinSummaryActivityMonthSelect');
     kelvinSummaryActivityGridEl = document.getElementById('kelvinSummaryActivityGrid');
-    console.log("[DOMContentLoaded] Summary activity DOM elements assigned EARLY:", 
-        { jasonSummaryActivityMonthSelectEl, kelvinSummaryActivityMonthSelectEl } // Log the elements themselves
+    console.log("[DOMContentLoaded] Summary activity DOM elements assigned EARLY:", { jasonSummaryActivityMonthSelectEl, kelvinSummaryActivityMonthSelectEl } // Log the elements themselves
     );
 
     // --- Initial Population and Setup for Summary Activity Visualizations ---
@@ -543,7 +450,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Add event listeners
         jasonSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Jason'));
         kelvinSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Kelvin'));
-        console.log('[DOMContentLoaded] Summary activity month selects populated and listeners attached (BEFORE IIFE).');
+
     } else {
         console.warn("[DOMContentLoaded] Summary activity month select elements not found for population (this check is before IIFE).");
     }
@@ -606,7 +513,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const calculatedDistance = calculateDistance(timeMinutes, kph);
                 distanceInput.value = calculatedDistance.toFixed(3);
             } else if (document.activeElement === mphInput && mphInput.value === '') {
-                 distanceInput.value = ''; // Clear distance if MPH is focused and cleared
+                distanceInput.value = ''; // Clear distance if MPH is focused and cleared
             }
         } else if (activeCalculatorInput === 'distance') {
             if (!isNaN(distanceKm) && distanceKm > 0) {
@@ -628,7 +535,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (mphInput) {
         mphInput.addEventListener('focus', () => {
             activeCalculatorInput = 'mph';
-            console.log("Active calculator input set to: MPH");
+
         });
         mphInput.addEventListener('input', () => {
             if (document.activeElement === mphInput) { // Ensure calculation only if user is typing in this field
@@ -640,7 +547,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (distanceInput) {
         distanceInput.addEventListener('focus', () => {
             activeCalculatorInput = 'distance';
-            console.log("Active calculator input set to: Distance");
+
         });
         distanceInput.addEventListener('input', () => {
             if (document.activeElement === distanceInput) { // Ensure calculation only if user is typing in this field
@@ -656,7 +563,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!masterPasswordStatusEl) return;
         const savedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
         const isReadOnly = !savedPassword; // True if no password saved, meaning input should be editable
-        
+
         // Helper to set enabled/disabled state
         const setInputDisabledState = (disabled) => {
             if (masterSharedPasswordInput) masterSharedPasswordInput.disabled = disabled;
@@ -667,18 +574,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (transientMessage) {
             masterPasswordStatusEl.textContent = transientMessage;
-            if (transientMessage.toLowerCase().includes('please enter')) { 
+            if (transientMessage.toLowerCase().includes('please enter')) {
                 masterPasswordStatusEl.style.color = "var(--warning-color)";
-                setInputDisabledState(false); 
-            } else if (transientMessage.toLowerCase().includes('saved')) { 
-                 masterPasswordStatusEl.style.color = "var(--success-color)";
-                 setInputDisabledState(true); // Password saved, so input/save are disabled, clear is enabled
+                setInputDisabledState(false);
+            } else if (transientMessage.toLowerCase().includes('saved')) {
+                masterPasswordStatusEl.style.color = "var(--success-color)";
+                setInputDisabledState(true); // Password saved, so input/save are disabled, clear is enabled
             } else {
-                masterPasswordStatusEl.style.color = "var(--warning-color)"; 
+                masterPasswordStatusEl.style.color = "var(--warning-color)";
             }
 
             setTimeout(() => {
-                const currentSavedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY); 
+                const currentSavedPassword = localStorage.getItem(MASTER_PASSWORD_LOCALSTORAGE_KEY);
                 if (currentSavedPassword) {
                     masterPasswordStatusEl.textContent = "A Master Shared Password is currently saved.";
                     masterPasswordStatusEl.style.color = "var(--success-color)";
@@ -690,7 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (masterSharedPasswordInput) masterSharedPasswordInput.placeholder = "Enter password to save";
                     setInputDisabledState(false); // No password, input/save enabled, clear disabled
                 }
-            }, 2500); 
+            }, 2500);
         } else {
             // Standard status update
             if (savedPassword) {
@@ -709,7 +616,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Control visibility of "Log Run" buttons (remains the same)
         if (tabSpecificLogButtons) {
             tabSpecificLogButtons.forEach(btn => {
-                btn.style.display = isReadOnly ? 'none' : ''; 
+                btn.style.display = isReadOnly ? 'none' : '';
             });
         }
     }
@@ -731,7 +638,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const passwordToSave = masterSharedPasswordInput.value;
             if (passwordToSave) {
                 localStorage.setItem(MASTER_PASSWORD_LOCALSTORAGE_KEY, passwordToSave);
-                masterSharedPasswordInput.value = ''; 
+                masterSharedPasswordInput.value = '';
                 updateMasterPasswordStatus(); // Show persistent status (which will disable input/button)
             } else {
                 updateMasterPasswordStatus("Please enter a password to save."); // Show error, input remains enabled
@@ -766,11 +673,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const blob = new Blob([jsonData], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                
+
                 const today = new Date();
                 const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
                 a.download = `run_logger_export_${dateString}.json`;
-                
+
                 a.href = url;
                 document.body.appendChild(a); // Append to body to make it clickable
                 a.click();
@@ -805,9 +712,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (gFormOverlay) {
         gFormOverlay.addEventListener('click', () => {
             if (gModalContainer && gModalContainer.classList.contains('modal-active')) { // Check generic modal first
-                closeModal(); 
+                closeModal();
             } else if (gLogRunFormContainer && gLogRunFormContainer.classList.contains('visible')) { // Then check log run form
-                closeLogRunForm(); 
+                closeLogRunForm();
             } else if (gFilterModalContainer && gFilterModalContainer.classList.contains('visible')) { // Then check filter form
                 closeFilterModal();
             }
@@ -816,35 +723,35 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Dark Mode Functions ---
     function applyTheme(theme) {
-        console.log(`[applyTheme] Called with theme: ${theme}`); // Log entry
+        // Log entry
         if (theme === 'dark') {
-            console.log('[applyTheme] Applying dark mode.'); // Log branch
+            // Log branch
             documentElement.classList.add('dark-mode');
             if (darkModeToggle) darkModeToggle.checked = true; // Set checkbox to checked for dark mode
         } else {
-            console.log('[applyTheme] Applying light mode.'); // Log branch
+            // Log branch
             documentElement.classList.remove('dark-mode');
             if (darkModeToggle) darkModeToggle.checked = false; // Set checkbox to unchecked for light mode
         }
         currentTheme = theme;
         localStorage.setItem('theme', theme);
-        console.log(`[applyTheme] documentElement classList after apply: ${documentElement.classList}`); // Log state
-        console.log(`[applyTheme] localStorage theme: ${localStorage.getItem('theme')}`); // Log state
+        // Log state
+        // Log state
 
         // Update charts whenever theme changes
         if (activeTab === 'summary') {
-             renderConsolidatedCharts();
-             updateDistanceOverTimeChart();
+            renderConsolidatedCharts();
+            updateDistanceOverTimeChart();
             // Ensure select has a value before attempting to update visualization from theme change
-            if (jasonSummaryActivityMonthSelectEl && jasonSummaryActivityMonthSelectEl.value) { 
-                console.log("[applyTheme] Updating Jason's summary activity visualization due to theme change.");
-                updateSummaryActivityVisualization('Jason'); 
+            if (jasonSummaryActivityMonthSelectEl && jasonSummaryActivityMonthSelectEl.value) {
+
+                updateSummaryActivityVisualization('Jason');
             } else {
                 console.warn("[applyTheme] Jason's summary activity month select has NO VALUE or element not found. Skipping update from theme change.");
             }
-            if (kelvinSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl.value) { 
-                console.log("[applyTheme] Updating Kelvin's summary activity visualization due to theme change.");
-                updateSummaryActivityVisualization('Kelvin'); 
+            if (kelvinSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl.value) {
+
+                updateSummaryActivityVisualization('Kelvin');
             } else {
                 console.warn("[applyTheme] Kelvin's summary activity month select has NO VALUE or element not found. Skipping update from theme change.");
             }
@@ -858,11 +765,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         darkModeToggle.addEventListener('change', () => { // Listen for change on the checkbox
             const newTheme = darkModeToggle.checked ? 'dark' : 'light';
-            console.log(`[Toggle Change] Calculated newTheme: ${newTheme}`);
+
             applyTheme(newTheme);
         });
     }
-    
+
     // --- Chart Color Helper ---
     function getChartColors() {
         const isDarkMode = currentTheme === 'dark';
@@ -896,7 +803,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const row = tableBody.insertRow();
             if (isSummaryTable) row.insertCell().textContent = run.user;
             row.insertCell().textContent = new Date(run.date + 'T00:00:00').toLocaleDateString('en-GB');
-            
+
             const dayCell = row.insertCell();
             dayCell.textContent = run.day;
             if (!isSummaryTable) dayCell.classList.add('hide-on-mobile');
@@ -926,9 +833,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const plus1Cell = row.insertCell();
                 plus1Cell.textContent = run.plus1 !== null ? run.plus1 : '-';
                 if (!isSummaryTable) plus1Cell.classList.add('hide-on-mobile');
-                
+
                 const deltaCell = row.insertCell();
-                deltaCell.textContent = run.delta !== null ? run.delta : '-'; 
+                deltaCell.textContent = run.delta !== null ? run.delta : '-';
                 if (!isSummaryTable) deltaCell.classList.add('hide-on-mobile');
             }
 
@@ -985,7 +892,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (currentDatasetSortCol === columnKey) {
                 newSortDir = (currentDatasetSortDir === 'asc') ? 'desc' : 'asc';
-        } else {
+            } else {
                 newSortDir = (columnKey === 'date') ? 'desc' : 'asc'; // Default for new column
             }
         }
@@ -1065,7 +972,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     // For the summary table, we don't apply user-specific active filters here, 
                     // as it shows all runs (or could have its own separate filter logic if ever needed).
                     // The initial render of summary table already handles general sorting.
-                    
+
                     // Call sortTableByColumn WITHOUT explicitDirection for clicks
                     sortTableByColumn(tableBody, columnKeyClicked, runsForThisTable, isSummaryTable);
                 }
@@ -1230,9 +1137,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateStatistics() {
-        let totalDistanceOverall = 0; 
-        let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0, totalVisitsOverallJason = 0;
-        let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0, totalVisitsOverallKelvin = 0;
+        let totalDistanceOverall = 0;
+        let totalDistance2025Jason = 0,
+            totalVisits2025Jason = 0,
+            totalOverallJason = 0,
+            totalVisitsOverallJason = 0;
+        let totalDistance2025Kelvin = 0,
+            totalVisits2025Kelvin = 0,
+            totalOverallKelvin = 0,
+            totalVisitsOverallKelvin = 0;
 
         const yearForStats = 2025;
         const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
@@ -1243,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (run.user === 'Jason') {
                 totalOverallJason += runDistance;
-                totalVisitsOverallJason++; 
+                totalVisitsOverallJason++;
                 if (new Date(run.date).getFullYear() === yearForStats) {
                     totalDistance2025Jason += runDistance;
                     totalVisits2025Jason++;
@@ -1298,12 +1211,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     function renderBarChart(canvasContext, chartInstance, chartTitle, labels, datasets, yAxisLabel = 'Distance (Km)') {
         if (!canvasContext) return null;
         const chartContainer = canvasContext.canvas.parentElement;
-         if (!chartContainer || chartContainer.offsetParent === null) { // Check if visible
-            if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+        if (!chartContainer || chartContainer.offsetParent === null) { // Check if visible
+            if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
             return null; // Don't render if not visible
         }
         if (chartInstance) chartInstance.destroy(); // Destroy existing chart before re-rendering
-        
+
         const colors = getChartColors();
 
         return new Chart(canvasContext, {
@@ -1313,31 +1229,31 @@ document.addEventListener('DOMContentLoaded', async () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    y: { 
-                        beginAtZero: true, 
-                        title: { display: true, text: yAxisLabel, font: {size: 14}, color: colors.ticksColor },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: yAxisLabel, font: { size: 14 }, color: colors.ticksColor },
                         grid: { color: colors.gridColor },
-                        ticks: { 
+                        ticks: {
                             color: colors.ticksColor,
                             precision: 0 // Ensure y-axis ticks are whole numbers for visit counts
                         }
                     },
-                    x: { 
+                    x: {
                         grid: { display: false },
                         ticks: { color: colors.ticksColor }
                     }
                 },
-                plugins: { 
-                    legend: { 
-                        display: datasets.length > 1, 
-                        labels: { font: {size: 14}, color: colors.legendLabelColor }
-                    }, 
-                    title: { 
+                plugins: {
+                    legend: {
+                        display: datasets.length > 1,
+                        labels: { font: { size: 14 }, color: colors.legendLabelColor }
+                    },
+                    title: {
                         display: !!chartTitle, // only display if title is provided
-                        text: chartTitle, 
-                        font: {size: 16},
-                        color: colors.titleColor 
-                    } 
+                        text: chartTitle,
+                        font: { size: 16 },
+                        color: colors.titleColor
+                    }
                 }
             }
         });
@@ -1351,8 +1267,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             totalKmChartCanvas,
             totalKmChartInstance,
             '', // Title is now in HTML h2
-            ['Jason', 'Kelvin'],
-            [{
+            ['Jason', 'Kelvin'], [{
                 label: 'Total KM',
                 data: [chartData.jason.toFixed(3), chartData.kelvin.toFixed(3)],
                 backgroundColor: [colors.jasonColor, colors.kelvinColor],
@@ -1370,8 +1285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             totalVisitsChartCanvas,
             totalVisitsChartInstance,
             '', // Title is in HTML h2
-            ['Jason', 'Kelvin'],
-            [{
+            ['Jason', 'Kelvin'], [{
                 label: 'Total Visits',
                 data: [chartData.jason, chartData.kelvin],
                 backgroundColor: [colors.jasonColor, colors.kelvinColor],
@@ -1386,8 +1300,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!distanceOverTimeChartCanvas) return;
         const chartContainer = distanceOverTimeChartCanvas.canvas.parentElement;
         if (!chartContainer || chartContainer.offsetParent === null) { // Check if visible
-            if (distanceOverTimeChartInstance) { 
-                distanceOverTimeChartInstance.destroy(); 
+            if (distanceOverTimeChartInstance) {
+                distanceOverTimeChartInstance.destroy();
                 distanceOverTimeChartInstance = null; // Ensure instance is nulled
             }
             return;
@@ -1412,19 +1326,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const jasonCumulative = jasonRuns.reduce((acc, run) => {
             const dist = parseFloat(run.distance) || 0;
-            const lastVal = acc.length > 0 ? acc[acc.length -1].y : 0;
-            acc.push({x: run.date, y: lastVal + dist});
+            const lastVal = acc.length > 0 ? acc[acc.length - 1].y : 0;
+            acc.push({ x: run.date, y: lastVal + dist });
             return acc;
         }, []);
         const kelvinCumulative = kelvinRuns.reduce((acc, run) => {
             const dist = parseFloat(run.distance) || 0;
-            const lastVal = acc.length > 0 ? acc[acc.length -1].y : 0;
-            acc.push({x: run.date, y: lastVal + dist});
+            const lastVal = acc.length > 0 ? acc[acc.length - 1].y : 0;
+            acc.push({ x: run.date, y: lastVal + dist });
             return acc;
         }, []);
-        
+
         // Create a unique set of all dates for the x-axis
-        const allDates = [...new Set([...jasonCumulative.map(d => d.x), ...kelvinCumulative.map(d => d.x)])].sort((a,b) => new Date(a) - new Date(b));
+        const allDates = [...new Set([...jasonCumulative.map(d => d.x), ...kelvinCumulative.map(d => d.x)])].sort((a, b) => new Date(a) - new Date(b));
 
         const colors = getChartColors();
 
@@ -1432,8 +1346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             type: 'line',
             data: {
                 // labels: allDates, // Using time scale, labels are inferred
-                datasets: [
-                    {
+                datasets: [{
                         label: 'Jason - Cumulative Distance',
                         data: jasonCumulative,
                         borderColor: colors.jasonBorderColor,
@@ -1458,25 +1371,25 @@ document.addEventListener('DOMContentLoaded', async () => {
                     x: {
                         type: 'time',
                         time: { unit: 'month' }, // Adjust unit as needed
-                        title: { display: true, text: 'Date', font: {size: 14}, color: colors.ticksColor },
+                        title: { display: true, text: 'Date', font: { size: 14 }, color: colors.ticksColor },
                         grid: { color: colors.gridColor },
                         ticks: { color: colors.ticksColor }
                     },
-                    y: { 
-                        beginAtZero: true, 
-                        title: { display: true, text: 'Cumulative Distance (Km)', font: {size: 14}, color: colors.ticksColor },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cumulative Distance (Km)', font: { size: 14 }, color: colors.ticksColor },
                         grid: { color: colors.gridColor },
                         ticks: { color: colors.ticksColor }
                     }
                 },
-                plugins: { 
-                    legend: { 
-                        labels: { font: {size: 14}, color: colors.legendLabelColor }
-                    }, 
-                    title: { 
+                plugins: {
+                    legend: {
+                        labels: { font: { size: 14 }, color: colors.legendLabelColor }
+                    },
+                    title: {
                         display: false, // Title is now in HTML H2
                         // text: 'Distance Ran Over Time (Km)', // Title now in HTML
-                        font: {size: 16},
+                        font: { size: 16 },
                         color: colors.titleColor
                     }
                 }
@@ -1487,16 +1400,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openLogRunForm(userForRun) {
         if (runForm) {
             runForm.reset(); // Reset first to clear any previous edit data
-            
+
             // Pre-populate for new run
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
             const day = String(today.getDate()).padStart(2, '0');
             runForm.date.value = `${year}-${month}-${day}`;
-            
+
             runForm.time.value = "30:00"; // Pre-populate with MM:SS
-            
+
             if (userForRun === 'Jason') {
                 runForm.distance.value = '5.000'; // Default 5km for Jason
                 runForm.mph.value = ''; // Clear MPH so it gets calculated
@@ -1508,15 +1421,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 runForm.type.value = 'Treadmill'; // Default type for others
                 activeCalculatorInput = 'mph'; // Set default focus for calculation
             }
-            
+
             handleDynamicFormCalculation(); // Perform initial calculation
             // ---- END OF KEY LINES ----
-            
+
             // Set user specific info
-        if (logForUserSpan) logForUserSpan.textContent = userForRun;
-        if (currentUserForRunInput) currentUserForRunInput.value = userForRun;
+            if (logForUserSpan) logForUserSpan.textContent = userForRun;
+            if (currentUserForRunInput) currentUserForRunInput.value = userForRun;
             if (runIdToEditInput) runIdToEditInput.value = ''; // Ensure it's not in edit mode
-            
+
             runForm.querySelector('h2').innerHTML = `Log New Run for <span id="logForUser">${userForRun}</span>`;
             const submitButton = runForm.querySelector('button[type="submit"]');
             if (submitButton) submitButton.textContent = 'Add Run';
@@ -1524,8 +1437,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (deleteRunFromFormBtn) deleteRunFromFormBtn.classList.add('hidden'); // Hide delete button for new runs
 
-        if (gFormOverlay) gFormOverlay.classList.remove('hidden'); 
-        if (gLogRunFormContainer) { 
+        if (gFormOverlay) gFormOverlay.classList.remove('hidden');
+        if (gLogRunFormContainer) {
             gLogRunFormContainer.classList.remove('hidden');
             setTimeout(() => gLogRunFormContainer.classList.add('visible'), 10);
         }
@@ -1548,7 +1461,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             runForm.mph.value = runToEdit.mph;
             // Ensure distance is populated with 3 decimal places
             const distanceToEdit = parseFloat(runToEdit.distance);
-            runForm.distance.value = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3); 
+            runForm.distance.value = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3);
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
             runForm.notes.value = runToEdit.notes || '';
@@ -1562,8 +1475,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Store original distance with 3 decimal places if it's a valid number
             runForm.dataset.originalDistance = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3);
             // ---- End of storing original values ----
-            
-            activeCalculatorInput = 'mph'; 
+
+            activeCalculatorInput = 'mph';
             // No explicit call to handleDynamicFormCalculation(); here.
             // The user's first interaction with time, mph, or distance will trigger it.
             // ---- END OF KEY LINES ----
@@ -1574,7 +1487,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             // runForm.querySelector('h2').innerHTML = `Edit Run for <span id="logForUser">${runToEdit.user}</span>`;
             if (logForUserSpan) logForUserSpan.textContent = runToEdit.user; // logForUserSpan is global
-            
+
             // Set read-only and disabled states
             runForm.date.readOnly = isReadOnly;
             runForm.time.readOnly = isReadOnly;
@@ -1598,13 +1511,13 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else {
                     deleteRunFromFormBtn.classList.remove('hidden'); // Ensure the .hidden class is removed
                     deleteRunFromFormBtn.style.display = ''; // Revert to default display (or e.g., 'inline-block')
-                    deleteRunFromFormBtn.onclick = function() { 
-                        deleteRun(runId); 
+                    deleteRunFromFormBtn.onclick = function() {
+                        deleteRun(runId);
                     };
                 }
             }
         }
-        
+
         // Add/remove class for styling read-only form
         if (gLogRunFormContainer) {
             if (isReadOnly) {
@@ -1644,7 +1557,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const user = formData.get('currentUserForRun');
         const date = formData.get('date');
         const timeInputString = formData.get('time'); // Get time as MM:SS string
-        
+
         let mphInput = formData.get('mph');
         let distanceInput = formData.get('distance');
         const type = formData.get('type'); // Get the type
@@ -1654,20 +1567,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const notes = formData.get('notes');
 
         const parsedTimeMinutes = parseMMSS(timeInputString);
-        let timeStringToStore = timeInputString; 
+        let timeStringToStore = timeInputString;
 
         if (!date || !user || isNaN(parsedTimeMinutes) || parsedTimeMinutes <= 0) {
             closeLogRunForm();
             let error = "Please fill in User, Date, and a valid Time (MM:SS, greater than 0).";
             if (isNaN(parsedTimeMinutes) && timeInputString) {
-                 error = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
+                error = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
             } else if (parsedTimeMinutes <= 0 && timeInputString) {
-                 error = "Time must be greater than 00:00.";
+                error = "Time must be greater than 00:00.";
             }
             openModal("Input Error", error, 'error');
             return;
         }
-        
+
         if (!isNaN(parsedTimeMinutes)) {
             timeStringToStore = formatMinutesToMMSS(parsedTimeMinutes);
         }
@@ -1688,37 +1601,37 @@ document.addEventListener('DOMContentLoaded', async () => {
             const timeIsUnchanged = timeInputString === originalTime;
 
             if (timeIsUnchanged && mphIsUnchanged && distanceIsUnchanged) {
-                console.log("[addRun - Edit Mode] No changes to time, mph, or distance. Using original values.");
+
                 finalMph = parseFloat(originalMphStr);
                 finalDistance = parseFloat(originalDistanceStr); // Already stored as 3dp string
-                finalKph = calculateKph(finalMph); 
+                finalKph = calculateKph(finalMph);
             } else {
-                console.log("[addRun - Edit Mode] Changes detected or not all original values found. Proceeding with recalculation logic.");
+
                 // Original recalculation logic based on activeCalculatorInput
                 if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
-                    console.log("[addRun] Prioritizing DISTANCE based on activeCalculatorInput. Original MPH was:", finalMph);
+
                     finalDistance = parseFloat(finalDistance.toFixed(3));
                     finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
                     finalKph = calculateKph(finalMph);
-                    console.log("[addRun] Distance priority: Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+
                 } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
-                    console.log("[addRun] Prioritizing MPH based on activeCalculatorInput. Original Distance was:", finalDistance);
+
                     finalMph = parseFloat(finalMph.toFixed(1));
                     finalKph = calculateKph(finalMph);
                     finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-                    console.log("[addRun] MPH priority: Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+
                 } else if (!isNaN(finalDistance) && finalDistance > 0) {
-                    console.log("[addRun] Fallback: Only valid Distance provided. Original MPH was:", finalMph);
+
                     finalDistance = parseFloat(finalDistance.toFixed(3));
                     finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
                     finalKph = calculateKph(finalMph);
-                    console.log("[addRun] Fallback (Distance only): Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+
                 } else if (!isNaN(finalMph) && finalMph > 0) {
-                    console.log("[addRun] Fallback: Only valid MPH provided. Original Distance was:", finalDistance);
+
                     finalMph = parseFloat(finalMph.toFixed(1));
                     finalKph = calculateKph(finalMph);
                     finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-                    console.log("[addRun] Fallback (MPH only): Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+
                 } else {
                     closeLogRunForm();
                     openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
@@ -1728,29 +1641,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             // --- This is the ADD mode logic (unchanged from your existing code) ---
             if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
-                console.log("[addRun] Prioritizing DISTANCE based on activeCalculatorInput. Original MPH was:", finalMph);
+
                 finalDistance = parseFloat(finalDistance.toFixed(3));
                 finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
                 finalKph = calculateKph(finalMph);
-                console.log("[addRun] Distance priority: Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+
             } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
-                console.log("[addRun] Prioritizing MPH based on activeCalculatorInput. Original Distance was:", finalDistance);
+
                 finalMph = parseFloat(finalMph.toFixed(1));
                 finalKph = calculateKph(finalMph);
                 finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-                console.log("[addRun] MPH priority: Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+
             } else if (!isNaN(finalDistance) && finalDistance > 0) {
-                console.log("[addRun] Fallback: Only valid Distance provided. Original MPH was:", finalMph);
+
                 finalDistance = parseFloat(finalDistance.toFixed(3));
                 finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
                 finalKph = calculateKph(finalMph);
-                console.log("[addRun] Fallback (Distance only): Calculated MPH:", finalMph, "KPH:", finalKph, "Final Distance:", finalDistance);
+
             } else if (!isNaN(finalMph) && finalMph > 0) {
-                console.log("[addRun] Fallback: Only valid MPH provided. Original Distance was:", finalDistance);
+
                 finalMph = parseFloat(finalMph.toFixed(1));
                 finalKph = calculateKph(finalMph);
                 finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-                console.log("[addRun] Fallback (MPH only): Calculated Distance:", finalDistance, "Final MPH:", finalMph, "KPH:", finalKph);
+
             } else {
                 closeLogRunForm();
                 openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
@@ -1763,39 +1676,45 @@ document.addEventListener('DOMContentLoaded', async () => {
         const delta = (bpm !== null && plus1 !== null) ? (bpm - plus1) : null;
 
         const fullRunObject = {
-            user, date, time: timeStringToStore, 
-            mph: finalMph, 
-            kph: parseFloat(finalKph.toFixed(3)), 
+            user,
+            date,
+            time: timeStringToStore,
+            mph: finalMph,
+            kph: parseFloat(finalKph.toFixed(3)),
             distance: parseFloat(finalDistance.toFixed(3)), // Ensure stored distance is a number with 3dp
             type, // Add type here
-            bpm, plus1, delta, notes, day,
-            auth_key: hashedAuthKey 
+            bpm,
+            plus1,
+            delta,
+            notes,
+            day,
+            auth_key: hashedAuthKey
         };
 
         if (editingRunId) {
-            console.log('[addRun - Edit Mode] Attempting to update run ID:', editingRunId);
+
             const updatedRunFromDB = await updateRunInSupabase(editingRunId, fullRunObject);
             closeLogRunForm(); // Close form regardless of sub-function outcome (it shows its own modal on error)
-            
+
             if (updatedRunFromDB && typeof updatedRunFromDB === 'object' && updatedRunFromDB.id) {
                 const index = runs.findIndex(r => String(r.id) === String(editingRunId));
-                    if (index !== -1) {
-                    runs[index] = updatedRunFromDB; 
+                if (index !== -1) {
+                    runs[index] = updatedRunFromDB;
                 } else {
                     console.warn('[addRun - Edit Mode] Run ID not found in local array after update. ID:', editingRunId);
                     runs = await fetchRunsFromSupabase(); // Refetch as fallback
-                    }
+                }
                 document.dispatchEvent(new CustomEvent('dataChanged', { detail: { operation: 'edit', id: editingRunId, item: updatedRunFromDB } }));
             } else {
                 console.warn('[addRun - Edit Mode] Update operation did not result in a valid run object for UI refresh, or error already handled by modal by sub-function.');
             }
         } else { // ----- ADD MODE -----
-            console.log('[addRun - Add Mode] Attempting to add new run.');
-                const addedRunFromDB = await addRunToSupabase(fullRunObject); 
+
+            const addedRunFromDB = await addRunToSupabase(fullRunObject);
             closeLogRunForm(); // Close form regardless of sub-function outcome
 
-                if (addedRunFromDB) {
-                runs.push(addedRunFromDB); 
+            if (addedRunFromDB) {
+                runs.push(addedRunFromDB);
                 document.dispatchEvent(new CustomEvent('dataChanged', { detail: { operation: 'add', item: addedRunFromDB } }));
             } else {
                 console.warn('[addRun - Add Mode] Add operation did not result in a valid run object, or error already handled by modal by sub-function.');
@@ -1833,9 +1752,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                 renderAllRuns(); // Ensure table is up-to-date
             } else {
                 // If switching away from summary, destroy chart instances to prevent issues if they are not visible
-                if (distanceOverTimeChartInstance) { distanceOverTimeChartInstance.destroy(); distanceOverTimeChartInstance = null; }
-                if (totalKmChartInstance) { totalKmChartInstance.destroy(); totalKmChartInstance = null; }
-                if (totalVisitsChartInstance) { totalVisitsChartInstance.destroy(); totalVisitsChartInstance = null; }
+                if (distanceOverTimeChartInstance) {
+                    distanceOverTimeChartInstance.destroy();
+                    distanceOverTimeChartInstance = null;
+                }
+                if (totalKmChartInstance) {
+                    totalKmChartInstance.destroy();
+                    totalKmChartInstance = null;
+                }
+                if (totalVisitsChartInstance) {
+                    totalVisitsChartInstance.destroy();
+                    totalVisitsChartInstance = null;
+                }
             }
         }
         // Close log run form if it's open when switching tabs
@@ -1866,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Event Listener for Data Changes ---
     document.addEventListener('dataChanged', (event) => {
-        console.log('dataChanged event received:', event.detail);
+
         // Call your main UI refresh functions here
         if (typeof renderAllRuns === 'function' && typeof updateStatistics === 'function') {
             renderAllRuns();
@@ -1907,9 +1835,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- End Event Listeners for new dropdowns ---
 
     // Initial Load
-    (async () => {
-        console.log("[DOMContentLoaded IIFE Started] Checking jasonSummaryActivityMonthSelectEl:", jasonSummaryActivityMonthSelectEl);
-        console.log("[DOMContentLoaded IIFE Started] Checking kelvinSummaryActivityMonthSelectEl:", kelvinSummaryActivityMonthSelectEl);
+    (async() => {
+
+
 
         if (supabase) {
             runs = await fetchRunsFromSupabase();
@@ -1925,14 +1853,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Check if the summary tab is the one that will be active or is by default considered active
         // for this initial rendering. If localStorage has a different tab, these might not be visible anyway,
         // but it's good to render them once with data.
-        if (jasonSummaryActivityMonthSelectEl) { 
-            console.log(`[DOMContentLoaded IIFE] Explicitly calling updateSummaryActivityVisualization for Jason. Current select value: '${jasonSummaryActivityMonthSelectEl.value}'`);
+        if (jasonSummaryActivityMonthSelectEl) {
+
             updateSummaryActivityVisualization('Jason');
         } else {
             console.warn("[DOMContentLoaded IIFE] Jason's summary activity month select element was NOT found when trying to call initial viz.");
         }
-        if (kelvinSummaryActivityMonthSelectEl) { 
-            console.log(`[DOMContentLoaded IIFE] Explicitly calling updateSummaryActivityVisualization for Kelvin. Current select value: '${kelvinSummaryActivityMonthSelectEl.value}'`);
+        if (kelvinSummaryActivityMonthSelectEl) {
+
             updateSummaryActivityVisualization('Kelvin');
         } else {
             console.warn("[DOMContentLoaded IIFE] Kelvin's summary activity month select element was NOT found when trying to call initial viz.");
@@ -1963,12 +1891,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         // --- End set default dropdown values ---
-        
+
         // Attach sort listeners and apply initial sort (date desc)
-        if(runsTableBodySummary) attachSortListenersToTable(runsTableBodySummary, () => [...runs], true);
-        if(runsTableBodyJason) attachSortListenersToTable(runsTableBodyJason, () => runs.filter(run => run.user === 'Jason'), false);
-        if(runsTableBodyKelvin) attachSortListenersToTable(runsTableBodyKelvin, () => runs.filter(run => run.user === 'Kelvin'), false);
-        
+        if (runsTableBodySummary) attachSortListenersToTable(runsTableBodySummary, () => [...runs], true);
+        if (runsTableBodyJason) attachSortListenersToTable(runsTableBodyJason, () => runs.filter(run => run.user === 'Jason'), false);
+        if (runsTableBodyKelvin) attachSortListenersToTable(runsTableBodyKelvin, () => runs.filter(run => run.user === 'Kelvin'), false);
+
         // Attach sort listeners for the new stats table
         // The function `calculateUserStats` needs to be defined or integrated into the listener logic
         // This is a placeholder for the correct attachment logic for stats table.
@@ -2012,7 +1940,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', 5); // Initial load for tab view (5 months) - OLD
         renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
         renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
-        
+
         // Add event listeners for the new filters (REMOVED)
         // const jasonTypeFilter = document.getElementById('jasonTypeFilter');
         // if (jasonTypeFilter) {
@@ -2040,7 +1968,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!tabActivated) { // If no tab was activated from localStorage, default to summary
             const summaryTabButton = document.querySelector('.tab-button[data-tab="summary"]');
             if (summaryTabButton) {
-                summaryTabButton.click(); 
+                summaryTabButton.click();
             }
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
@@ -2052,7 +1980,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Add event listeners
             jasonSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Jason'));
             kelvinSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Kelvin'));
-            console.log('[DOMContentLoaded] Summary activity month selects populated and listeners attached.');
+
         } else {
             console.warn("[DOMContentLoaded] Summary activity month select elements not found for population immediately after assignment.");
         }
@@ -2153,9 +2081,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!filterTypeSelect) return;
 
         const uniqueTypes = [...new Set(runs.map(run => run.type).filter(type => type))].sort(); // Get unique, sorted types
-        
+
         // Preserve the "All Types" option
-        filterTypeSelect.innerHTML = '<option value="">All Types</option>'; 
+        filterTypeSelect.innerHTML = '<option value="">All Types</option>';
 
         uniqueTypes.forEach(type => {
             const option = document.createElement('option');
@@ -2168,7 +2096,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     function openFilterModal(userForFilter) {
         activeFilterUser = userForFilter;
         if (filterForUserSpan) filterForUserSpan.textContent = userForFilter;
-        
+
         populateFilterTypeOptions(); // Populate/update type options each time modal opens
         updateFilterCountDisplay(userForFilter); // Update count when modal opens
 
@@ -2176,7 +2104,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (filterForm) {
             filterForm.reset(); // Reset form first
             const userSpecificFilters = currentFilters[userForFilter] || {};
-            console.log(`[openFilterModal] Loading filters for ${userForFilter}:`, userSpecificFilters);
+
             for (const key in userSpecificFilters) {
                 if (filterForm.elements[key]) {
                     filterForm.elements[key].value = userSpecificFilters[key];
@@ -2203,7 +2131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         currentFilters[activeFilterUser] = newFiltersForUser;
-        console.log(`[applyFiltersFromModal] Filters saved for ${activeFilterUser}:`, currentFilters[activeFilterUser]);
+
 
         closeFilterModal();
         renderAllRuns(); // Re-render tables with new filters
@@ -2214,19 +2142,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!activeFilterUser) return;
         currentFilters[activeFilterUser] = {}; // Clear filters for the active user
         if (filterForm) filterForm.reset(); // Reset the form fields
-        console.log(`[resetCurrentUsersFilters] Filters reset for ${activeFilterUser}`);
+
         updateFilterCountDisplay(activeFilterUser); // Update count after resetting filters
         // Optionally, re-apply (which means showing all data) and re-render immediately
         // renderAllRuns(); 
         // Or, wait for user to click "Apply Filters" after reset, which is current behavior without the line above.
     }
-    
+
     function applyAllFilters(runsToFilter, user) {
         const filtersToApply = currentFilters[user] || {};
         if (Object.keys(filtersToApply).length === 0) {
             return runsToFilter; // No filters for this user, return original array
         }
-        console.log(`[applyAllFilters] Applying filters for ${user}:`, filtersToApply, `on ${runsToFilter.length} runs`);
+
 
         return runsToFilter.filter(run => {
             let passesAll = true;
@@ -2248,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const maxTimeMinutes = parseMMSS(filtersToApply.filterTimeMax);
                 if (!isNaN(maxTimeMinutes) && (isNaN(runTimeMinutes) || runTimeMinutes > maxTimeMinutes)) passesAll = false;
             }
-            
+
             // MPH Range
             if (filtersToApply.filterMphMin && run.mph < parseFloat(filtersToApply.filterMphMin)) passesAll = false;
             if (filtersToApply.filterMphMax && run.mph > parseFloat(filtersToApply.filterMphMax)) passesAll = false;
@@ -2256,7 +2184,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Distance Range
             if (filtersToApply.filterDistanceMin && run.distance < parseFloat(filtersToApply.filterDistanceMin)) passesAll = false;
             if (filtersToApply.filterDistanceMax && run.distance > parseFloat(filtersToApply.filterDistanceMax)) passesAll = false;
-            
+
             return passesAll;
         });
     }
@@ -2292,7 +2220,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // --- End new function ---
 
     // --- New Activity Visualization Functions ---
-    function renderActivityVisualization(user, gridId, options) { 
+    function renderActivityVisualization(user, gridId, options) {
         const gridContainer = document.getElementById(gridId);
 
         if (!gridContainer) {
@@ -2300,10 +2228,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         gridContainer.innerHTML = ''; // Clear previous grid
-        gridContainer.style.display = 'flex'; 
-        gridContainer.style.justifyContent = 'center'; 
-        gridContainer.style.overflowX = 'auto'; 
-        gridContainer.style.padding = '5px 0'; 
+        gridContainer.style.display = 'flex';
+        gridContainer.style.justifyContent = 'center';
+        gridContainer.style.overflowX = 'auto';
+        gridContainer.style.padding = '5px 0';
         gridContainer.style.position = 'relative'; // New: for stacking context
         gridContainer.style.zIndex = '1'; // New: to lift above card's direct background/padding
 
@@ -2324,11 +2252,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 month = today.getMonth();
                 isSingleMonthView = true;
             } else if (options.displayMonths > 1) {
-                 isSingleMonthView = false; // Multi-week view
+                isSingleMonthView = false; // Multi-week view
             } else {
-                 // This case (e.g. displayMonths = 0 or negative) would fall through to the final error else
-                 // To be safe, explicitly set to false or handle as error if necessary
-                 isSingleMonthView = false; // Default to multi-week if displayMonths is not > 1 and not specifically 1 for single view
+                // This case (e.g. displayMonths = 0 or negative) would fall through to the final error else
+                // To be safe, explicitly set to false or handle as error if necessary
+                isSingleMonthView = false; // Default to multi-week if displayMonths is not > 1 and not specifically 1 for single view
             }
         } else {
             console.error("Invalid or missing options for renderActivityVisualization. Expected targetDate or displayMonths (as a positive number)."); // LINE 2254
@@ -2343,9 +2271,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const monthGrid = document.createElement('div');
             monthGrid.style.display = 'grid';
-            monthGrid.style.gridTemplateRows = `repeat(7, 30px)`; 
+            monthGrid.style.gridTemplateRows = `repeat(7, 30px)`;
             monthGrid.style.gridTemplateColumns = `repeat(5, 30px)`; // Max 5 columns for a month view for now
-            monthGrid.style.gridAutoFlow = 'column'; 
+            monthGrid.style.gridAutoFlow = 'column';
             monthGrid.style.gap = '5px';
 
             const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -2365,10 +2293,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             let dayCounter = 1;
             let addedCells = 0;
             // Max cells for a 5-column, 7-row grid is 35
-            for (let cell = 0; cell < 5 * 7; cell++) { 
+            for (let cell = 0; cell < 5 * 7; cell++) {
                 const square = document.createElement('div');
                 square.classList.add('activity-square');
-                square.style.width = '30px'; 
+                square.style.width = '30px';
                 square.style.height = '30px';
 
                 // Calculate current position in conceptual grid to map to day
@@ -2381,7 +2309,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if ((currentCol === 0 && currentRow < firstDayOfWeekOfMonth) || dayCounter > daysInMonth) {
                     square.classList.add('empty');
-                    square.style.border = 'none'; 
+                    square.style.border = 'none';
                     square.style.background = 'transparent';
                 } else {
                     const distanceRan = dailyDistances[dayCounter] || 0;
@@ -2396,7 +2324,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     const tooltip = document.createElement('span');
                     tooltip.classList.add('tooltip');
                     const runDate = new Date(year, month, dayCounter);
-                    const dateString = runDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric'});
+                    const dateString = runDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
                     tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
                     square.appendChild(tooltip);
                     dayCounter++;
@@ -2410,23 +2338,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else { // Multi-week continuous horizontal view (Jason/Kelvin Tabs)
             const numWeeksToShow = 29; // Changed from 22 to 26
             const today = new Date();
-            today.setHours(0,0,0,0); // Normalize today for accurate comparison
+            today.setHours(0, 0, 0, 0); // Normalize today for accurate comparison
 
             let startDate = new Date(today);
-            startDate.setDate(today.getDate() - ( (numWeeksToShow -1) * 7) - today.getDay() );
-            startDate.setHours(0,0,0,0); 
-            
+            startDate.setDate(today.getDate() - ((numWeeksToShow - 1) * 7) - today.getDay());
+            startDate.setHours(0, 0, 0, 0);
+
             const yearGrid = document.createElement('div');
             yearGrid.style.display = 'grid';
-            yearGrid.style.gridTemplateRows = `repeat(7, 30px)`; 
-            yearGrid.style.gridTemplateColumns = `repeat(${numWeeksToShow}, 30px)`; 
-            yearGrid.style.gridAutoFlow = 'column'; 
+            yearGrid.style.gridTemplateRows = `repeat(7, 30px)`;
+            yearGrid.style.gridTemplateColumns = `repeat(${numWeeksToShow}, 30px)`;
+            yearGrid.style.gridAutoFlow = 'column';
             yearGrid.style.gap = '5px';
 
             const userRunsAll = runs.filter(run => run.user === user);
             const dailyDistancesMap = new Map();
             userRunsAll.forEach(run => {
-                const dateKey = run.date; 
+                const dateKey = run.date;
                 dailyDistancesMap.set(dateKey, (dailyDistancesMap.get(dateKey) || 0) + parseFloat(run.distance));
             });
 
@@ -2435,20 +2363,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             for (let i = 0; i < numWeeksToShow * 7; i++) {
                 const square = document.createElement('div');
                 square.classList.add('activity-square');
-                square.style.width = '30px'; 
+                square.style.width = '30px';
                 square.style.height = '30px';
 
                 // Normalize currentDateInGrid for comparison with today
                 let dateForSquare = new Date(currentDateInGrid);
-                dateForSquare.setHours(0,0,0,0);
+                dateForSquare.setHours(0, 0, 0, 0);
 
                 if (dateForSquare.getDay() === 0) { // It's a Sunday (0 for Sunday)
                     square.classList.add('sunday-square');
                 }
 
-                if (dateForSquare > today) { 
+                if (dateForSquare > today) {
                     square.classList.add('empty', 'future');
-                    square.style.visibility = 'hidden'; 
+                    square.style.visibility = 'hidden';
                 } else {
                     const dateKey = `${dateForSquare.getFullYear()}-${String(dateForSquare.getMonth() + 1).padStart(2, '0')}-${String(dateForSquare.getDate()).padStart(2, '0')}`;
                     const distanceRan = dailyDistancesMap.get(dateKey) || 0;
@@ -2472,63 +2400,68 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             gridContainer.appendChild(yearGrid);
         }
-     }
-     // --- End New Activity Visualization Functions ---
+    }
+    // --- End New Activity Visualization Functions ---
 
-function calculateUserStats() {
-    // This function mirrors the data gathering part of updateStatistics for the stats table
-    const yearForStats = 2025;
-    const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
+    function calculateUserStats() {
+        // This function mirrors the data gathering part of updateStatistics for the stats table
+        const yearForStats = 2025;
+        const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
 
-    let totalDistance2025Jason = 0, totalVisits2025Jason = 0, totalOverallJason = 0, totalVisitsOverallJason = 0;
-    let totalDistance2025Kelvin = 0, totalVisits2025Kelvin = 0, totalOverallKelvin = 0, totalVisitsOverallKelvin = 0;
+        let totalDistance2025Jason = 0,
+            totalVisits2025Jason = 0,
+            totalOverallJason = 0,
+            totalVisitsOverallJason = 0;
+        let totalDistance2025Kelvin = 0,
+            totalVisits2025Kelvin = 0,
+            totalOverallKelvin = 0,
+            totalVisitsOverallKelvin = 0;
 
-    runs.forEach(run => {
-        const runDistance = parseFloat(run.distance) || 0;
-        // totalDistanceOverall += runDistance; // Not needed for userStats specifically
+        runs.forEach(run => {
+            const runDistance = parseFloat(run.distance) || 0;
+            // totalDistanceOverall += runDistance; // Not needed for userStats specifically
 
-        if (run.user === 'Jason') {
-            totalOverallJason += runDistance;
-            totalVisitsOverallJason++; 
-            if (new Date(run.date).getFullYear() === yearForStats) {
-                totalDistance2025Jason += runDistance;
-                totalVisits2025Jason++;
+            if (run.user === 'Jason') {
+                totalOverallJason += runDistance;
+                totalVisitsOverallJason++;
+                if (new Date(run.date).getFullYear() === yearForStats) {
+                    totalDistance2025Jason += runDistance;
+                    totalVisits2025Jason++;
+                }
+            } else if (run.user === 'Kelvin') {
+                totalOverallKelvin += runDistance;
+                totalVisitsOverallKelvin++;
+                if (new Date(run.date).getFullYear() === yearForStats) {
+                    totalDistance2025Kelvin += runDistance;
+                    totalVisits2025Kelvin++;
+                }
             }
-        } else if (run.user === 'Kelvin') {
-            totalOverallKelvin += runDistance;
-            totalVisitsOverallKelvin++;
-            if (new Date(run.date).getFullYear() === yearForStats) {
-                totalDistance2025Kelvin += runDistance;
-                totalVisits2025Kelvin++;
-            }
-        }
-    });
-    
-    const jasonGoal = parseFloat(document.getElementById('goal2025Jason')?.textContent || '1000');
-    const kelvinGoal = parseFloat(document.getElementById('goal2025Kelvin')?.textContent || '500');
+        });
 
-    return [
-        {
-            user: "Jason",
-            totalKm: totalOverallJason,
-            totalKm2025: totalDistance2025Jason,
-            visits2025: totalVisits2025Jason,
-            avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Jason / daysSoFarIn2025) : 0,
-            goal2025: jasonGoal,
-            percentToGoal2025: jasonGoal > 0 ? (totalDistance2025Jason / jasonGoal) * 100 : 0,
-            // Raw values for sorting if needed, e.g. percentToGoal2025 could be stored raw
-        },
-        {
-            user: "Kelvin",
-            totalKm: totalOverallKelvin,
-            totalKm2025: totalDistance2025Kelvin,
-            visits2025: totalVisits2025Kelvin,
-            avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Kelvin / daysSoFarIn2025) : 0,
-            goal2025: kelvinGoal,
-            percentToGoal2025: kelvinGoal > 0 ? (totalDistance2025Kelvin / kelvinGoal) * 100 : 0,
-        }
-    ];
-} 
+        const jasonGoal = parseFloat(document.getElementById('goal2025Jason')?.textContent || '1000');
+        const kelvinGoal = parseFloat(document.getElementById('goal2025Kelvin')?.textContent || '500');
+
+        return [{
+                user: "Jason",
+                totalKm: totalOverallJason,
+                totalKm2025: totalDistance2025Jason,
+                visits2025: totalVisits2025Jason,
+                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Jason / daysSoFarIn2025) : 0,
+                goal2025: jasonGoal,
+                percentToGoal2025: jasonGoal > 0 ? (totalDistance2025Jason / jasonGoal) * 100 : 0,
+                // Raw values for sorting if needed, e.g. percentToGoal2025 could be stored raw
+            },
+            {
+                user: "Kelvin",
+                totalKm: totalOverallKelvin,
+                totalKm2025: totalDistance2025Kelvin,
+                visits2025: totalVisits2025Kelvin,
+                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Kelvin / daysSoFarIn2025) : 0,
+                goal2025: kelvinGoal,
+                percentToGoal2025: kelvinGoal > 0 ? (totalDistance2025Kelvin / kelvinGoal) * 100 : 0,
+            }
+        ];
+    }
 
     // --- Assign Summary Activity Visualization Elements ---
     jasonSummaryActivityTitleEl = document.getElementById('jasonSummaryActivityTitle');
@@ -2564,28 +2497,26 @@ function calculateUserStats() {
             }
             // Set default to current month
             const defaultValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-            console.log(`[populateSummaryActivityMonthSelects] Attempting to set default value for ${item.user} to: '${defaultValue}'`);
+
             item.el.value = defaultValue;
             // Verify if the value was actually set
             if (item.el.value !== defaultValue) {
                 console.warn(`[populateSummaryActivityMonthSelects] Default value '${defaultValue}' for ${item.user} was not set. Current select value: '${item.el.value}'. Forcing selection of first option if available.`);
                 if (item.el.options.length > 0) {
                     item.el.selectedIndex = 0;
-                    console.log(`[populateSummaryActivityMonthSelects] Fallback: Set ${item.user} selectedIndex to 0. New value: '${item.el.value}'`);
+
                 }
             } else {
-                console.log(`[populateSummaryActivityMonthSelects] Successfully set default value for ${item.user} to: '${item.el.value}'`);
+
             }
         });
     }
-    // --- End helper function ---
 
-    // --- New function to update specific summary activity visualization ---
     function updateSummaryActivityVisualization(user) {
 
-        console.log('updateSummaryActivityVisualization called for user:', user);
+
         let titleEl, selectEl, gridId;
-        console.log('updateSummaryActivityVisualization called for user:', user);
+
         if (user === 'Jason') {
             titleEl = jasonSummaryActivityTitleEl;
             selectEl = jasonSummaryActivityMonthSelectEl;
@@ -2603,23 +2534,22 @@ function calculateUserStats() {
             return;
         }
 
-        console.log(`[updateSummaryActivityVisualization] Select element for ${user}:`, selectEl);
+
         const selectedValue = selectEl.value;
-        console.log(`[updateSummaryActivityVisualization] Selected value for ${user}: '${selectedValue}'`);
+
 
         const [yearStr, monthStr] = selectedValue.split('-');
-        console.log(`[updateSummaryActivityVisualization] Parsed yearStr: '${yearStr}', monthStr: '${monthStr}' for ${user}`);
+
 
         const year = parseInt(yearStr);
         const month = parseInt(monthStr) - 1; // Convert to 0-indexed for Date object
-        console.log(`[updateSummaryActivityVisualization] Parsed year: ${year}, month (0-indexed): ${month} for ${user}`);
+
 
         const displayDate = new Date(year, month, 1);
-        console.log(`[updateSummaryActivityVisualization] displayDate object for ${user}:`, displayDate);
+
 
         titleEl.textContent = `${user}'s Activity - ${displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
-        
+
         renderActivityVisualization(user, gridId, { targetDate: displayDate });
     }
-    // --- End new function ---
-}); 
+});
