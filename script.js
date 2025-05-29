@@ -69,6 +69,7 @@ let currentUserForRunInput = null;
 let gFilterModalContainer, filterForm, filterForUserSpan, closeFilterModalBtn, resetFiltersBtn;
 let activeFilterUser = null;
 let currentFilters = {};
+const RUN_LOGGER_FILTERS_KEY = 'runLoggerFilters';
 
 if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClient === 'function') {
     supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1967,6 +1968,18 @@ document.addEventListener('DOMContentLoaded', async() => {
             runs = [];
         }
 
+        // Load filters from local storage
+        const savedFilters = localStorage.getItem(RUN_LOGGER_FILTERS_KEY);
+        if (savedFilters) {
+            try {
+                currentFilters = JSON.parse(savedFilters);
+            } catch (e) {
+                console.error("Error parsing saved filters from localStorage:", e);
+                currentFilters = {}; // Reset to default if parsing fails
+            }
+        }
+
+
         // Explicitly update summary visualizations AFTER runs are fetched and dropdowns are populated
         // and default values set. This ensures the initial view is correct.
         // Check if the summary tab is the one that will be active or is by default considered active
@@ -2251,6 +2264,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
         }
         currentFilters[activeFilterUser] = newFiltersForUser;
+        localStorage.setItem(RUN_LOGGER_FILTERS_KEY, JSON.stringify(currentFilters));
 
 
         closeFilterModal();
@@ -2262,6 +2276,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         if (!activeFilterUser) return;
         currentFilters[activeFilterUser] = {}; // Clear filters for the active user
         if (filterForm) filterForm.reset(); // Reset the form fields
+        localStorage.setItem(RUN_LOGGER_FILTERS_KEY, JSON.stringify(currentFilters));
 
         updateFilterCountDisplay(activeFilterUser); // Update count after resetting filters
         // Optionally, re-apply (which means showing all data) and re-render immediately
@@ -2366,6 +2381,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                 const user = event.currentTarget.dataset.user;
                 if (user) {
                     currentFilters[user] = {}; // Clear filters for this user
+                    localStorage.setItem(RUN_LOGGER_FILTERS_KEY, JSON.stringify(currentFilters));
 
                     // If the filter modal is currently open AND active for THIS user, reset its form fields.
                     if (gFilterModalContainer && gFilterModalContainer.classList.contains('visible') &&
@@ -2626,4 +2642,24 @@ document.addEventListener('DOMContentLoaded', async() => {
     function calculateUserStats() {
         // ... existing code ...
     }
+});
+
+// --- Helper function to add horizontal scroll on mouse wheel to an element ---
+function addHorizontalScrollWithMouseWheel(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.addEventListener('wheel', function(event) {
+            if (event.deltaY !== 0) {
+                event.preventDefault();
+                element.scrollLeft += event.deltaY;
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    addHorizontalScrollWithMouseWheel('jasonTabActivityGrid');
+    addHorizontalScrollWithMouseWheel('kelvinTabActivityGrid');
+    addHorizontalScrollWithMouseWheel('jasonSummaryActivityGrid');
+    addHorizontalScrollWithMouseWheel('kelvinSummaryActivityGrid');
 });
