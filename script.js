@@ -2584,9 +2584,30 @@ document.addEventListener('DOMContentLoaded', async() => {
                     tooltip.classList.add('tooltip');
                     const dateString = dateForSquare.toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
                     tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
-                    square.appendChild(tooltip);
+                    square.appendChild(tooltip); // Append tooltip to square first
                 }
-                yearGrid.appendChild(square);
+                yearGrid.appendChild(square); // Append square to yearGrid BEFORE checking its position
+
+                // Check if square is near the right edge of the grid container, now that it's in yearGrid
+                if (square.classList.contains('activity-square') && !square.classList.contains('empty')) { // Only for actual data squares
+                    const tooltipElement = square.querySelector('.tooltip'); // Get the tooltip again
+                    if (tooltipElement) {
+                        const currentColumnIndex = Math.floor(i / 7);
+                        if (currentColumnIndex <= 3) {
+                            tooltipElement.classList.add('tooltip-align-left');
+                            tooltipElement.classList.remove('tooltip-align-right');
+                        }
+                        else if (currentColumnIndex >= numWeeksToShow - 3) {
+                            tooltipElement.classList.add('tooltip-align-right');
+                            tooltipElement.classList.remove('tooltip-align-left');
+                        }
+                        else {
+                            tooltipElement.classList.remove('tooltip-align-left');
+                            tooltipElement.classList.remove('tooltip-align-right');
+                        }
+                    }
+                }
+
                 currentDateInGrid.setDate(currentDateInGrid.getDate() + 1); 
             }
             gridContainer.appendChild(yearGrid);

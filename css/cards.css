@@ -525,7 +525,7 @@ canvas {
     text-align: center;
     padding: 5px 8px;
     position: absolute;
-    z-index: 100;
+    z-index: 1000;
     bottom: 125%;
     left: 50%;
     transform: translateX(-50%);
@@ -535,6 +535,25 @@ canvas {
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     font-size: 1.2em;
     font-weight: bold;
+}
+
+/* Tooltip aligned to the right for edge cases */
+.activity-square .tooltip.tooltip-align-right {
+    left: auto; /* Override default left: 50% */
+    right: 0;   /* Align to the right of the square */
+    transform: translateX(0); /* No horizontal translation needed */
+}
+
+/* Tooltip aligned to the left for edge cases */
+.activity-square .tooltip.tooltip-align-left {
+    left: 0; /* Align to the left of the square */
+    right: auto; /* Override any default right alignment */
+    transform: translateX(0); /* No horizontal translation needed */
+}
+
+/* Adjust tooltip if month indicator is present to avoid overlap */
+.activity-square:has(.month-indicator) .tooltip {
+    bottom: 135%; /* Push tooltip further up if month indicator is there */
 }
 
 .activity-square:hover .tooltip {
@@ -616,9 +635,4 @@ html.dark-mode .activity-square .tooltip {
     /* border-radius: 2px; Optional */
     white-space: nowrap;
     z-index: 1; /* Below tooltip but above square's direct content if any */
-}
-
-/* Adjust tooltip if month indicator is present to avoid overlap */
-.activity-square:has(.month-indicator) .tooltip {
-    bottom: 135%; /* Push tooltip further up if month indicator is there */
 } 

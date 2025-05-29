@@ -65,6 +65,8 @@
     --dt-text-on-knob: #FFFFFF;
     --dt-text-off-knob: #374151;
     --dt-focus-outline: var(--primary-focus-ring, var(--primary-color));
+
+    --tooltip-bg: #ffffff;
 }
 
 html.dark-mode {
