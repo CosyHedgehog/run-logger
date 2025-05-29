@@ -100,6 +100,7 @@ canvas {
     padding: 25px;
     margin-bottom: 25px; 
     transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition */
+    position: relative; /* Ensure it forms a stacking context */
 }
 
 .content-card > h2 { 
@@ -547,4 +548,193 @@ canvas {
     /* color: var(--card-subtle-text-color); */ /* Keep color if desired */
     /* text-align: center; */ /* Handled by .settings-card-row .content-card p */
     /* margin-bottom: 15px; */ /* Handled by .settings-card-row .content-card p */
+}
+
+/* New Activity Visualization Card Styles */
+.activity-visualization-card {
+    padding: 10px; /* Reduced padding if no title */
+    margin-bottom: 20px;
+    flex-grow: 1; /* Allow cards to grow in the container */
+    /* min-width: 280px; /* May conflict with wide scrollable content */
+    /* Consider setting a specific width or max-width if needed, or let content dictate */
+    /* width: 100%; /* This might constrain the inner scrollable grid */ 
+    /* overflow: hidden; */ /* REMOVED - This was clipping the tooltips */
+}
+
+.activity-visualization-card h2 {
+    /* Inherits from .content-card > h2 generally */
+    /* text-align: center; /* Already centered by .content-card > h2 or specific h3 rule if that was kept */
+    font-size: 1.5em; /* Matches .content-card > h2 */
+    color: var(--card-title-color);
+    margin-top: 0; /* Explicitly set if not inheriting correctly */
+    padding-left: 10px;
+}
+
+/* Style for the new H3 titles in activity cards */
+.activity-visualization-card h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.2em; /* Adjust size as needed */
+    color: var(--card-title-color);
+}
+
+.activity-grid {
+    /* display: grid; /* Removed, JS makes it flex */
+    /* grid-template-columns: repeat(7, 30px); /* Removed, JS applies to inner grid */
+    /* gap: 5px; /* Removed, JS applies to inner grid */
+    /* justify-content: center; /* Removed */ 
+    /* padding: 5px; */
+    /* Styles applied by JS: display:flex, justifyContent:flex-start, overflowX: auto */
+    /* min-height is to ensure it doesn't collapse if empty before JS runs, adjust as needed */
+    min-height: 50px; 
+}
+
+.activity-square {
+    width: 30px; /* Increased square size */
+    height: 30px; /* Increased square size */
+    background-color: var(--table-row-even-bg); /* Default empty color */
+    border-radius: 4px; /* Slightly more rounded */
+    border: 1px solid var(--table-row-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7em;
+    color: var(--body-text);
+    position: relative; /* For tooltip */
+    cursor: default; /* Change cursor to default */
+}
+
+.activity-square.has-run-low {
+    background-color: #c6e48b; /* Light green */
+}
+
+.activity-square.has-run-medium {
+    background-color: #7bc96f; /* Medium green */
+}
+
+.activity-square.has-run-high {
+    background-color: #239a3b; /* Dark green */
+}
+
+.activity-square.has-run-very-high {
+    background-color: #196127; /* Very dark green */
+}
+
+/* Tooltip for activity square */
+.activity-square .tooltip {
+    visibility: hidden;
+    width: max-content;
+    border-radius: 3px;
+    background-color: var(--tooltip-bg);
+    color: var(--tooltip-text);
+    text-align: center;
+    padding: 5px 8px;
+    position: absolute;
+    z-index: 100; /* High z-index to appear on top */
+    bottom: 125%; /* Position above the square */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap; /* Prevent tooltip text from wrapping */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.activity-square:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+html.dark-mode .activity-square {
+    background-color: var(--table-header-bg); /* Darker empty color */
+    border: 1px solid var(--card-border-color);
+}
+
+html.dark-mode .activity-square.has-run-low {
+    background-color: #2c5a30;
+}
+
+html.dark-mode .activity-square.has-run-medium {
+    background-color: #3b7940;
+}
+
+html.dark-mode .activity-square.has-run-high {
+    background-color: #4d9a50;
+}
+
+html.dark-mode .activity-square.has-run-very-high {
+    background-color: #60b964;
+}
+
+html.dark-mode .activity-square .tooltip {
+    background-color: var(--card-bg);
+    color: var(--body-text);
+    border: 1px solid var(--card-border-color);
+}
+
+/* Container for the two activity visualization cards */
+.activity-visualizations-container {
+    display: flex;
+    gap: 20px; /* Space between Jason's and Kelvin's activity cards */
+    margin-bottom: 20px; /* Space below the container */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed, though hidden-on-mobile applies */
+}
+
+/* New styles for dual activity row, similar to dual chart row */
+.dual-activity-row {
+    display: flex;
+    gap: 20px; /* Adjust gap as needed */
+    margin-bottom: 20px; /* Keep consistent margin with other cards */
+}
+
+.dual-activity-row > .content-card {
+    flex: 1; /* Each card takes equal width */
+    margin-bottom: 0; /* Remove individual bottom margin as row has it */
+}
+
+/* Ensure h2 in activity cards matches general card h2 styling */
+.activity-visualization-card h2 {
+    /* Inherits from .content-card > h2 generally */
+    /* text-align: center; /* Already centered by .content-card > h2 or specific h3 rule if that was kept */
+    font-size: 1.5em; /* Matches .content-card > h2 */
+    color: var(--card-title-color);
+    margin-top: 0; /* Explicitly set if not inheriting correctly */
+}
+
+/* Styling for the container of each month in multi-month view - REMOVE IF NO LONGER USED */
+/*
+.activity-month-container {
+}
+*/
+
+/* Styling for month titles - REMOVE IF NO LONGER USED */
+/*
+.activity-month-title {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: var(--card-subtle-text-color);
+    text-align: center;
+    margin-bottom: 8px;
+}
+*/
+
+/* Styling for the grid of a single month (when multiple months are shown) - REMOVE IF NO LONGER USED or repurpose for continuous grid */
+/*
+.activity-grid-single-month {
+}
+*/
+
+/* Container for the two activity visualization cards */
+.activity-visualizations-container {
+    display: flex;
+    gap: 20px; /* Space between Jason's and Kelvin's activity cards */
+    margin-bottom: 20px; /* Space below the container */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens if needed, though hidden-on-mobile applies */
+}
+
+/* Reposition tooltip for Sundays to appear below the square */
+.activity-square.sunday-square .tooltip {
+    bottom: auto; /* Remove the default bottom positioning */
+    top: 115%;    /* Position below the square (100% + a small gap) */
 } 

@@ -103,7 +103,6 @@ if (typeof window.supabase !== 'undefined' && typeof window.supabase.createClien
             // headers: { 'x-my-custom-header': 'my-app-v1' } // Example custom headers
         }
     });
-    console.log("Supabase client initialized with custom options (attempting schema awareness).");
 } else {
     console.error("Supabase JS SDK (window.supabase.createClient) not loaded or found. Ensure SDK is included before this script.");
     alert("Critical error: Supabase SDK not loaded. App may not function correctly.");
@@ -145,7 +144,6 @@ async function fetchRunsFromSupabase() {
             alert(`Error fetching runs: ${error.message}. Check console for details.`);
             return [];
         }
-        console.log('Fetched runs from Supabase:', data);
         return data || [];
     } catch (err) {
         console.error('Catch block error fetching runs:', err);
@@ -521,6 +519,36 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     let activeTab = 'summary'; // Default active tab
 
+    // --- Elements for Summary Tab Activity Visualizations ---
+    let jasonSummaryActivityTitleEl, jasonSummaryActivityMonthSelectEl, jasonSummaryActivityGridEl;
+    let kelvinSummaryActivityTitleEl, kelvinSummaryActivityMonthSelectEl, kelvinSummaryActivityGridEl;
+    // --- End Elements ---
+
+    // Assign Summary Activity Visualization Elements EARLY
+    jasonSummaryActivityTitleEl = document.getElementById('jasonSummaryActivityTitle');
+    jasonSummaryActivityMonthSelectEl = document.getElementById('jasonSummaryActivityMonthSelect');
+    jasonSummaryActivityGridEl = document.getElementById('jasonSummaryActivityGrid');
+
+    kelvinSummaryActivityTitleEl = document.getElementById('kelvinSummaryActivityTitle');
+    kelvinSummaryActivityMonthSelectEl = document.getElementById('kelvinSummaryActivityMonthSelect');
+    kelvinSummaryActivityGridEl = document.getElementById('kelvinSummaryActivityGrid');
+    console.log("[DOMContentLoaded] Summary activity DOM elements assigned EARLY:", 
+        { jasonSummaryActivityMonthSelectEl, kelvinSummaryActivityMonthSelectEl } // Log the elements themselves
+    );
+
+    // --- Initial Population and Setup for Summary Activity Visualizations ---
+    // This block MUST run before the IIFE that uses the select values.
+    if (jasonSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl) {
+        populateSummaryActivityMonthSelects(); // Populates and sets default value
+        // Add event listeners
+        jasonSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Jason'));
+        kelvinSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Kelvin'));
+        console.log('[DOMContentLoaded] Summary activity month selects populated and listeners attached (BEFORE IIFE).');
+    } else {
+        console.warn("[DOMContentLoaded] Summary activity month select elements not found for population (this check is before IIFE).");
+    }
+    // --- End Initial Population ---
+
     const masterSharedPasswordInput = document.getElementById('masterSharedPassword');
     const saveMasterPasswordBtn = document.getElementById('saveMasterPasswordBtn');
     const clearMasterPasswordBtn = document.getElementById('clearMasterPasswordBtn');
@@ -805,7 +833,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Update charts whenever theme changes
         if (activeTab === 'summary') {
-             updateStatistics(); // This will re-render charts with new theme colors
+             renderConsolidatedCharts();
+             updateDistanceOverTimeChart();
+            // Ensure select has a value before attempting to update visualization from theme change
+            if (jasonSummaryActivityMonthSelectEl && jasonSummaryActivityMonthSelectEl.value) { 
+                console.log("[applyTheme] Updating Jason's summary activity visualization due to theme change.");
+                updateSummaryActivityVisualization('Jason'); 
+            } else {
+                console.warn("[applyTheme] Jason's summary activity month select has NO VALUE or element not found. Skipping update from theme change.");
+            }
+            if (kelvinSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl.value) { 
+                console.log("[applyTheme] Updating Kelvin's summary activity visualization due to theme change.");
+                updateSummaryActivityVisualization('Kelvin'); 
+            } else {
+                console.warn("[applyTheme] Kelvin's summary activity month select has NO VALUE or element not found. Skipping update from theme change.");
+            }
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
     }
@@ -1177,6 +1219,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (kelvinEntryCountEl) {
                 kelvinEntryCountEl.textContent = ` (${kelvinRunsToRender.length} entries)`;
             }
+        }
+
+        // Update activity visualizations if on the respective tabs
+        if (activeTab === 'jason') {
+            renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
+        } else if (activeTab === 'kelvin') {
+            renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
         }
     }
 
@@ -1775,7 +1824,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             localStorage.setItem('activeTab', activeTab); // Save active tab to localStorage
 
             if (activeTab === 'summary') {
-                updateStatistics(); // Re-render charts when switching to summary tab
+                updateStatistics(); // Re-render charts and activity viz when switching to summary tab
+            } else if (activeTab === 'jason') {
+                renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 }); // Jason tab shows 5 months
+                renderAllRuns(); // Ensure table is up-to-date
+            } else if (activeTab === 'kelvin') {
+                renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 }); // Kelvin tab shows 5 months
+                renderAllRuns(); // Ensure table is up-to-date
             } else {
                 // If switching away from summary, destroy chart instances to prevent issues if they are not visible
                 if (distanceOverTimeChartInstance) { distanceOverTimeChartInstance.destroy(); distanceOverTimeChartInstance = null; }
@@ -1814,9 +1869,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('dataChanged event received:', event.detail);
         // Call your main UI refresh functions here
         if (typeof renderAllRuns === 'function' && typeof updateStatistics === 'function') {
-            // populateTypeFilters(); // REMOVED
             renderAllRuns();
             updateStatistics();
+            // renderActivityVisualization('Jason', 'jasonTabActivityGrid', 5); // Always update 5 months for tab view - OLD
+            // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', 5); // Always update 5 months for tab view - OLD
+            renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
+            renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
         } else {
             console.error('renderAllRuns or updateStatistics is not available in dataChanged event listener scope');
         }
@@ -1850,6 +1908,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Initial Load
     (async () => {
+        console.log("[DOMContentLoaded IIFE Started] Checking jasonSummaryActivityMonthSelectEl:", jasonSummaryActivityMonthSelectEl);
+        console.log("[DOMContentLoaded IIFE Started] Checking kelvinSummaryActivityMonthSelectEl:", kelvinSummaryActivityMonthSelectEl);
+
         if (supabase) {
             runs = await fetchRunsFromSupabase();
             // populateTypeFilters(); // REMOVED
@@ -1857,6 +1918,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("CRITICAL: Supabase client not initialized. Data cannot be loaded.");
             alert("Failed to connect to the database. Please check your internet connection or contact support.");
             runs = [];
+        }
+
+        // Explicitly update summary visualizations AFTER runs are fetched and dropdowns are populated
+        // and default values set. This ensures the initial view is correct.
+        // Check if the summary tab is the one that will be active or is by default considered active
+        // for this initial rendering. If localStorage has a different tab, these might not be visible anyway,
+        // but it's good to render them once with data.
+        if (jasonSummaryActivityMonthSelectEl) { 
+            console.log(`[DOMContentLoaded IIFE] Explicitly calling updateSummaryActivityVisualization for Jason. Current select value: '${jasonSummaryActivityMonthSelectEl.value}'`);
+            updateSummaryActivityVisualization('Jason');
+        } else {
+            console.warn("[DOMContentLoaded IIFE] Jason's summary activity month select element was NOT found when trying to call initial viz.");
+        }
+        if (kelvinSummaryActivityMonthSelectEl) { 
+            console.log(`[DOMContentLoaded IIFE] Explicitly calling updateSummaryActivityVisualization for Kelvin. Current select value: '${kelvinSummaryActivityMonthSelectEl.value}'`);
+            updateSummaryActivityVisualization('Kelvin');
+        } else {
+            console.warn("[DOMContentLoaded IIFE] Kelvin's summary activity month select element was NOT found when trying to call initial viz.");
         }
 
         // --- Set default dropdown values to current year if available, else allTime ---
@@ -1927,7 +2006,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         applyTheme(currentTheme); // currentTheme will be 'light' or based on non-localStorage method if any
         renderAllRuns(); // This will now render tables with their default sort
-        updateStatistics(); // This will calculate and render the initial state of the user stats table (sorted by default)
+        updateStatistics(); // This will calculate and render the initial state of the user stats table (sorted by default) and activity viz if summary tab is active
+        // Also render tab-specific visualizations on initial load
+        // renderActivityVisualization('Jason', 'jasonTabActivityGrid', 5); // Initial load for tab view (5 months) - OLD
+        // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', 5); // Initial load for tab view (5 months) - OLD
+        renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
+        renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
         
         // Add event listeners for the new filters (REMOVED)
         // const jasonTypeFilter = document.getElementById('jasonTypeFilter');
@@ -1960,6 +2044,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
+
+        // --- Initial Population and Setup for Summary Activity Visualizations ---
+        // Moved this block earlier to ensure dropdowns are populated before use.
+        if (jasonSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl) {
+            populateSummaryActivityMonthSelects(); // Populates and sets default value
+            // Add event listeners
+            jasonSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Jason'));
+            kelvinSummaryActivityMonthSelectEl.addEventListener('change', () => updateSummaryActivityVisualization('Kelvin'));
+            console.log('[DOMContentLoaded] Summary activity month selects populated and listeners attached.');
+        } else {
+            console.warn("[DOMContentLoaded] Summary activity month select elements not found for population immediately after assignment.");
+        }
+        // --- End Initial Population ---
     })();
 
     // New function to manage rendering of consolidated charts based on dropdowns
@@ -2193,7 +2290,190 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
     // --- End new function ---
-}); 
+
+    // --- New Activity Visualization Functions ---
+    function renderActivityVisualization(user, gridId, options) { 
+        const gridContainer = document.getElementById(gridId);
+
+        if (!gridContainer) {
+            console.warn(`[renderActivityVisualization] Grid element not found for user: ${user}, gridId: ${gridId}`);
+            return;
+        }
+        gridContainer.innerHTML = ''; // Clear previous grid
+        gridContainer.style.display = 'flex'; 
+        gridContainer.style.justifyContent = 'center'; 
+        gridContainer.style.overflowX = 'auto'; 
+        gridContainer.style.padding = '5px 0'; 
+        gridContainer.style.position = 'relative'; // New: for stacking context
+        gridContainer.style.zIndex = '1'; // New: to lift above card's direct background/padding
+
+
+        let year, month; // For single month view
+        let isSingleMonthView = false;
+
+        if (options && options.targetDate instanceof Date) {
+            year = options.targetDate.getFullYear();
+            month = options.targetDate.getMonth(); // Already 0-indexed
+            isSingleMonthView = true;
+        } else if (options && typeof options.displayMonths === 'number' && options.displayMonths > 0) { // More specific check, allows displayMonths: 1 for single month view if needed
+            // Multi-week view, or potentially a single month view if displayMonths === 1 and no targetDate
+            if (options.displayMonths === 1 && !(options.targetDate)) {
+                // If displayMonths is 1 and no targetDate, treat as current month single view
+                const today = new Date();
+                year = today.getFullYear();
+                month = today.getMonth();
+                isSingleMonthView = true;
+            } else if (options.displayMonths > 1) {
+                 isSingleMonthView = false; // Multi-week view
+            } else {
+                 // This case (e.g. displayMonths = 0 or negative) would fall through to the final error else
+                 // To be safe, explicitly set to false or handle as error if necessary
+                 isSingleMonthView = false; // Default to multi-week if displayMonths is not > 1 and not specifically 1 for single view
+            }
+        } else {
+            console.error("Invalid or missing options for renderActivityVisualization. Expected targetDate or displayMonths (as a positive number)."); // LINE 2254
+            if (gridContainer) gridContainer.innerHTML = '<p style="color:red;">Error: Could not load activity data.</p>';
+            return;
+        }
+
+        if (isSingleMonthView) { // Current month view (Summary Tab) or selected month
+            // const today = new Date(); // Not needed if year/month are passed
+            // const currentMonth = today.getMonth(); // Use passed month
+            // const currentYear = today.getFullYear(); // Use passed year
+
+            const monthGrid = document.createElement('div');
+            monthGrid.style.display = 'grid';
+            monthGrid.style.gridTemplateRows = `repeat(7, 30px)`; 
+            monthGrid.style.gridTemplateColumns = `repeat(5, 30px)`; // Max 5 columns for a month view for now
+            monthGrid.style.gridAutoFlow = 'column'; 
+            monthGrid.style.gap = '5px';
+
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDayOfWeekOfMonth = new Date(year, month, 1).getDay(); // 0 for Sunday
+
+            const userRunsThisMonth = runs.filter(run =>
+                run.user === user &&
+                new Date(run.date).getFullYear() === year &&
+                new Date(run.date).getMonth() === month
+            );
+            const dailyDistances = {};
+            userRunsThisMonth.forEach(run => {
+                const dayOfMonth = new Date(run.date).getDate();
+                dailyDistances[dayOfMonth] = (dailyDistances[dayOfMonth] || 0) + parseFloat(run.distance);
+            });
+
+            let dayCounter = 1;
+            let addedCells = 0;
+            // Max cells for a 5-column, 7-row grid is 35
+            for (let cell = 0; cell < 5 * 7; cell++) { 
+                const square = document.createElement('div');
+                square.classList.add('activity-square');
+                square.style.width = '30px'; 
+                square.style.height = '30px';
+
+                // Calculate current position in conceptual grid to map to day
+                const currentCol = Math.floor(cell / 7);
+                const currentRow = cell % 7;
+
+                if (currentRow === 0) { // It's a Sunday
+                    square.classList.add('sunday-square');
+                }
+
+                if ((currentCol === 0 && currentRow < firstDayOfWeekOfMonth) || dayCounter > daysInMonth) {
+                    square.classList.add('empty');
+                    square.style.border = 'none'; 
+                    square.style.background = 'transparent';
+                } else {
+                    const distanceRan = dailyDistances[dayCounter] || 0;
+                    if (distanceRan > 0) {
+                        let intensityClass = '';
+                        if (distanceRan >= 10) intensityClass = 'has-run-very-high';
+                        else if (distanceRan >= 7) intensityClass = 'has-run-high';
+                        else if (distanceRan >= 4) intensityClass = 'has-run-medium';
+                        else intensityClass = 'has-run-low';
+                        square.classList.add(intensityClass);
+                    }
+                    const tooltip = document.createElement('span');
+                    tooltip.classList.add('tooltip');
+                    const runDate = new Date(year, month, dayCounter);
+                    const dateString = runDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric'});
+                    tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
+                    square.appendChild(tooltip);
+                    dayCounter++;
+                }
+                monthGrid.appendChild(square);
+                addedCells++;
+                if (dayCounter > daysInMonth && addedCells % 7 === 0) break; // Optimization: stop if month is done and week is filled
+            }
+            gridContainer.appendChild(monthGrid);
+
+        } else { // Multi-week continuous horizontal view (Jason/Kelvin Tabs)
+            const numWeeksToShow = 29; // Changed from 22 to 26
+            const today = new Date();
+            today.setHours(0,0,0,0); // Normalize today for accurate comparison
+
+            let startDate = new Date(today);
+            startDate.setDate(today.getDate() - ( (numWeeksToShow -1) * 7) - today.getDay() );
+            startDate.setHours(0,0,0,0); 
+            
+            const yearGrid = document.createElement('div');
+            yearGrid.style.display = 'grid';
+            yearGrid.style.gridTemplateRows = `repeat(7, 30px)`; 
+            yearGrid.style.gridTemplateColumns = `repeat(${numWeeksToShow}, 30px)`; 
+            yearGrid.style.gridAutoFlow = 'column'; 
+            yearGrid.style.gap = '5px';
+
+            const userRunsAll = runs.filter(run => run.user === user);
+            const dailyDistancesMap = new Map();
+            userRunsAll.forEach(run => {
+                const dateKey = run.date; 
+                dailyDistancesMap.set(dateKey, (dailyDistancesMap.get(dateKey) || 0) + parseFloat(run.distance));
+            });
+
+            let currentDateInGrid = new Date(startDate);
+
+            for (let i = 0; i < numWeeksToShow * 7; i++) {
+                const square = document.createElement('div');
+                square.classList.add('activity-square');
+                square.style.width = '30px'; 
+                square.style.height = '30px';
+
+                // Normalize currentDateInGrid for comparison with today
+                let dateForSquare = new Date(currentDateInGrid);
+                dateForSquare.setHours(0,0,0,0);
+
+                if (dateForSquare.getDay() === 0) { // It's a Sunday (0 for Sunday)
+                    square.classList.add('sunday-square');
+                }
+
+                if (dateForSquare > today) { 
+                    square.classList.add('empty', 'future');
+                    square.style.visibility = 'hidden'; 
+                } else {
+                    const dateKey = `${dateForSquare.getFullYear()}-${String(dateForSquare.getMonth() + 1).padStart(2, '0')}-${String(dateForSquare.getDate()).padStart(2, '0')}`;
+                    const distanceRan = dailyDistancesMap.get(dateKey) || 0;
+
+                    if (distanceRan > 0) {
+                        let intensityClass = '';
+                        if (distanceRan >= 10) intensityClass = 'has-run-very-high';
+                        else if (distanceRan >= 7) intensityClass = 'has-run-high';
+                        else if (distanceRan >= 4) intensityClass = 'has-run-medium';
+                        else intensityClass = 'has-run-low';
+                        square.classList.add(intensityClass);
+                    }
+                    const tooltip = document.createElement('span');
+                    tooltip.classList.add('tooltip');
+                    const dateString = dateForSquare.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
+                    tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
+                    square.appendChild(tooltip);
+                }
+                yearGrid.appendChild(square);
+                currentDateInGrid.setDate(currentDateInGrid.getDate() + 1); // Increment for the next square
+            }
+            gridContainer.appendChild(yearGrid);
+        }
+     }
+     // --- End New Activity Visualization Functions ---
 
 function calculateUserStats() {
     // This function mirrors the data gathering part of updateStatistics for the stats table
@@ -2249,3 +2529,97 @@ function calculateUserStats() {
         }
     ];
 } 
+
+    // --- Assign Summary Activity Visualization Elements ---
+    jasonSummaryActivityTitleEl = document.getElementById('jasonSummaryActivityTitle');
+    jasonSummaryActivityMonthSelectEl = document.getElementById('jasonSummaryActivityMonthSelect');
+    jasonSummaryActivityGridEl = document.getElementById('jasonSummaryActivityGrid'); // Though gridEl itself isn't directly manipulated here, good to have selector if needed
+
+    kelvinSummaryActivityTitleEl = document.getElementById('kelvinSummaryActivityTitle');
+    kelvinSummaryActivityMonthSelectEl = document.getElementById('kelvinSummaryActivityMonthSelect');
+    kelvinSummaryActivityGridEl = document.getElementById('kelvinSummaryActivityGrid');
+    // --- End Assignment ---
+
+    // --- Helper function to populate month/year selects ---
+    function populateSummaryActivityMonthSelects() {
+        const selects = [
+            { el: jasonSummaryActivityMonthSelectEl, user: 'Jason' },
+            { el: kelvinSummaryActivityMonthSelectEl, user: 'Kelvin' }
+        ];
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-indexed
+
+        selects.forEach(item => {
+            if (!item.el) return;
+            item.el.innerHTML = ''; // Clear existing options
+
+            // Start from January (0) up to current month
+            for (let month = 0; month <= currentMonth; month++) {
+                const date = new Date(currentYear, month, 1);
+                const option = document.createElement('option');
+                option.value = `${currentYear}-${String(month + 1).padStart(2, '0')}`; // YYYY-MM (1-indexed month for value)
+                option.textContent = date.toLocaleString('default', { month: 'long' });
+                item.el.appendChild(option);
+            }
+            // Set default to current month
+            const defaultValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+            console.log(`[populateSummaryActivityMonthSelects] Attempting to set default value for ${item.user} to: '${defaultValue}'`);
+            item.el.value = defaultValue;
+            // Verify if the value was actually set
+            if (item.el.value !== defaultValue) {
+                console.warn(`[populateSummaryActivityMonthSelects] Default value '${defaultValue}' for ${item.user} was not set. Current select value: '${item.el.value}'. Forcing selection of first option if available.`);
+                if (item.el.options.length > 0) {
+                    item.el.selectedIndex = 0;
+                    console.log(`[populateSummaryActivityMonthSelects] Fallback: Set ${item.user} selectedIndex to 0. New value: '${item.el.value}'`);
+                }
+            } else {
+                console.log(`[populateSummaryActivityMonthSelects] Successfully set default value for ${item.user} to: '${item.el.value}'`);
+            }
+        });
+    }
+    // --- End helper function ---
+
+    // --- New function to update specific summary activity visualization ---
+    function updateSummaryActivityVisualization(user) {
+
+        console.log('updateSummaryActivityVisualization called for user:', user);
+        let titleEl, selectEl, gridId;
+        console.log('updateSummaryActivityVisualization called for user:', user);
+        if (user === 'Jason') {
+            titleEl = jasonSummaryActivityTitleEl;
+            selectEl = jasonSummaryActivityMonthSelectEl;
+            gridId = 'jasonSummaryActivityGrid';
+        } else if (user === 'Kelvin') {
+            titleEl = kelvinSummaryActivityTitleEl;
+            selectEl = kelvinSummaryActivityMonthSelectEl;
+            gridId = 'kelvinSummaryActivityGrid';
+        } else {
+            return; // Should not happen
+        }
+
+        if (!titleEl || !selectEl) {
+            console.warn(`[updateSummaryActivityVisualization] Missing elements for ${user}`);
+            return;
+        }
+
+        console.log(`[updateSummaryActivityVisualization] Select element for ${user}:`, selectEl);
+        const selectedValue = selectEl.value;
+        console.log(`[updateSummaryActivityVisualization] Selected value for ${user}: '${selectedValue}'`);
+
+        const [yearStr, monthStr] = selectedValue.split('-');
+        console.log(`[updateSummaryActivityVisualization] Parsed yearStr: '${yearStr}', monthStr: '${monthStr}' for ${user}`);
+
+        const year = parseInt(yearStr);
+        const month = parseInt(monthStr) - 1; // Convert to 0-indexed for Date object
+        console.log(`[updateSummaryActivityVisualization] Parsed year: ${year}, month (0-indexed): ${month} for ${user}`);
+
+        const displayDate = new Date(year, month, 1);
+        console.log(`[updateSummaryActivityVisualization] displayDate object for ${user}:`, displayDate);
+
+        titleEl.textContent = `${user}'s Activity - ${displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+        
+        renderActivityVisualization(user, gridId, { targetDate: displayDate });
+    }
+    // --- End new function ---
+}); 

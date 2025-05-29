@@ -199,9 +199,25 @@
         margin-bottom: 20px;
     }
 
+    /* Make dual activity cards stack on mobile */
+    .dual-activity-row {
+        flex-direction: column; /* Stack them on smaller screens */
+        gap: 0;
+        margin-bottom: 0;
+    }
+
+    .dual-activity-row > .content-card {
+        margin-bottom: 20px;
+    }
+
     /* Hide specific table columns on mobile */
     .hide-on-mobile {
         display: none !important; /* Use !important to ensure override if needed */
+    }
+
+    /* Hide activity visualization on mobile */
+    .activity-visualization-card.hidden-on-mobile {
+        display: none !important;
     }
 
     /* ----- Settings Card Row Responsive Adjustments ----- */

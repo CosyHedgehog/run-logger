@@ -157,7 +157,7 @@ tbody tr:hover {
 #runsDisplaySummary,
 #runsDisplayJason,
 #runsDisplayKelvin {
-    max-height: 77vh; /* Estimated for header + ~10 rows */
+    max-height: 50vh; /* Reduced max-height to fit activity viz */
     overflow-y: auto;
     display: block; /* To ensure max-height is respected properly */
     position: relative; /* Ensures that absolutely positioned elements within (like sort arrows) are relative to this container if needed, though th is currently relative */
@@ -187,3 +187,17 @@ tbody tr:hover {
     /* Optionally, add a background or slightly different style on hover for clarity */
     /* background-color: var(--table-row-hover-bg); */ 
 /* } */ 
+
+/* Specific max-height for user tables in their tabs */
+#runsDisplayJason,
+#runsDisplayKelvin {
+    max-height: 40vh; /* Reduced height for these specific tables */
+}
+
+/* No Data Message */
+.no-data-message td {
+    text-align: center !important;
+    padding: 20px !important;
+    color: var(--secondary-color);
+    font-style: italic;
+} 

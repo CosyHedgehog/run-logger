@@ -198,6 +198,16 @@
     flex-grow: 1; /* This pane should grow */
 }
 
+/* Remove card-like styling from Jason and Kelvin tab panes */
+#jason.tab-pane,
+#kelvin.tab-pane {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important; 
+    border-radius: 0 !important; /* If there was any */
+    /* Margin might still be desired from #tabContent or .tab-pane general rules */
+}
+
 #runsDisplayJason,
 #runsDisplayKelvin {
     flex-grow: 1; /* The table container should grow within the pane */

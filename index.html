@@ -159,6 +159,27 @@
                     </div>
                 </div>
 
+                <div class="dual-activity-row"> 
+                    <div class="content-card activity-visualization-card">
+                        <div class="chart-header-with-select">
+                            <h2 id="jasonSummaryActivityTitle">Jason's Activity</h2>
+                            <select id="jasonSummaryActivityMonthSelect" class="chart-period-select"></select>
+                        </div>
+                        <div id="jasonSummaryActivityGrid" class="activity-grid">
+                            <!-- Jason's activity squares will be generated here by JS -->
+                        </div>
+                    </div>
+                    <div class="content-card activity-visualization-card">
+                        <div class="chart-header-with-select">
+                            <h2 id="kelvinSummaryActivityTitle">Kelvin's Activity</h2>
+                            <select id="kelvinSummaryActivityMonthSelect" class="chart-period-select"></select>
+                        </div>
+                        <div id="kelvinSummaryActivityGrid" class="activity-grid">
+                            <!-- Kelvin's activity squares will be generated here by JS -->
+                        </div>
+                    </div>
+                </div>
+
                 <div class="dual-chart-row">
                     <div class="content-card">
                         <div class="chart-header-with-select">
@@ -236,24 +257,32 @@
                         <button class="showLogRunFormBtn tab-specific-log-btn" data-user="Jason">Log Run</button>
                     </div>
                 </div>
-                <div id="runsDisplayJason">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="sortable-header" data-column="date">Date <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
-                                <th class="sortable-header" data-column="type">Type <span></span></th>
-                                <th class="sortable-header" data-column="time">Time <span></span></th>
-                                <th class="sortable-header" data-column="mph">MPH <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>
-                                <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="notes">Notes <span></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="runsTableBodyJason">
-                            <!-- Jason's run data will be inserted here -->
-                        </tbody>
-                    </table>
+                
+                <div class="content-card">
+                    <div id="runsDisplayJason">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-column="date">Date <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
+                                    <th class="sortable-header" data-column="type">Type <span></span></th>
+                                    <th class="sortable-header" data-column="time">Time <span></span></th>
+                                    <th class="sortable-header" data-column="mph">MPH <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>
+                                    <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="notes">Notes <span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="runsTableBodyJason">
+                                <!-- Jason's run data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="content-card activity-visualization-card hidden-on-mobile">
+                    <div class="activity-grid" id="jasonTabActivityGrid">
+                        <!-- Jason's tab-specific activity squares -->
+                    </div>
                 </div>
                  <!-- Potentially Jason-specific stats/graphs here -->
             </div>
@@ -273,26 +302,34 @@
                         <button class="showLogRunFormBtn tab-specific-log-btn" data-user="Kelvin">Log Run</button>
                     </div>
                 </div>
-                <div id="runsDisplayKelvin">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th class="sortable-header" data-column="date">Date <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
-                                <th class="sortable-header" data-column="type">Type <span></span></th>
-                                <th class="sortable-header" data-column="time">Time <span></span></th>
-                                <th class="sortable-header" data-column="mph">MPH <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>
-                                <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="bpm">BPM <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="plus1">+1 <span></span></th>
-                                <th class="sortable-header hide-on-mobile" data-column="delta">Δ <span></span></th>
-                            </tr>
-                        </thead>
-                        <tbody id="runsTableBodyKelvin">
-                            <!-- Kelvin's run data will be inserted here -->
-                        </tbody>
-                    </table>
+                
+                <div class="content-card">
+                    <div id="runsDisplayKelvin">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th class="sortable-header" data-column="date">Date <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="day">Day <span></span></th>
+                                    <th class="sortable-header" data-column="type">Type <span></span></th>
+                                    <th class="sortable-header" data-column="time">Time <span></span></th>
+                                    <th class="sortable-header" data-column="mph">MPH <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="kph">Km/hr <span></span></th>
+                                    <th class="sortable-header" data-column="distance">Distance (Km) <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="bpm">BPM <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="plus1">+1 <span></span></th>
+                                    <th class="sortable-header hide-on-mobile" data-column="delta">Δ <span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="runsTableBodyKelvin">
+                                <!-- Kelvin's run data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="content-card activity-visualization-card hidden-on-mobile">
+                    <div class="activity-grid" id="kelvinTabActivityGrid">
+                        <!-- Kelvin's tab-specific activity squares -->
+                    </div>
                 </div>
                 <!-- Potentially Kelvin-specific stats/graphs here -->
             </div>
