@@ -2436,7 +2436,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             monthGrid.style.gridTemplateRows = `repeat(7, 30px)`;
             monthGrid.style.gridTemplateColumns = `repeat(5, 30px)`; // Max 5 columns for a month view for now
             monthGrid.style.gridAutoFlow = 'column';
-            monthGrid.style.gap = '5px';
+            monthGrid.style.gap = '3px';
 
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDayOfWeekOfMonth = new Date(year, month, 1).getDay(); // 0 for Sunday
@@ -2486,7 +2486,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                     const tooltip = document.createElement('span');
                     tooltip.classList.add('tooltip');
                     const runDate = new Date(year, month, dayCounter);
-                    const dateString = runDate.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const dateString = runDate.toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
                     tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
                     square.appendChild(tooltip);
                     dayCounter++;
@@ -2501,23 +2501,31 @@ document.addEventListener('DOMContentLoaded', async() => {
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Normalize today for accurate comparison
 
-            if (!runsForViz || runsForViz.length === 0) {
-                gridContainer.innerHTML = '<p style="text-align: center; color: var(--card-subtle-text-color);">No activity data to display.</p>';
+            // Determine grid structure based on the user's *entire* history, not just filtered runsForViz
+            const allUserRunsUnfiltered = runs.filter(run => run.user === user);
+
+            if (!allUserRunsUnfiltered || allUserRunsUnfiltered.length === 0) {
+                gridContainer.innerHTML = '<p style="text-align: center; color: var(--card-subtle-text-color);">No activity data to display for this user.</p>';
                 return;
             }
 
-            // Sort runs by date to find the earliest
-            const sortedRuns = [...runsForViz].sort((a, b) => new Date(a.date) - new Date(b.date));
-            const earliestRunDate = new Date(sortedRuns[0].date);
+            // Sort all unfiltered runs to find the absolute earliest for grid structure
+            const sortedAllUserRuns = [...allUserRunsUnfiltered].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const earliestRunDateForGridStructure = new Date(sortedAllUserRuns[0].date);
 
-            let startDate = new Date(earliestRunDate);
+            let startDate = new Date(earliestRunDateForGridStructure);
             startDate.setDate(startDate.getDate() - startDate.getDay()); // Set to Sunday of that week
             startDate.setHours(0, 0, 0, 0); // Normalize startDate
 
-            // Calculate the number of weeks to show
             const dayDifference = (today - startDate) / (1000 * 60 * 60 * 24);
-            let numWeeksToShow = Math.ceil((dayDifference + 1) / 7); // Add 1 to include the current day, then divide and ceil
-            numWeeksToShow = Math.max(1, numWeeksToShow); // Ensure at least 1 week is shown, even if the first run is today
+            let numWeeksToShow = Math.ceil((dayDifference + 1) / 7); 
+            numWeeksToShow = Math.max(1, numWeeksToShow); 
+
+            // The runsForViz (which is already filtered by table criteria) is used for highlighting below
+            if (!runsForViz || runsForViz.length === 0) {
+                // If, after filtering, there are no runs to highlight, still render the grid structure
+                // but no squares will be green.
+            }
 
             const yearGrid = document.createElement('div');
             yearGrid.style.display = 'grid';
@@ -2526,10 +2534,10 @@ document.addEventListener('DOMContentLoaded', async() => {
             yearGrid.style.gridAutoFlow = 'column';
             yearGrid.style.gap = '5px';
 
-            const userRunsAll = runsForViz; // Use the defaulted runsForViz
-
+            // const userRunsAll = runsForViz; // OLD: This was already the filtered list for highlighting
+            // For highlighting, we use runsForViz. For grid structure, we used allUserRunsUnfiltered above.
             const dailyDistancesMap = new Map();
-            userRunsAll.forEach(run => {
+            runsForViz.forEach(run => { // Iterate over the FILTERED runsForViz for highlighting
                 const dateKey = run.date;
                 dailyDistancesMap.set(dateKey, (dailyDistancesMap.get(dateKey) || 0) + parseFloat(run.distance));
             });
@@ -2549,6 +2557,14 @@ document.addEventListener('DOMContentLoaded', async() => {
                     square.classList.add('sunday-square');
                 }
 
+                // Add month indicator if it's the 1st of the month
+                if (dateForSquare.getDate() === 1) {
+                    const monthIndicator = document.createElement('div');
+                    monthIndicator.classList.add('month-indicator');
+                    monthIndicator.textContent = dateForSquare.toLocaleDateString('en-GB', { month: 'short' });
+                    square.appendChild(monthIndicator); // Append to square, CSS will position it
+                }
+
                 if (dateForSquare > today) {
                     square.classList.add('empty', 'future');
                     square.style.visibility = 'hidden'; 
@@ -2566,7 +2582,7 @@ document.addEventListener('DOMContentLoaded', async() => {
                     }
                     const tooltip = document.createElement('span');
                     tooltip.classList.add('tooltip');
-                    const dateString = dateForSquare.toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric' });
+                    const dateString = dateForSquare.toLocaleDateString('en-GB', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
                     tooltip.textContent = distanceRan > 0 ? `${dateString}: ${distanceRan.toFixed(2)} km` : `${dateString}: No runs`;
                     square.appendChild(tooltip);
                 }

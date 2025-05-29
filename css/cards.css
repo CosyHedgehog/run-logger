@@ -533,6 +533,8 @@ canvas {
     transition: opacity 0.3s;
     white-space: nowrap;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-size: 1.2em;
+    font-weight: bold;
 }
 
 .activity-square:hover .tooltip {
@@ -601,4 +603,22 @@ html.dark-mode .activity-square .tooltip {
 .activity-square.sunday-square .tooltip {
     bottom: auto;
     top: 115%;
+}
+
+/* Styles for Month Indicator on Activity Squares */
+.activity-square .month-indicator {
+    position: absolute;
+    font-size: 1em;
+    font-weight: bold;
+    color: var(--card-subtle-text-color);
+    padding: 1px 3px;
+    /* background-color: var(--card-bg); Optional: if background needed */
+    /* border-radius: 2px; Optional */
+    white-space: nowrap;
+    z-index: 1; /* Below tooltip but above square's direct content if any */
+}
+
+/* Adjust tooltip if month indicator is present to avoid overlap */
+.activity-square:has(.month-indicator) .tooltip {
+    bottom: 135%; /* Push tooltip further up if month indicator is there */
 } 
