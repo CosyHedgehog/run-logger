@@ -1097,42 +1097,38 @@ document.addEventListener('DOMContentLoaded', async() => {
         }
 
         // For Jason's Table
+        let jasonRunsForTable = []; // Initialize for broader scope
         const jasonEntryCountEl = document.getElementById('jasonEntryCount');
         if (runsTableBodyJason) {
-            let jasonRunsToRender = runs.filter(run => run.user === 'Jason');
-            // Apply type filter for Jason - NOW HANDLED BY applyAllFilters
-            // const jasonFilter = document.getElementById('jasonTypeFilter');
-            // if (jasonFilter && jasonFilter.value !== 'all') {
-            //     jasonRunsToRender = jasonRunsToRender.filter(run => run.type === jasonFilter.value);
-            // }
-            jasonRunsToRender = applyAllFilters(jasonRunsToRender, 'Jason');
-            sortTableByColumn(runsTableBodyJason, 'date', jasonRunsToRender, false, 'desc');
+            let initialJasonRuns = runs.filter(run => run.user === 'Jason');
+            jasonRunsForTable = applyAllFilters(initialJasonRuns, 'Jason'); // Assign to the broader scoped variable
+            sortTableByColumn(runsTableBodyJason, 'date', jasonRunsForTable, false, 'desc');
             if (jasonEntryCountEl) {
-                jasonEntryCountEl.textContent = ` (${jasonRunsToRender.length} entries)`;
+                jasonEntryCountEl.textContent = ` (${jasonRunsForTable.length} entries)`;
             }
         }
 
         // For Kelvin's Table
+        let kelvinRunsForTable = []; // Initialize for broader scope
         const kelvinEntryCountEl = document.getElementById('kelvinEntryCount');
         if (runsTableBodyKelvin) {
-            let kelvinRunsToRender = runs.filter(run => run.user === 'Kelvin');
-            // Apply type filter for Kelvin - NOW HANDLED BY applyAllFilters
-            // const kelvinFilter = document.getElementById('kelvinTypeFilter');
-            // if (kelvinFilter && kelvinFilter.value !== 'all') {
-            //     kelvinRunsToRender = kelvinRunsToRender.filter(run => run.type === kelvinFilter.value);
-            // }
-            kelvinRunsToRender = applyAllFilters(kelvinRunsToRender, 'Kelvin');
-            sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsToRender, false, 'desc');
+            let initialKelvinRuns = runs.filter(run => run.user === 'Kelvin');
+            kelvinRunsForTable = applyAllFilters(initialKelvinRuns, 'Kelvin'); // Assign to the broader scoped variable
+            sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsForTable, false, 'desc');
             if (kelvinEntryCountEl) {
-                kelvinEntryCountEl.textContent = ` (${kelvinRunsToRender.length} entries)`;
+                kelvinEntryCountEl.textContent = ` (${kelvinRunsForTable.length} entries)`;
             }
         }
 
         // Update activity visualizations if on the respective tabs
         if (activeTab === 'jason') {
-            renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
+            if (runsTableBodyJason) { // Check element existence
+                 renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 }, jasonRunsForTable);
+            }
         } else if (activeTab === 'kelvin') {
-            renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
+            if (runsTableBodyKelvin) { // Check element existence
+                renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 }, kelvinRunsForTable);
+            }
         }
     }
 
@@ -1801,8 +1797,8 @@ document.addEventListener('DOMContentLoaded', async() => {
             updateStatistics();
             // renderActivityVisualization('Jason', 'jasonTabActivityGrid', 5); // Always update 5 months for tab view - OLD
             // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', 5); // Always update 5 months for tab view - OLD
-            renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
-            renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
+            // renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 }); // REMOVED - handled by renderAllRuns
+            // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 }); // REMOVED - handled by renderAllRuns
         } else {
             console.error('renderAllRuns or updateStatistics is not available in dataChanged event listener scope');
         }
@@ -1938,8 +1934,8 @@ document.addEventListener('DOMContentLoaded', async() => {
         // Also render tab-specific visualizations on initial load
         // renderActivityVisualization('Jason', 'jasonTabActivityGrid', 5); // Initial load for tab view (5 months) - OLD
         // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', 5); // Initial load for tab view (5 months) - OLD
-        renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 });
-        renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 });
+        // renderActivityVisualization('Jason', 'jasonTabActivityGrid', { displayMonths: 5 }); // REMOVED - handled by renderAllRuns
+        // renderActivityVisualization('Kelvin', 'kelvinTabActivityGrid', { displayMonths: 5 }); // REMOVED - handled by renderAllRuns
 
         // Add event listeners for the new filters (REMOVED)
         // const jasonTypeFilter = document.getElementById('jasonTypeFilter');
@@ -1972,6 +1968,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             }
         }
         updateMasterPasswordStatus(); // Also call here after everything is loaded
+        setupFilterCountClickListeners(); // Call to set up listeners after DOM is ready
 
         // --- Initial Population and Setup for Summary Activity Visualizations ---
         // Moved this block earlier to ensure dropdowns are populated before use.
@@ -2206,21 +2203,65 @@ document.addEventListener('DOMContentLoaded', async() => {
     // --- New function to update filter count display ---
     function updateFilterCountDisplay(user) {
         const filterCountSpan = document.querySelector(`.filter-count-display[data-user="${user}"]`);
-        if (!filterCountSpan) return;
+        // if (!filterCountSpan) return; // Original check
+
+        // New: Target the anchor tag wrapping the span
+        const filterCountAnchor = document.querySelector(`a.filter-count-clear[data-user="${user}"]`);
+        if (!filterCountAnchor) return;
 
         const userSpecificFilters = currentFilters[user] || {};
         const count = Object.keys(userSpecificFilters).length;
 
+        const displaySpan = filterCountAnchor.querySelector('span.filter-count-text'); // Get the span inside the anchor
+
         if (count > 0) {
-            filterCountSpan.textContent = `(${count} filter${count > 1 ? 's' : ''})`;
+            // filterCountSpan.textContent = `(${count} filter${count > 1 ? 's' : ''})`; // Original
+            if (displaySpan) displaySpan.textContent = `(${count} filter${count > 1 ? 's' : ''})`;
+            filterCountAnchor.title = "Click to reset filters";
+            filterCountAnchor.style.display = 'inline-flex'; // Ensure it's visible
         } else {
-            filterCountSpan.textContent = ''; // Clear text if no filters
+            // filterCountSpan.textContent = ''; // Original
+            if (displaySpan) displaySpan.textContent = '';
+            filterCountAnchor.title = "";
+            filterCountAnchor.style.display = 'none'; // Hide if no filters
         }
     }
     // --- End new function ---
 
+    // --- Event listener for clearing filters via count display click ---
+    function setupFilterCountClickListeners() {
+        const filterClearLinks = document.querySelectorAll('a.filter-count-clear');
+        filterClearLinks.forEach(link => {
+            // Remove existing listener to prevent duplicates if this function is ever called again
+            // Though in the current setup, it's called once. Good practice for future.
+            const newLink = link.cloneNode(true);
+            link.parentNode.replaceChild(newLink, link);
+
+            newLink.addEventListener('click', (event) => {
+                event.preventDefault(); // Prevent default anchor behavior
+                console.log("Filter count link clicked for user:", event.currentTarget.dataset.user); // Debug log
+                const user = event.currentTarget.dataset.user;
+                if (user) {
+                    currentFilters[user] = {}; // Clear filters for this user
+
+                    // If the filter modal is currently open AND active for THIS user, reset its form fields.
+                    if (gFilterModalContainer && gFilterModalContainer.classList.contains('visible') &&
+                        filterForm && activeFilterUser === user) {
+                        filterForm.reset();
+                    }
+
+                    renderAllRuns(); // Re-render tables
+                    updateFilterCountDisplay(user); // Update this user's count display
+                }
+            });
+        });
+    }
+    // --- End event listener for clearing filters ---
+
     // --- New Activity Visualization Functions ---
-    function renderActivityVisualization(user, gridId, options) {
+    function renderActivityVisualization(user, gridId, options, userSpecificRuns) {
+        const runsForViz = userSpecificRuns || []; // Default to empty array if undefined
+
         const gridContainer = document.getElementById(gridId);
 
         if (!gridContainer) {
@@ -2279,8 +2320,8 @@ document.addEventListener('DOMContentLoaded', async() => {
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDayOfWeekOfMonth = new Date(year, month, 1).getDay(); // 0 for Sunday
 
-            const userRunsThisMonth = runs.filter(run =>
-                run.user === user &&
+            // Use runsForViz instead of userSpecificRuns directly
+            const userRunsThisMonth = runsForViz.filter(run =>
                 new Date(run.date).getFullYear() === year &&
                 new Date(run.date).getMonth() === month
             );
@@ -2351,7 +2392,10 @@ document.addEventListener('DOMContentLoaded', async() => {
             yearGrid.style.gridAutoFlow = 'column';
             yearGrid.style.gap = '5px';
 
-            const userRunsAll = runs.filter(run => run.user === user);
+            // const userRunsAll = runs.filter(run => run.user === user); // OLD: Use passed runs
+            // const userRunsAll = userSpecificRuns; // OLD: direct use
+            const userRunsAll = runsForViz; // NEW: Use the defaulted runsForViz
+
             const dailyDistancesMap = new Map();
             userRunsAll.forEach(run => {
                 const dateKey = run.date;
@@ -2550,6 +2594,9 @@ document.addEventListener('DOMContentLoaded', async() => {
 
         titleEl.textContent = `${user}'s Activity - ${displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
 
-        renderActivityVisualization(user, gridId, { targetDate: displayDate });
+        // For summary tab, we still filter all runs for that user for the selected month.
+        // The pre-filtered userSpecificRuns parameter is primarily for Jason/Kelvin tabs' multi-week view.
+        const runsForSummaryActivity = runs.filter(r => r.user === user);
+        renderActivityVisualization(user, gridId, { targetDate: displayDate }, runsForSummaryActivity);
     }
 });

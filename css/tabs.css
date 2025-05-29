@@ -32,6 +32,28 @@
     align-items: center;
 }
 
+/* New styles for the filter count clear link */
+a.filter-count-clear {
+    /* font-size: 0.8em; */ /* Removed to let span control it */
+    color: var(--text-muted-color);
+    text-decoration: none; /* Remove default underline */
+    cursor: pointer;
+    display: inline-flex; /* or just inline, depending on desired alignment with icon */
+    align-items: center;
+    vertical-align: middle; /* Helps align with adjacent buttons/icons */
+}
+
+a.filter-count-clear:hover {
+    text-decoration: underline; /* Underline on hover */
+    color: var(--primary-color); /* Optional: change color on hover */
+}
+
+/* Ensure the inner span (which has filter-count-display) dictates the size */
+a.filter-count-clear span.filter-count-text {
+    font-size: 0.8em; /* Apply the desired size here */
+    /* color: inherit; */ /* Color is already set on the anchor, span will inherit or can be set specifically */
+}
+
 .tab-specific-log-btn {
     background-color: var(--button-primary-bg);
     color: var(--button-primary-text);
