@@ -443,7 +443,130 @@ document.addEventListener('DOMContentLoaded', async() => {
     console.log("[DOMContentLoaded] Summary activity DOM elements assigned EARLY:", { jasonSummaryActivityMonthSelectEl, kelvinSummaryActivityMonthSelectEl } // Log the elements themselves
     );
 
-    // --- Initial Population and Setup for Summary Activity Visualizations ---
+    // --- Definitions for calculateUserStats, populateSummaryActivityMonthSelects, updateSummaryActivityVisualization ---
+    function calculateUserStats() {
+        const yearForStats = 2025;
+        const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
+
+        let totalDistance2025Jason = 0,
+            totalVisits2025Jason = 0,
+            totalOverallJason = 0,
+            totalVisitsOverallJason = 0;
+        let totalDistance2025Kelvin = 0,
+            totalVisits2025Kelvin = 0,
+            totalOverallKelvin = 0,
+            totalVisitsOverallKelvin = 0;
+
+        runs.forEach(run => {
+            const runDistance = parseFloat(run.distance) || 0;
+
+            if (run.user === 'Jason') {
+                totalOverallJason += runDistance;
+                totalVisitsOverallJason++;
+                if (new Date(run.date).getFullYear() === yearForStats) {
+                    totalDistance2025Jason += runDistance;
+                    totalVisits2025Jason++;
+                }
+            } else if (run.user === 'Kelvin') {
+                totalOverallKelvin += runDistance;
+                totalVisitsOverallKelvin++;
+                if (new Date(run.date).getFullYear() === yearForStats) {
+                    totalDistance2025Kelvin += runDistance;
+                    totalVisits2025Kelvin++;
+                }
+            }
+        });
+
+        const jasonGoal = parseFloat(document.getElementById('goal2025Jason')?.textContent || '1000');
+        const kelvinGoal = parseFloat(document.getElementById('goal2025Kelvin')?.textContent || '500');
+
+        return [{
+                user: "Jason",
+                totalKm: totalOverallJason,
+                totalKm2025: totalDistance2025Jason,
+                visits2025: totalVisits2025Jason,
+                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Jason / daysSoFarIn2025) : 0,
+                goal2025: jasonGoal,
+                percentToGoal2025: jasonGoal > 0 ? (totalDistance2025Jason / jasonGoal) * 100 : 0,
+            },
+            {
+                user: "Kelvin",
+                totalKm: totalOverallKelvin,
+                totalKm2025: totalDistance2025Kelvin,
+                visits2025: totalVisits2025Kelvin,
+                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Kelvin / daysSoFarIn2025) : 0,
+                goal2025: kelvinGoal,
+                percentToGoal2025: kelvinGoal > 0 ? (totalDistance2025Kelvin / kelvinGoal) * 100 : 0,
+            }
+        ];
+    }
+
+    function populateSummaryActivityMonthSelects() {
+        const selects = [
+            { el: jasonSummaryActivityMonthSelectEl, user: 'Jason' },
+            { el: kelvinSummaryActivityMonthSelectEl, user: 'Kelvin' }
+        ];
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth(); // 0-indexed
+
+        selects.forEach(item => {
+            if (!item.el) return;
+            item.el.innerHTML = ''; // Clear existing options
+
+            for (let month = 0; month <= currentMonth; month++) {
+                const date = new Date(currentYear, month, 1);
+                const option = document.createElement('option');
+                option.value = `${currentYear}-${String(month + 1).padStart(2, '0')}`; 
+                option.textContent = date.toLocaleString('default', { month: 'long' });
+                item.el.appendChild(option);
+            }
+            const defaultValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+
+            item.el.value = defaultValue;
+            if (item.el.value !== defaultValue) {
+                console.warn(`[populateSummaryActivityMonthSelects] Default value '${defaultValue}' for ${item.user} was not set. Current select value: '${item.el.value}'. Forcing selection of first option if available.`);
+                if (item.el.options.length > 0) {
+                    item.el.selectedIndex = 0;
+                }
+            } 
+        });
+    }
+
+    function updateSummaryActivityVisualization(user) {
+        let titleEl, selectEl, gridId;
+
+        if (user === 'Jason') {
+            titleEl = jasonSummaryActivityTitleEl;
+            selectEl = jasonSummaryActivityMonthSelectEl;
+            gridId = 'jasonSummaryActivityGrid';
+        } else if (user === 'Kelvin') {
+            titleEl = kelvinSummaryActivityTitleEl;
+            selectEl = kelvinSummaryActivityMonthSelectEl;
+            gridId = 'kelvinSummaryActivityGrid';
+        } else {
+            return; 
+        }
+
+        if (!titleEl || !selectEl) {
+            console.warn(`[updateSummaryActivityVisualization] Missing elements for ${user}`);
+            return;
+        }
+
+        const selectedValue = selectEl.value;
+        const [yearStr, monthStr] = selectedValue.split('-');
+        const year = parseInt(yearStr);
+        const month = parseInt(monthStr) - 1; 
+
+        const displayDate = new Date(year, month, 1);
+        titleEl.textContent = `${user}'s Activity - ${displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+
+        const runsForSummaryActivity = runs.filter(r => r.user === user);
+        renderActivityVisualization(user, gridId, { targetDate: displayDate }, runsForSummaryActivity);
+    }
+    // --- End Definitions ---
+
+    // --- Initial Population and Setup for Summary Activity Visualizations --- (THIS BLOCK ALREADY EXISTS AND CALLS THE FUNCTIONS ABOVE)
     // This block MUST run before the IIFE that uses the select values.
     if (jasonSummaryActivityMonthSelectEl && kelvinSummaryActivityMonthSelectEl) {
         populateSummaryActivityMonthSelects(); // Populates and sets default value
@@ -2295,8 +2418,6 @@ document.addEventListener('DOMContentLoaded', async() => {
             } else if (options.displayMonths > 1) {
                 isSingleMonthView = false; // Multi-week view
             } else {
-                // This case (e.g. displayMonths = 0 or negative) would fall through to the final error else
-                // To be safe, explicitly set to false or handle as error if necessary
                 isSingleMonthView = false; // Default to multi-week if displayMonths is not > 1 and not specifically 1 for single view
             }
         } else {
@@ -2377,24 +2498,35 @@ document.addEventListener('DOMContentLoaded', async() => {
             gridContainer.appendChild(monthGrid);
 
         } else { // Multi-week continuous horizontal view (Jason/Kelvin Tabs)
-            const numWeeksToShow = 29; // Changed from 22 to 26
             const today = new Date();
             today.setHours(0, 0, 0, 0); // Normalize today for accurate comparison
 
-            let startDate = new Date(today);
-            startDate.setDate(today.getDate() - ((numWeeksToShow - 1) * 7) - today.getDay());
-            startDate.setHours(0, 0, 0, 0);
+            if (!runsForViz || runsForViz.length === 0) {
+                gridContainer.innerHTML = '<p style="text-align: center; color: var(--card-subtle-text-color);">No activity data to display.</p>';
+                return;
+            }
+
+            // Sort runs by date to find the earliest
+            const sortedRuns = [...runsForViz].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const earliestRunDate = new Date(sortedRuns[0].date);
+
+            let startDate = new Date(earliestRunDate);
+            startDate.setDate(startDate.getDate() - startDate.getDay()); // Set to Sunday of that week
+            startDate.setHours(0, 0, 0, 0); // Normalize startDate
+
+            // Calculate the number of weeks to show
+            const dayDifference = (today - startDate) / (1000 * 60 * 60 * 24);
+            let numWeeksToShow = Math.ceil((dayDifference + 1) / 7); // Add 1 to include the current day, then divide and ceil
+            numWeeksToShow = Math.max(1, numWeeksToShow); // Ensure at least 1 week is shown, even if the first run is today
 
             const yearGrid = document.createElement('div');
             yearGrid.style.display = 'grid';
             yearGrid.style.gridTemplateRows = `repeat(7, 30px)`;
-            yearGrid.style.gridTemplateColumns = `repeat(${numWeeksToShow}, 30px)`;
+            yearGrid.style.gridTemplateColumns = `repeat(${numWeeksToShow}, 30px)`; // Dynamic columns
             yearGrid.style.gridAutoFlow = 'column';
             yearGrid.style.gap = '5px';
 
-            // const userRunsAll = runs.filter(run => run.user === user); // OLD: Use passed runs
-            // const userRunsAll = userSpecificRuns; // OLD: direct use
-            const userRunsAll = runsForViz; // NEW: Use the defaulted runsForViz
+            const userRunsAll = runsForViz; // Use the defaulted runsForViz
 
             const dailyDistancesMap = new Map();
             userRunsAll.forEach(run => {
@@ -2410,17 +2542,16 @@ document.addEventListener('DOMContentLoaded', async() => {
                 square.style.width = '30px';
                 square.style.height = '30px';
 
-                // Normalize currentDateInGrid for comparison with today
                 let dateForSquare = new Date(currentDateInGrid);
                 dateForSquare.setHours(0, 0, 0, 0);
 
-                if (dateForSquare.getDay() === 0) { // It's a Sunday (0 for Sunday)
+                if (dateForSquare.getDay() === 0) { 
                     square.classList.add('sunday-square');
                 }
 
                 if (dateForSquare > today) {
                     square.classList.add('empty', 'future');
-                    square.style.visibility = 'hidden';
+                    square.style.visibility = 'hidden'; 
                 } else {
                     const dateKey = `${dateForSquare.getFullYear()}-${String(dateForSquare.getMonth() + 1).padStart(2, '0')}-${String(dateForSquare.getDate()).padStart(2, '0')}`;
                     const distanceRan = dailyDistancesMap.get(dateKey) || 0;
@@ -2440,163 +2571,22 @@ document.addEventListener('DOMContentLoaded', async() => {
                     square.appendChild(tooltip);
                 }
                 yearGrid.appendChild(square);
-                currentDateInGrid.setDate(currentDateInGrid.getDate() + 1); // Increment for the next square
+                currentDateInGrid.setDate(currentDateInGrid.getDate() + 1); 
             }
             gridContainer.appendChild(yearGrid);
+
+            // After appending, check for overflow and adjust
+            if (yearGrid.scrollWidth > gridContainer.clientWidth) {
+                gridContainer.style.justifyContent = 'flex-start'; // Align to left if overflowing
+                gridContainer.scrollLeft = yearGrid.scrollWidth; // Scroll to the far right
+            } else {
+                gridContainer.style.justifyContent = 'center'; // Center if not overflowing
+            }
         }
     }
     // --- End New Activity Visualization Functions ---
 
     function calculateUserStats() {
-        // This function mirrors the data gathering part of updateStatistics for the stats table
-        const yearForStats = 2025;
-        const daysSoFarIn2025 = getNumberOfDaysSoFarInYear(yearForStats);
-
-        let totalDistance2025Jason = 0,
-            totalVisits2025Jason = 0,
-            totalOverallJason = 0,
-            totalVisitsOverallJason = 0;
-        let totalDistance2025Kelvin = 0,
-            totalVisits2025Kelvin = 0,
-            totalOverallKelvin = 0,
-            totalVisitsOverallKelvin = 0;
-
-        runs.forEach(run => {
-            const runDistance = parseFloat(run.distance) || 0;
-            // totalDistanceOverall += runDistance; // Not needed for userStats specifically
-
-            if (run.user === 'Jason') {
-                totalOverallJason += runDistance;
-                totalVisitsOverallJason++;
-                if (new Date(run.date).getFullYear() === yearForStats) {
-                    totalDistance2025Jason += runDistance;
-                    totalVisits2025Jason++;
-                }
-            } else if (run.user === 'Kelvin') {
-                totalOverallKelvin += runDistance;
-                totalVisitsOverallKelvin++;
-                if (new Date(run.date).getFullYear() === yearForStats) {
-                    totalDistance2025Kelvin += runDistance;
-                    totalVisits2025Kelvin++;
-                }
-            }
-        });
-
-        const jasonGoal = parseFloat(document.getElementById('goal2025Jason')?.textContent || '1000');
-        const kelvinGoal = parseFloat(document.getElementById('goal2025Kelvin')?.textContent || '500');
-
-        return [{
-                user: "Jason",
-                totalKm: totalOverallJason,
-                totalKm2025: totalDistance2025Jason,
-                visits2025: totalVisits2025Jason,
-                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Jason / daysSoFarIn2025) : 0,
-                goal2025: jasonGoal,
-                percentToGoal2025: jasonGoal > 0 ? (totalDistance2025Jason / jasonGoal) * 100 : 0,
-                // Raw values for sorting if needed, e.g. percentToGoal2025 could be stored raw
-            },
-            {
-                user: "Kelvin",
-                totalKm: totalOverallKelvin,
-                totalKm2025: totalDistance2025Kelvin,
-                visits2025: totalVisits2025Kelvin,
-                avgKmDay2025: daysSoFarIn2025 > 0 ? (totalDistance2025Kelvin / daysSoFarIn2025) : 0,
-                goal2025: kelvinGoal,
-                percentToGoal2025: kelvinGoal > 0 ? (totalDistance2025Kelvin / kelvinGoal) * 100 : 0,
-            }
-        ];
-    }
-
-    // --- Assign Summary Activity Visualization Elements ---
-    jasonSummaryActivityTitleEl = document.getElementById('jasonSummaryActivityTitle');
-    jasonSummaryActivityMonthSelectEl = document.getElementById('jasonSummaryActivityMonthSelect');
-    jasonSummaryActivityGridEl = document.getElementById('jasonSummaryActivityGrid'); // Though gridEl itself isn't directly manipulated here, good to have selector if needed
-
-    kelvinSummaryActivityTitleEl = document.getElementById('kelvinSummaryActivityTitle');
-    kelvinSummaryActivityMonthSelectEl = document.getElementById('kelvinSummaryActivityMonthSelect');
-    kelvinSummaryActivityGridEl = document.getElementById('kelvinSummaryActivityGrid');
-    // --- End Assignment ---
-
-    // --- Helper function to populate month/year selects ---
-    function populateSummaryActivityMonthSelects() {
-        const selects = [
-            { el: jasonSummaryActivityMonthSelectEl, user: 'Jason' },
-            { el: kelvinSummaryActivityMonthSelectEl, user: 'Kelvin' }
-        ];
-        const today = new Date();
-        const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth(); // 0-indexed
-
-        selects.forEach(item => {
-            if (!item.el) return;
-            item.el.innerHTML = ''; // Clear existing options
-
-            // Start from January (0) up to current month
-            for (let month = 0; month <= currentMonth; month++) {
-                const date = new Date(currentYear, month, 1);
-                const option = document.createElement('option');
-                option.value = `${currentYear}-${String(month + 1).padStart(2, '0')}`; // YYYY-MM (1-indexed month for value)
-                option.textContent = date.toLocaleString('default', { month: 'long' });
-                item.el.appendChild(option);
-            }
-            // Set default to current month
-            const defaultValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-
-            item.el.value = defaultValue;
-            // Verify if the value was actually set
-            if (item.el.value !== defaultValue) {
-                console.warn(`[populateSummaryActivityMonthSelects] Default value '${defaultValue}' for ${item.user} was not set. Current select value: '${item.el.value}'. Forcing selection of first option if available.`);
-                if (item.el.options.length > 0) {
-                    item.el.selectedIndex = 0;
-
-                }
-            } else {
-
-            }
-        });
-    }
-
-    function updateSummaryActivityVisualization(user) {
-
-
-        let titleEl, selectEl, gridId;
-
-        if (user === 'Jason') {
-            titleEl = jasonSummaryActivityTitleEl;
-            selectEl = jasonSummaryActivityMonthSelectEl;
-            gridId = 'jasonSummaryActivityGrid';
-        } else if (user === 'Kelvin') {
-            titleEl = kelvinSummaryActivityTitleEl;
-            selectEl = kelvinSummaryActivityMonthSelectEl;
-            gridId = 'kelvinSummaryActivityGrid';
-        } else {
-            return; // Should not happen
-        }
-
-        if (!titleEl || !selectEl) {
-            console.warn(`[updateSummaryActivityVisualization] Missing elements for ${user}`);
-            return;
-        }
-
-
-        const selectedValue = selectEl.value;
-
-
-        const [yearStr, monthStr] = selectedValue.split('-');
-
-
-        const year = parseInt(yearStr);
-        const month = parseInt(monthStr) - 1; // Convert to 0-indexed for Date object
-
-
-        const displayDate = new Date(year, month, 1);
-
-
-        titleEl.textContent = `${user}'s Activity - ${displayDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
-
-        // For summary tab, we still filter all runs for that user for the selected month.
-        // The pre-filtered userSpecificRuns parameter is primarily for Jason/Kelvin tabs' multi-week view.
-        const runsForSummaryActivity = runs.filter(r => r.user === user);
-        renderActivityVisualization(user, gridId, { targetDate: displayDate }, runsForSummaryActivity);
+        // ... existing code ...
     }
 });
