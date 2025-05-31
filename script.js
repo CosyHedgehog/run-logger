@@ -938,7 +938,9 @@ document.addEventListener('DOMContentLoaded', async() => {
             row.insertCell().textContent = run.mph.toFixed(1);
 
             const kphCell = row.insertCell();
-            kphCell.textContent = run.kph.toFixed(3);
+            // kphCell.textContent = run.kph.toFixed(3);
+            const paceMinPerKm = calculateMinPerKm(run.kph);
+            kphCell.textContent = isFinite(paceMinPerKm) ? formatMinutesToMMSS(paceMinPerKm) : '-'; // Display pace in MM:SS
             if (!isSummaryTable) kphCell.classList.add('hide-on-mobile');
 
             const distanceCell = row.insertCell();
@@ -1043,9 +1045,15 @@ document.addEventListener('DOMContentLoaded', async() => {
                     if (isNaN(valBMinutes)) return -1;
                     return valAMinutes - valBMinutes;
                 case 'mph':
-                case 'kph':
                 case 'distance':
                     return parseFloat(valA) - parseFloat(valB);
+                case 'kph': // Now represents Min/Km (lower is faster)
+                    const paceA = calculateMinPerKm(a.kph); // a.kph still stores the raw kph value
+                    const paceB = calculateMinPerKm(b.kph);
+                    if (!isFinite(paceA) && !isFinite(paceB)) return 0;
+                    if (!isFinite(paceA)) return 1; // Infinity (no pace) sorts to the end
+                    if (!isFinite(paceB)) return -1;
+                    return paceA - paceB;
                 case 'bpm':
                 case 'plus1':
                 case 'delta':
@@ -1800,7 +1808,7 @@ document.addEventListener('DOMContentLoaded', async() => {
             date,
             time: timeStringToStore,
             mph: finalMph,
-            kph: parseFloat(finalKph.toFixed(3)),
+            kph: parseFloat(finalKph.toFixed(3)), // kph still stored as km/hr
             distance: parseFloat(finalDistance.toFixed(3)), // Ensure stored distance is a number with 3dp
             type, // Add type here
             bpm,
@@ -2641,6 +2649,11 @@ document.addEventListener('DOMContentLoaded', async() => {
 
     function calculateUserStats() {
         // ... existing code ...
+    }
+
+    function calculateMinPerKm(kph) {
+        if (kph <= 0) return Infinity; // Avoid division by zero and handle non-movement
+        return 60 / kph;
     }
 });
 
