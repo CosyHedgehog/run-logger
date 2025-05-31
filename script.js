@@ -2673,6 +2673,4 @@ function addHorizontalScrollWithMouseWheel(elementId) {
 document.addEventListener('DOMContentLoaded', async () => {
     addHorizontalScrollWithMouseWheel('jasonTabActivityGrid');
     addHorizontalScrollWithMouseWheel('kelvinTabActivityGrid');
-    addHorizontalScrollWithMouseWheel('jasonSummaryActivityGrid');
-    addHorizontalScrollWithMouseWheel('kelvinSummaryActivityGrid');
 });
