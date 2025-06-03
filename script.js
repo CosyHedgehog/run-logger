@@ -642,7 +642,7 @@ document.addEventListener('DOMContentLoaded', async() => {
         } else if (activeCalculatorInput === 'distance') {
             if (!isNaN(distanceKm) && distanceKm > 0) {
                 const calculatedMph = calculateMph(timeMinutes, distanceKm);
-                mphInput.value = calculatedMph.toFixed(1);
+                mphInput.value = calculatedMph.toFixed(3);
             } else if (document.activeElement === distanceInput && distanceInput.value === '') {
                 mphInput.value = ''; // Clear MPH if distance is focused and cleared
             }
@@ -1224,29 +1224,46 @@ document.addEventListener('DOMContentLoaded', async() => {
         // For Summary Table
         if (runsTableBodySummary) {
             let summaryRunsToRender = [...runs];
-            // Explicitly call with 'date' and 'desc' for initial sort
-            sortTableByColumn(runsTableBodySummary, 'date', summaryRunsToRender, true, 'desc');
+            const currentSortCol = runsTableBodySummary.dataset.sortColumn;
+            const currentSortDir = runsTableBodySummary.dataset.sortDirection;
+            if (currentSortCol && currentSortDir) {
+                sortTableByColumn(runsTableBodySummary, currentSortCol, summaryRunsToRender, true, currentSortDir);
+            } else {
+                sortTableByColumn(runsTableBodySummary, 'date', summaryRunsToRender, true, 'desc'); // Default initial sort
+            }
         }
 
         // For Jason's Table
-        let jasonRunsForTable = []; // Initialize for broader scope
+        let jasonRunsForTable = [];
         const jasonEntryCountEl = document.getElementById('jasonEntryCount');
         if (runsTableBodyJason) {
             let initialJasonRuns = runs.filter(run => run.user === 'Jason');
-            jasonRunsForTable = applyAllFilters(initialJasonRuns, 'Jason'); // Assign to the broader scoped variable
-            sortTableByColumn(runsTableBodyJason, 'date', jasonRunsForTable, false, 'desc');
+            jasonRunsForTable = applyAllFilters(initialJasonRuns, 'Jason');
+            const currentSortCol = runsTableBodyJason.dataset.sortColumn;
+            const currentSortDir = runsTableBodyJason.dataset.sortDirection;
+            if (currentSortCol && currentSortDir) {
+                sortTableByColumn(runsTableBodyJason, currentSortCol, jasonRunsForTable, false, currentSortDir);
+            } else {
+                sortTableByColumn(runsTableBodyJason, 'date', jasonRunsForTable, false, 'desc'); // Default initial sort
+            }
             if (jasonEntryCountEl) {
                 jasonEntryCountEl.textContent = ` (${jasonRunsForTable.length} entries)`;
             }
         }
 
         // For Kelvin's Table
-        let kelvinRunsForTable = []; // Initialize for broader scope
+        let kelvinRunsForTable = [];
         const kelvinEntryCountEl = document.getElementById('kelvinEntryCount');
         if (runsTableBodyKelvin) {
             let initialKelvinRuns = runs.filter(run => run.user === 'Kelvin');
-            kelvinRunsForTable = applyAllFilters(initialKelvinRuns, 'Kelvin'); // Assign to the broader scoped variable
-            sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsForTable, false, 'desc');
+            kelvinRunsForTable = applyAllFilters(initialKelvinRuns, 'Kelvin');
+            const currentSortCol = runsTableBodyKelvin.dataset.sortColumn;
+            const currentSortDir = runsTableBodyKelvin.dataset.sortDirection;
+            if (currentSortCol && currentSortDir) {
+                sortTableByColumn(runsTableBodyKelvin, currentSortCol, kelvinRunsForTable, false, currentSortDir);
+            } else {
+                sortTableByColumn(runsTableBodyKelvin, 'date', kelvinRunsForTable, false, 'desc'); // Default initial sort
+            }
             if (kelvinEntryCountEl) {
                 kelvinEntryCountEl.textContent = ` (${kelvinRunsForTable.length} entries)`;
             }
@@ -1586,10 +1603,15 @@ document.addEventListener('DOMContentLoaded', async() => {
             runForm.reset();
             runForm.date.value = runToEdit.date;
             runForm.time.value = runToEdit.time;
-            runForm.mph.value = runToEdit.mph;
+            // runForm.mph.value = runToEdit.mph; // Old way
             // Ensure distance is populated with 3 decimal places
-            const distanceToEdit = parseFloat(runToEdit.distance);
-            runForm.distance.value = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3);
+            // const distanceToEdit = parseFloat(runToEdit.distance); // Old way
+            // runForm.distance.value = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3); // Old way
+
+            // New: Format for display, using parseFloat to handle potential string values from DB
+            runForm.mph.value = parseFloat(runToEdit.mph).toFixed(3);
+            runForm.distance.value = parseFloat(runToEdit.distance).toFixed(3);
+
             runForm.bpm.value = runToEdit.bpm || '';
             runForm.plus1.value = runToEdit.plus1 || '';
             runForm.notes.value = runToEdit.notes || '';
@@ -1599,9 +1621,13 @@ document.addEventListener('DOMContentLoaded', async() => {
 
             // ---- Store original values for comparison on save ----
             runForm.dataset.originalTime = runToEdit.time;
-            runForm.dataset.originalMph = runToEdit.mph.toString();
-            // Store original distance with 3 decimal places if it's a valid number
-            runForm.dataset.originalDistance = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3);
+            // runForm.dataset.originalMph = runToEdit.mph.toString(); // Old way
+            // runForm.dataset.originalDistance = isNaN(distanceToEdit) ? '' : distanceToEdit.toFixed(3); // Old way
+
+            // New: Store full precision string versions of original metrics
+            runForm.dataset.originalMph = String(runToEdit.mph);
+            runForm.dataset.originalKph = String(runToEdit.kph); // Store original KPH too
+            runForm.dataset.originalDistance = String(runToEdit.distance);
             // ---- End of storing original values ----
 
             activeCalculatorInput = 'mph';
@@ -1685,27 +1711,22 @@ document.addEventListener('DOMContentLoaded', async() => {
         const user = formData.get('currentUserForRun');
         const date = formData.get('date');
         const timeInputString = formData.get('time'); // Get time as MM:SS string
-
-        let mphInput = formData.get('mph');
-        let distanceInput = formData.get('distance');
-        const type = formData.get('type'); // Get the type
-
-        const bpm = formData.get('bpm') ? parseInt(formData.get('bpm')) : null;
-        const plus1 = formData.get('plus1') ? parseInt(formData.get('plus1')) : null;
+        const type = formData.get('type');
         const notes = formData.get('notes');
+        const day = getDayOfWeek(date);
 
         const parsedTimeMinutes = parseMMSS(timeInputString);
         let timeStringToStore = timeInputString;
 
         if (!date || !user || isNaN(parsedTimeMinutes) || parsedTimeMinutes <= 0) {
             closeLogRunForm();
-            let error = "Please fill in User, Date, and a valid Time (MM:SS, greater than 0).";
+            let errorMsg = "Please fill in User, Date, and a valid Time (MM:SS, greater than 0).";
             if (isNaN(parsedTimeMinutes) && timeInputString) {
-                error = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
+                errorMsg = "Invalid time format. Please use MM:SS (e.g., 30:45 or 30 for 30:00).";
             } else if (parsedTimeMinutes <= 0 && timeInputString) {
-                error = "Time must be greater than 00:00.";
+                errorMsg = "Time must be greater than 00:00.";
             }
-            openModal("Input Error", error, 'error');
+            openModal("Input Error", errorMsg, 'error');
             return;
         }
 
@@ -1713,107 +1734,143 @@ document.addEventListener('DOMContentLoaded', async() => {
             timeStringToStore = formatMinutesToMMSS(parsedTimeMinutes);
         }
 
-        let finalMph = mphInput ? parseFloat(mphInput) : 0; // mphInput is formData.get('mph')
-        let finalDistance = distanceInput ? parseFloat(distanceInput) : 0; // distanceInput is formData.get('distance')
-        let finalKph = 0;
+        let finalMph, finalKph, finalDistance;
 
-        // --- MODIFICATION FOR EDIT MODE: Check if values changed ---
-        if (editingRunId) {
-            const originalTime = runForm.dataset.originalTime;
-            const originalMphStr = runForm.dataset.originalMph;
-            const originalDistanceStr = runForm.dataset.originalDistance;
+        // Helper function for core metric calculation
+        function calculateRunMetricsInternal(timeMinutes, formMphStr, formDistStr, activeCalcInput) {
+            let mph, kph, distance;
 
-            // Use a small tolerance for float comparison if necessary, or rely on string comparison for exactness if that was intended
-            const mphIsUnchanged = mphInput === originalMphStr; // mphInput is string from formData
-            const distanceIsUnchanged = distanceInput === originalDistanceStr; // distanceInput is string from formData
-            const timeIsUnchanged = timeInputString === originalTime;
+            // Process input strings to align with displayed precision (3dp) before parsing
+            let processedMphStr = formMphStr;
+            if (formMphStr) {
+                const num = parseFloat(formMphStr);
+                if (!isNaN(num)) processedMphStr = num.toFixed(3);
+                else processedMphStr = 'NaN'; // Ensure parseFloat results in NaN if original was bad
+            }
 
-            if (timeIsUnchanged && mphIsUnchanged && distanceIsUnchanged) {
+            let processedDistStr = formDistStr;
+            if (formDistStr) {
+                const num = parseFloat(formDistStr);
+                if (!isNaN(num)) processedDistStr = num.toFixed(3);
+                else processedDistStr = 'NaN';
+            }
 
-                finalMph = parseFloat(originalMphStr);
-                finalDistance = parseFloat(originalDistanceStr); // Already stored as 3dp string
-                finalKph = calculateKph(finalMph);
-            } else {
+            const inputMphVal = parseFloat(processedMphStr);
+            const inputDistanceVal = parseFloat(processedDistStr);
 
-                // Original recalculation logic based on activeCalculatorInput
-                if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
+            if (timeMinutes <= 0) {
+                return { error: "Time must be positive for metric calculation." };
+            }
 
-                    finalDistance = parseFloat(finalDistance.toFixed(3));
-                    finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-                    finalKph = calculateKph(finalMph);
-
-                } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
-
-                    finalMph = parseFloat(finalMph.toFixed(1));
-                    finalKph = calculateKph(finalMph);
-                    finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-
-                } else if (!isNaN(finalDistance) && finalDistance > 0) {
-
-                    finalDistance = parseFloat(finalDistance.toFixed(3));
-                    finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-                    finalKph = calculateKph(finalMph);
-
-                } else if (!isNaN(finalMph) && finalMph > 0) {
-
-                    finalMph = parseFloat(finalMph.toFixed(1));
-                    finalKph = calculateKph(finalMph);
-                    finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-
+            if (activeCalcInput === 'distance') {
+                if (!isNaN(inputDistanceVal) && inputDistanceVal > 0) {
+                    distance = inputDistanceVal;
+                    kph = distance / (timeMinutes / 60);
+                    mph = kph * KPH_TO_MPH_FACTOR;
                 } else {
-                    closeLogRunForm();
-                    openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
-                    return;
+                    return { error: "Distance was selected for calculation but is invalid. Please enter a valid Distance (Km)." };
+                }
+            } else if (activeCalcInput === 'mph') {
+                if (!isNaN(inputMphVal) && inputMphVal > 0) {
+                    mph = inputMphVal;
+                    kph = mph * MPH_TO_KPH_FACTOR;
+                    distance = kph * (timeMinutes / 60);
+                } else {
+                    return { error: "MPH was selected for calculation but is invalid. Please enter a valid MPH." };
+                }
+            } else {
+                // This case should ideally not be reached if activeCalculatorInput is always 'mph' or 'distance'.
+                // If it is, it implies a state where neither known input method is active.
+                // Attempt a generic fallback, prioritizing distance then MPH if one is valid.
+                if (!isNaN(inputDistanceVal) && inputDistanceVal > 0) {
+                    distance = inputDistanceVal;
+                    kph = distance / (timeMinutes / 60);
+                    mph = kph * KPH_TO_MPH_FACTOR;
+                } else if (!isNaN(inputMphVal) && inputMphVal > 0) {
+                    mph = inputMphVal;
+                    kph = mph * MPH_TO_KPH_FACTOR;
+                    distance = kph * (timeMinutes / 60);
+                } else {
+                     return { error: "Please provide either a valid MPH or a valid Distance (Km) for calculation." };
                 }
             }
-        } else {
-            // --- This is the ADD mode logic (unchanged from your existing code) ---
-            if (activeCalculatorInput === 'distance' && !isNaN(finalDistance) && finalDistance > 0) {
 
-                finalDistance = parseFloat(finalDistance.toFixed(3));
-                finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-                finalKph = calculateKph(finalMph);
-
-            } else if (activeCalculatorInput === 'mph' && !isNaN(finalMph) && finalMph > 0) {
-
-                finalMph = parseFloat(finalMph.toFixed(1));
-                finalKph = calculateKph(finalMph);
-                finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-
-            } else if (!isNaN(finalDistance) && finalDistance > 0) {
-
-                finalDistance = parseFloat(finalDistance.toFixed(3));
-                finalMph = parseFloat(calculateMph(parsedTimeMinutes, finalDistance).toFixed(1));
-                finalKph = calculateKph(finalMph);
-
-            } else if (!isNaN(finalMph) && finalMph > 0) {
-
-                finalMph = parseFloat(finalMph.toFixed(1));
-                finalKph = calculateKph(finalMph);
-                finalDistance = parseFloat(calculateDistance(parsedTimeMinutes, finalKph).toFixed(3));
-
-            } else {
-                closeLogRunForm();
-                openModal("Input Error", "Please provide either a valid MPH or a valid Distance (Km).", 'error');
-                return;
+            if (typeof mph === 'undefined' || typeof kph === 'undefined' || typeof distance === 'undefined') {
+                return { error: "Calculation failed. Ensure valid positive MPH or Distance, and Time." };
             }
+            return { mph, kph, distance };
         }
-        // --- End of New Prioritization Logic / Edit mode modification ---
 
-        const day = getDayOfWeek(date);
-        const delta = (bpm !== null && plus1 !== null) ? (bpm - plus1) : null;
+        if (editingRunId) {
+            const originalTime = runForm.dataset.originalTime;
+            const originalMphData = runForm.dataset.originalMph; // Full precision string from dataset
+            const originalKphData = runForm.dataset.originalKph; // Full precision string from dataset
+            const originalDistanceData = runForm.dataset.originalDistance; // Full precision string from dataset
+
+            const formMphDisplayValue = formData.get('mph');
+            const formDistanceDisplayValue = formData.get('distance');
+
+            // Check if the displayed values in the form have changed
+            const timeChanged = timeInputString !== originalTime;
+            // Compare form's current display value with how the original full-precision MPH would be displayed (toFixed(1))
+            const mphDisplayChanged = formMphDisplayValue !== parseFloat(originalMphData).toFixed(3);
+            // Compare form's current display value with how the original full-precision Distance would be displayed (toFixed(3))
+            const distanceDisplayChanged = formDistanceDisplayValue !== parseFloat(originalDistanceData).toFixed(3);
+
+            if (!timeChanged && !mphDisplayChanged && !distanceDisplayChanged) {
+                // If no user-facing values changed, use the original full-precision metrics
+                finalMph = parseFloat(originalMphData);
+                finalKph = parseFloat(originalKphData);
+                finalDistance = parseFloat(originalDistanceData);
+            } else {
+                // If any user-facing value changed, recalculate from form inputs
+                const freshParsedTimeMinutes = parseMMSS(timeInputString); // Re-parse time here
+                if (isNaN(freshParsedTimeMinutes) || freshParsedTimeMinutes <= 0) {
+                    closeLogRunForm();
+                    openModal("Input Error", "Time became invalid during edit. Please ensure valid time.", 'error');
+                    return;
+                }
+                const calculatedMetrics = calculateRunMetricsInternal(freshParsedTimeMinutes, formMphDisplayValue, formDistanceDisplayValue, activeCalculatorInput);
+                if (calculatedMetrics.error) {
+                    closeLogRunForm(); openModal("Input Error", calculatedMetrics.error, 'error'); return;
+                }
+                finalMph = calculatedMetrics.mph;
+                finalKph = calculatedMetrics.kph;
+                finalDistance = calculatedMetrics.distance;
+            }
+        } else { // ADD MODE
+            const calculatedMetrics = calculateRunMetricsInternal(parsedTimeMinutes, formData.get('mph'), formData.get('distance'), activeCalculatorInput);
+            if (calculatedMetrics.error) {
+                closeLogRunForm(); openModal("Input Error", calculatedMetrics.error, 'error'); return;
+            }
+            finalMph = calculatedMetrics.mph;
+            finalKph = calculatedMetrics.kph;
+            finalDistance = calculatedMetrics.distance;
+        }
+        
+        // Validate that metrics were successfully calculated
+        if (typeof finalMph === 'undefined' || typeof finalKph === 'undefined' || typeof finalDistance === 'undefined') {
+            closeLogRunForm();
+            openModal("Calculation Error", "Could not determine run metrics. Please check your inputs.", 'error');
+            return;
+        }
+
+        const runBpm = formData.get('bpm') ? parseInt(formData.get('bpm')) : null;
+        const runPlus1 = formData.get('plus1') ? parseInt(formData.get('plus1')) : null;
+        const runDelta = (runBpm !== null && runPlus1 !== null) ? (runBpm - runPlus1) : null;
 
         const fullRunObject = {
             user,
             date,
             time: timeStringToStore,
+            // Store raw numbers with full precision
             mph: finalMph,
-            kph: parseFloat(finalKph.toFixed(3)), // kph still stored as km/hr
-            distance: parseFloat(finalDistance.toFixed(3)), // Ensure stored distance is a number with 3dp
-            type, // Add type here
-            bpm,
-            plus1,
-            delta,
+            kph: finalKph,
+            distance: finalDistance,
+            type,
+            bpm: runBpm,
+            plus1: runPlus1,
+            delta: runDelta,
             notes,
             day,
             auth_key: hashedAuthKey
@@ -2328,6 +2385,26 @@ document.addEventListener('DOMContentLoaded', async() => {
             if (filtersToApply.filterDistanceMin && run.distance < parseFloat(filtersToApply.filterDistanceMin)) passesAll = false;
             if (filtersToApply.filterDistanceMax && run.distance > parseFloat(filtersToApply.filterDistanceMax)) passesAll = false;
 
+            // Pace Range (Min/Km)
+            const runPaceMinutes = calculateMinPerKm(run.kph); // This returns total minutes
+
+            if (filtersToApply.filterPaceMin) {
+                const minPaceFilterMinutes = parseMMSS(filtersToApply.filterPaceMin);
+                if (!isNaN(minPaceFilterMinutes) && (isNaN(runPaceMinutes) || runPaceMinutes < minPaceFilterMinutes)) {
+                    // If run pace is faster (smaller) than minPaceFilter, it fails.
+                    // Also fails if runPace is NaN and a minPaceFilter is set.
+                    passesAll = false;
+                }
+            }
+            if (filtersToApply.filterPaceMax) {
+                const maxPaceFilterMinutes = parseMMSS(filtersToApply.filterPaceMax);
+                if (!isNaN(maxPaceFilterMinutes) && (isNaN(runPaceMinutes) || runPaceMinutes > maxPaceFilterMinutes)) {
+                    // If run pace is slower (larger) than maxPaceFilter, it fails.
+                    // Also fails if runPace is NaN and a maxPaceFilter is set.
+                    passesAll = false;
+                }
+            }
+
             return passesAll;
         });
     }
@@ -2652,7 +2729,7 @@ document.addEventListener('DOMContentLoaded', async() => {
     }
 
     function calculateMinPerKm(kph) {
-        if (kph <= 0) return Infinity; // Avoid division by zero and handle non-movement
+        if (kph <= 0 || !isFinite(kph)) return Infinity; // Avoid division by zero, handle non-movement or invalid kph
         return 60 / kph;
     }
 });

@@ -54,7 +54,7 @@
                 <div class="form-row">
                     <div>
                         <label for="mph">MPH:</label>
-                        <input type="number" step="0.1" id="mph" name="mph">
+                        <input type="number" step="0.001" id="mph" name="mph">
                     </div>
                     <div>
                         <label for="distance">Distance (Km):</label>
@@ -399,6 +399,16 @@
                 <div>
                     <label for="filterDistanceMax">Max Distance (Km):</label>
                     <input type="number" step="0.001" id="filterDistanceMax" name="filterDistanceMax">
+                </div>
+            </div>
+            <div class="form-row">
+                <div>
+                    <label for="filterPaceMin">Min Pace (MM:SS/Km):</label>
+                    <input type="text" id="filterPaceMin" name="filterPaceMin" placeholder="MM:SS">
+                </div>
+                <div>
+                    <label for="filterPaceMax">Max Pace (MM:SS/Km):</label>
+                    <input type="text" id="filterPaceMax" name="filterPaceMax" placeholder="MM:SS">
                 </div>
             </div>
             <div class="form-actions">
